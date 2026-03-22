@@ -13,5 +13,5 @@
   "setable": false,
   "uiComponent": "sensor",
   "insights": true,
-  "icon": "/assets/capabilities/energy.svg"
+  "icon": "/assets/capabilities/meter_power.svg"
 }

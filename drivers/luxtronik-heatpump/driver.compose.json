@@ -10,6 +10,7 @@
     "warmwater_operation_mode",
     "heating_temperature_correction",
     "warmwater_target_temperature",
+    "hotwater_boost",
     "measure_temp_outdoor",
     "measure_temp_outdoor_avg",
     "measure_temp_flow",
@@ -202,6 +203,19 @@
           "hint": {
             "en": "How often to query the heat pump (min. 10 s).",
             "de": "Wie oft die Wärmepumpe abgefragt wird (min. 10 s)."
+          }
+        },
+        {
+          "id": "hotwater_boost_duration",
+          "type": "number",
+          "label": {
+            "en": "Hot Water Boost Duration (minutes)",
+            "de": "Schnelladung Dauer (Minuten)"
+          },
+          "value": 60,
+          "hint": {
+            "en": "How long the hot water boost runs before switching back to Automatic.",
+            "de": "Wie lange die Schnelladung läuft, bevor automatisch zurückgeschaltet wird."
           }
         }
       ]

@@ -13,5 +13,5 @@
   "setable": false,
   "uiComponent": "sensor",
   "insights": true,
-  "icon": "/assets/capabilities/clock.svg"
+  "icon": "/assets/capabilities/round-hours-icon.svg"
 }

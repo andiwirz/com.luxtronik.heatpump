@@ -16,5 +16,5 @@
   "setable": true,
   "uiComponent": "slider",
   "insights": true,
-  "icon": "/assets/capabilities/heating.svg"
+  "icon": "/assets/capabilities/target_temperature_level.svg"
 }

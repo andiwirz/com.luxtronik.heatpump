@@ -1,0 +1,14 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Hot Water Boost",
+    "de": "Brauchwasser Schnelladung"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "toggle",
+  "insights": false,
+  "icon": "/assets/capabilities/water.svg",
+  "titleTrue":  { "en": "Boost active",   "de": "Schnelladung aktiv" },
+  "titleFalse": { "en": "Boost inactive", "de": "Schnelladung inaktiv" }
+}

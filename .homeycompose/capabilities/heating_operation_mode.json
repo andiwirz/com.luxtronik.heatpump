@@ -45,5 +45,5 @@
   "setable": true,
   "uiComponent": "picker",
   "insights": false,
-  "icon": "/assets/capabilities/heating.svg"
+  "icon": "/assets/capabilities/operational_state.svg"
 }

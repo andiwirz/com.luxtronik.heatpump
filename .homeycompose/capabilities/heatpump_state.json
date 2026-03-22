@@ -80,5 +80,5 @@
   "setable": false,
   "uiComponent": "sensor",
   "insights": false,
-  "icon": "/assets/capabilities/state.svg"
+  "icon": "/assets/capabilities/operational_state.svg"
 }

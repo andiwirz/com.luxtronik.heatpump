@@ -70,6 +70,15 @@ class LuxtronikHeatpumpDevice extends Device {
         }
       }
     }
+    // ── Neue Capabilities hinzufügen falls noch nicht vorhanden ─────────────────
+    const NEW_CAPABILITIES = ['hotwater_boost'];
+    for (const cap of NEW_CAPABILITIES) {
+      if (!this.hasCapability(cap)) {
+        this.log(`Füge neue Capability hinzu: ${cap}`);
+        try { await this.addCapability(cap); }
+        catch (e) { this.error(`Capability ${cap} konnte nicht hinzugefügt werden:`, e.message); }
+      }
+    }
     // ── Ende Migration ────────────────────────────────────────────────────────
 
     const s = this.getSettings();
@@ -81,12 +90,17 @@ class LuxtronikHeatpumpDevice extends Device {
     this._lastState    = null;
     this._lastHeatingMode   = null;
     this._lastWarmwaterMode = null;
+    // Timestamp map: nach einem Write diese Capability für 2 Polls nicht überschreiben
+    this._writeProtectUntil = {};
+    // Schnelladungs-Timer
+    this._boostTimer = null;
 
     // Flow-Trigger
     this._triggerHeatingModeChanged  = this.homey.flow.getDeviceTriggerCard('heating_operation_mode_changed');
     this._triggerWarmwaterModeChanged = this.homey.flow.getDeviceTriggerCard('warmwater_operation_mode_changed');
     this._triggerStateChanged         = this.homey.flow.getDeviceTriggerCard('heatpump_state_changed');
     this._triggerErrorOccurred        = this.homey.flow.getDeviceTriggerCard('error_occurred');
+    this._triggerBoostEnded           = this.homey.flow.getDeviceTriggerCard('hotwater_boost_ended');
 
     // Flow-Bedingungen
     this.homey.flow.getConditionCard('heating_operation_mode_is')
@@ -111,11 +125,25 @@ class LuxtronikHeatpumpDevice extends Device {
     this.homey.flow.getActionCard('set_warmwater_target_temperature')
       .registerRunListener(async (args) => this._setWarmwaterTargetTemperature(parseFloat(args.value)));
 
+    this.homey.flow.getActionCard('start_hotwater_boost')
+      .registerRunListener(async (args) => this._startHotwaterBoost(parseInt(args.duration, 10)));
+
+    this.homey.flow.getActionCard('stop_hotwater_boost')
+      .registerRunListener(async () => this._stopHotwaterBoost());
+
     // Capability-Listener (UI)
     this.registerCapabilityListener('heating_operation_mode',        async (v) => this._setHeatingOperationMode(parseInt(v, 10)));
     this.registerCapabilityListener('warmwater_operation_mode',       async (v) => this._setWarmwaterOperationMode(parseInt(v, 10)));
     this.registerCapabilityListener('heating_temperature_correction', async (v) => this._setHeatingTemperatureCorrection(parseFloat(v)));
     this.registerCapabilityListener('warmwater_target_temperature',   async (v) => this._setWarmwaterTargetTemperature(parseFloat(v)));
+    this.registerCapabilityListener('hotwater_boost',                  async (v) => {
+      if (v) {
+        const s = this.getSettings();
+        await this._startHotwaterBoost(Number(s.hotwater_boost_duration) || 60);
+      } else {
+        await this._stopHotwaterBoost();
+      }
+    });
 
     this._connectPump();
     await this._doPoll();
@@ -124,6 +152,7 @@ class LuxtronikHeatpumpDevice extends Device {
 
   async onDeleted() {
     this._stopPolling();
+    if (this._boostTimer) { clearTimeout(this._boostTimer); this._boostTimer = null; }
   }
 
   async onSettings({ newSettings }) {
@@ -210,9 +239,11 @@ class LuxtronikHeatpumpDevice extends Device {
     await this._setIfValid('measure_temp_source_out',   this._n(v.temperature_heat_source_out));
     // Ansaugluft / Zuluft (Luft-WP)
     await this._setIfValid('measure_temp_suction_air',  this._n(v.Temp_Lueftung_Zuluft));
-    // Raumtemperatur (nur mit RBE-Raumdisplay)
-    await this._setIfValid('measure_temp_room',         this._n(v.Temperatur_RFV));
-    await this._setIfValid('measure_temp_room_target',  this._n(v.Temperatur_RFV2));
+    // Raumtemperatur (nur mit RBE-Raumdisplay — Capability nur anzeigen wenn Wert > 0)
+    const roomTemp       = this._n(v.Temperatur_RFV);
+    const roomTempTarget = this._n(v.Temperatur_RFV2);
+    await this._setCapabilityConditional('measure_temp_room',        roomTemp,       roomTemp !== null && roomTemp > 0);
+    await this._setCapabilityConditional('measure_temp_room_target', roomTempTarget, roomTempTarget !== null && roomTempTarget > 0);
 
     // ── Volumenstrom ─────────────────────────────────────────────────────────
     // Durchfluss_WQ in l/min → Homey in l/h, oder flowRate direkt
@@ -301,14 +332,56 @@ class LuxtronikHeatpumpDevice extends Device {
 
   async _setHeatingTemperatureCorrection(value) {
     const clamped = Math.min(5, Math.max(-5, Math.round(value * 2) / 2));
+    this.log(`Setze Heizungs-Temperaturkorrektur: ${clamped} °C`);
+    this._setWriteProtect('heating_temperature_correction', 120000);
     await this._write('heating_target_temperature', clamped);
     await this.setCapabilityValue('heating_temperature_correction', clamped);
   }
 
   async _setWarmwaterTargetTemperature(value) {
     const clamped = Math.min(65, Math.max(30, value));
-    await this._write('warmwater_target_temperature', clamped);
+    this.log(`Setze Brauchwasser Soll-Temperatur: ${clamped} °C`);
+    // Sofort UI-Wert setzen, dann Write-Schutz, dann senden
     await this.setCapabilityValue('warmwater_target_temperature', clamped);
+    this._setWriteProtect('warmwater_target_temperature', 120000);
+    await this._write('warmwater_target_temperature', clamped);
+    this.log(`Brauchwasser Soll-Temperatur erfolgreich gesendet: ${clamped} °C`);
+  }
+
+  // ─── Schnelladung ─────────────────────────────────────────────────────────────
+
+  async _startHotwaterBoost(durationMinutes) {
+    const duration = Math.min(480, Math.max(5, durationMinutes || 60));
+    this.log(`Schnelladung starten: ${duration} Minuten`);
+
+    // Laufenden Boost-Timer canceln falls aktiv
+    if (this._boostTimer) {
+      clearTimeout(this._boostTimer);
+      this._boostTimer = null;
+    }
+
+    // Party-Modus setzen
+    await this._setWarmwaterOperationMode(2);
+    await this.setCapabilityValue('hotwater_boost', true);
+
+    // Auto-Reset nach konfigurierbarer Zeit
+    this._boostTimer = setTimeout(async () => {
+      this.log(`Schnelladung beendet (${duration} min), schalte zurück auf Automatik`);
+      this._boostTimer = null;
+      await this._setWarmwaterOperationMode(0).catch((e) => this.error('Boost-Reset fehlgeschlagen:', e.message));
+      await this.setCapabilityValue('hotwater_boost', false).catch(() => {});
+      await this._triggerBoostEnded.trigger(this, {}).catch(() => {});
+    }, duration * 60 * 1000);
+  }
+
+  async _stopHotwaterBoost() {
+    this.log('Schnelladung manuell gestoppt');
+    if (this._boostTimer) {
+      clearTimeout(this._boostTimer);
+      this._boostTimer = null;
+    }
+    await this._setWarmwaterOperationMode(0);
+    await this.setCapabilityValue('hotwater_boost', false);
   }
 
   // ─── Low-level Write ───────────────────────────────────────────────────────
@@ -316,20 +389,62 @@ class LuxtronikHeatpumpDevice extends Device {
   _write(parameter, value) {
     return new Promise((resolve, reject) => {
       if (!this._pump) { reject(new Error('Nicht verbunden')); return; }
-      this._pump.write(parameter, value, (err, res) => {
-        if (err) { this.error(`Write-Fehler (${parameter}=${value}):`, err.message); reject(err); }
-        else      { this.log(`Write OK: ${parameter}=${value}`); resolve(res); }
-      });
+
+      // Polling stoppen damit keine konkurrierende TCP-Verbindung offen ist
+      this._stopPolling();
+      this.log(`_write: ${parameter} = ${value} (Polling pausiert)`);
+
+      // Kurz warten bis eine laufende Poll-Verbindung geschlossen ist
+      setTimeout(() => {
+        this._pump.write(parameter, value, (err, res) => {
+          // Polling nach dem Write immer neu starten
+          this._startPolling();
+
+          if (err) {
+            const msg = (err && err.message) ? err.message : String(err);
+            this.error(`Write-Fehler (${parameter}=${value}): ${msg}`);
+            reject(new Error(msg));
+          } else {
+            this.log(`Write OK: ${parameter}=${value}`, JSON.stringify(res));
+            resolve(res);
+          }
+        });
+      }, 1500);
     });
   }
 
   // ─── Hilfsfunktionen ───────────────────────────────────────────────────────
 
+  async _setCapabilityConditional(capability, value, condition) {
+    if (condition) {
+      // Wert vorhanden → Capability hinzufügen falls noch nicht da, dann setzen
+      if (!this.hasCapability(capability)) {
+        this.log(`Aktiviere Capability (Wert vorhanden): ${capability}`);
+        try { await this.addCapability(capability); }
+        catch (e) { this.error(`addCapability ${capability} fehlgeschlagen:`, e.message); return; }
+      }
+      await this._setIfValid(capability, value);
+    } else {
+      // Kein gültiger Wert → Capability entfernen falls vorhanden
+      if (this.hasCapability(capability)) {
+        this.log(`Deaktiviere Capability (kein Wert): ${capability}`);
+        try { await this.removeCapability(capability); }
+        catch (e) { this.error(`removeCapability ${capability} fehlgeschlagen:`, e.message); }
+      }
+    }
+  }
+
   async _setIfValid(capability, value) {
     if (value === null || value === undefined || value === 'no' || Number.isNaN(value)) return;
     if (!this.hasCapability(capability)) return;
+    // Write-Schutz: nach einem manuellen Schreiben kurz nicht überschreiben
+    if (this._writeProtectUntil[capability] && Date.now() < this._writeProtectUntil[capability]) return;
     try { await this.setCapabilityValue(capability, value); }
     catch (e) { this.error(`Fehler beim Setzen von ${capability}:`, e.message); }
+  }
+
+  _setWriteProtect(capability, ms = 120000) {
+    this._writeProtectUntil[capability] = Date.now() + ms;
   }
 
   _n(val) {

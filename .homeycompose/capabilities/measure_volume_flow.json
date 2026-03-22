@@ -13,5 +13,5 @@
   "setable": false,
   "uiComponent": "sensor",
   "insights": true,
-  "icon": "/assets/capabilities/flow.svg"
+  "icon": "/assets/capabilities/measure_water.svg"
 }

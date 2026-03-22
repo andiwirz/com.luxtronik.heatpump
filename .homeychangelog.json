@@ -14,5 +14,9 @@
   },
   "2.0.5": {
     "en": "SVG icon issues"
+  },
+  "2.1.0": {
+    "en": "New: Hot Water Boost — start instant hot water heating with configurable auto-reset timer (UI toggle + Flow action). Fixes write issues caused by concurrent TCP connections.",
+    "de": "Neu: Brauchwasser Schnelladung — sofortige Warmwasserbereitung mit konfigurierbarem Auto-Reset-Timer (UI-Toggle + Flow-Aktion). Behebt Schreibfehler durch gleichzeitige TCP-Verbindungen."
   }
 }

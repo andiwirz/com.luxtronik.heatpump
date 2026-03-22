@@ -151,6 +151,20 @@
             "filter": "driver_id=luxtronik-heatpump"
           }
         ]
+      },
+      {
+        "id": "hotwater_boost_ended",
+        "title": {
+          "en": "Hot water boost ended",
+          "de": "Brauchwasser Schnelladung beendet"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          }
+        ]
       }
     ],
     "conditions": [
@@ -564,6 +578,57 @@
           "en": "Set hot water target temperature to [[value]] °C",
           "de": "Brauchwasser Soll-Temperatur auf [[value]] °C setzen"
         }
+      },
+      {
+        "id": "start_hotwater_boost",
+        "title": {
+          "en": "Start hot water boost",
+          "de": "Brauchwasser Schnelladung starten"
+        },
+        "titleFormatted": {
+          "en": "Start hot water boost for [[duration]] minutes",
+          "de": "Brauchwasser Schnelladung für [[duration]] Minuten starten"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          },
+          {
+            "name": "duration",
+            "type": "number",
+            "title": {
+              "en": "Duration (minutes)",
+              "de": "Dauer (Minuten)"
+            },
+            "placeholder": {
+              "en": "e.g. 60",
+              "de": "z.B. 60"
+            },
+            "min": 5,
+            "max": 480,
+            "step": 5
+          }
+        ]
+      },
+      {
+        "id": "stop_hotwater_boost",
+        "title": {
+          "en": "Stop hot water boost",
+          "de": "Brauchwasser Schnelladung stoppen"
+        },
+        "titleFormatted": {
+          "en": "Stop hot water boost",
+          "de": "Brauchwasser Schnelladung stoppen"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          }
+        ]
       }
     ]
   },
@@ -580,6 +645,7 @@
         "warmwater_operation_mode",
         "heating_temperature_correction",
         "warmwater_target_temperature",
+        "hotwater_boost",
         "measure_temp_outdoor",
         "measure_temp_outdoor_avg",
         "measure_temp_flow",
@@ -773,6 +839,19 @@
                 "en": "How often to query the heat pump (min. 10 s).",
                 "de": "Wie oft die Wärmepumpe abgefragt wird (min. 10 s)."
               }
+            },
+            {
+              "id": "hotwater_boost_duration",
+              "type": "number",
+              "label": {
+                "en": "Hot Water Boost Duration (minutes)",
+                "de": "Schnelladung Dauer (Minuten)"
+              },
+              "value": 60,
+              "hint": {
+                "en": "How long the hot water boost runs before switching back to Automatic.",
+                "de": "Wie lange die Schnelladung läuft, bevor automatisch zurückgeschaltet wird."
+              }
             }
           ]
         }
@@ -840,7 +919,7 @@
       "setable": true,
       "uiComponent": "picker",
       "insights": false,
-      "icon": "/assets/capabilities/heating.svg"
+      "icon": "/assets/capabilities/operational_state.svg"
     },
     "heating_temperature_correction": {
       "type": "number",
@@ -860,7 +939,7 @@
       "setable": true,
       "uiComponent": "slider",
       "insights": true,
-      "icon": "/assets/capabilities/heating.svg"
+      "icon": "/assets/capabilities/target_temperature_level.svg"
     },
     "heatpump_state": {
       "type": "enum",
@@ -944,7 +1023,27 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": false,
-      "icon": "/assets/capabilities/state.svg"
+      "icon": "/assets/capabilities/operational_state.svg"
+    },
+    "hotwater_boost": {
+      "type": "boolean",
+      "title": {
+        "en": "Hot Water Boost",
+        "de": "Brauchwasser Schnelladung"
+      },
+      "getable": true,
+      "setable": true,
+      "uiComponent": "toggle",
+      "insights": false,
+      "icon": "/assets/capabilities/water.svg",
+      "titleTrue": {
+        "en": "Boost active",
+        "de": "Schnelladung aktiv"
+      },
+      "titleFalse": {
+        "en": "Boost inactive",
+        "de": "Schnelladung inaktiv"
+      }
     },
     "measure_hours_compressor": {
       "type": "number",
@@ -961,7 +1060,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/clock.svg"
+      "icon": "/assets/capabilities/round-hours-icon.svg"
     },
     "measure_hours_heating": {
       "type": "number",
@@ -978,7 +1077,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/clock.svg"
+      "icon": "/assets/capabilities/round-hours-icon.svg"
     },
     "measure_hours_hotwater": {
       "type": "number",
@@ -995,7 +1094,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/clock.svg"
+      "icon": "/assets/capabilities/round-hours-icon.svg"
     },
     "measure_temp_flow": {
       "type": "number",
@@ -1012,7 +1111,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
+      "icon": "/assets/capabilities/measure_temperature.svg"
     },
     "measure_temp_hotgas": {
       "type": "number",
@@ -1029,7 +1128,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
+      "icon": "/assets/capabilities/measure_temperature.svg"
     },
     "measure_temp_hotwater": {
       "type": "number",
@@ -1063,7 +1162,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/water.svg"
+      "icon": "/assets/capabilities/target_temperature_level.svg"
     },
     "measure_temp_outdoor": {
       "type": "number",
@@ -1080,7 +1179,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
+      "icon": "/assets/capabilities/measure_temperature.svg"
     },
     "measure_temp_outdoor_avg": {
       "type": "number",
@@ -1097,7 +1196,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
+      "icon": "/assets/capabilities/measure_temperature.svg"
     },
     "measure_temp_return": {
       "type": "number",
@@ -1114,7 +1213,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
+      "icon": "/assets/capabilities/measure_temperature.svg"
     },
     "measure_temp_return_target": {
       "type": "number",
@@ -1131,7 +1230,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
+      "icon": "/assets/capabilities/target_temperature_level.svg"
     },
     "measure_temp_room": {
       "type": "number",
@@ -1182,7 +1281,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
+      "icon": "/assets/capabilities/measure_temperature.svg"
     },
     "measure_temp_source_out": {
       "type": "number",
@@ -1199,7 +1298,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
+      "icon": "/assets/capabilities/measure_temperature.svg"
     },
     "measure_temp_suction_air": {
       "type": "number",
@@ -1216,7 +1315,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
+      "icon": "/assets/capabilities/measure_temperature.svg"
     },
     "measure_volume_flow": {
       "type": "number",
@@ -1233,7 +1332,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/flow.svg"
+      "icon": "/assets/capabilities/measure_water.svg"
     },
     "meter_energy_heating": {
       "type": "number",
@@ -1250,7 +1349,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/energy.svg"
+      "icon": "/assets/capabilities/meter_power.svg"
     },
     "meter_energy_hotwater": {
       "type": "number",
@@ -1267,7 +1366,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/energy.svg"
+      "icon": "/assets/capabilities/meter_power.svg"
     },
     "meter_energy_total": {
       "type": "number",
@@ -1284,7 +1383,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/energy.svg"
+      "icon": "/assets/capabilities/meter_power.svg"
     },
     "warmwater_operation_mode": {
       "type": "enum",
@@ -1333,7 +1432,7 @@
       "setable": true,
       "uiComponent": "picker",
       "insights": false,
-      "icon": "/assets/capabilities/water.svg"
+      "icon": "/assets/capabilities/operational_state.svg"
     },
     "warmwater_target_temperature": {
       "type": "number",

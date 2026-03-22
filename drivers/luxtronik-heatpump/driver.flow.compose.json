@@ -71,6 +71,14 @@
         }
       ],
       "args": []
+    },
+    {
+      "id": "hotwater_boost_ended",
+      "title": {
+        "en": "Hot water boost ended",
+        "de": "Brauchwasser Schnelladung beendet"
+      },
+      "args": []
     }
   ],
   "conditions": [
@@ -449,6 +457,46 @@
         "en": "Set hot water target temperature to [[value]] °C",
         "de": "Brauchwasser Soll-Temperatur auf [[value]] °C setzen"
       }
+    },
+    {
+      "id": "start_hotwater_boost",
+      "title": {
+        "en": "Start hot water boost",
+        "de": "Brauchwasser Schnelladung starten"
+      },
+      "titleFormatted": {
+        "en": "Start hot water boost for [[duration]] minutes",
+        "de": "Brauchwasser Schnelladung für [[duration]] Minuten starten"
+      },
+      "args": [
+        {
+          "name": "duration",
+          "type": "number",
+          "title": {
+            "en": "Duration (minutes)",
+            "de": "Dauer (Minuten)"
+          },
+          "placeholder": {
+            "en": "e.g. 60",
+            "de": "z.B. 60"
+          },
+          "min": 5,
+          "max": 480,
+          "step": 5
+        }
+      ]
+    },
+    {
+      "id": "stop_hotwater_boost",
+      "title": {
+        "en": "Stop hot water boost",
+        "de": "Brauchwasser Schnelladung stoppen"
+      },
+      "titleFormatted": {
+        "en": "Stop hot water boost",
+        "de": "Brauchwasser Schnelladung stoppen"
+      },
+      "args": []
     }
   ]
 }
