@@ -18,5 +18,9 @@
   "2.1.0": {
     "en": "New: Hot Water Boost — start instant hot water heating with configurable auto-reset timer (UI toggle + Flow action). Fixes write issues caused by concurrent TCP connections.",
     "de": "Neu: Brauchwasser Schnelladung — sofortige Warmwasserbereitung mit konfigurierbarem Auto-Reset-Timer (UI-Toggle + Flow-Aktion). Behebt Schreibfehler durch gleichzeitige TCP-Verbindungen."
+  },
+  "2.2.0": {
+    "en": "New: Legionella protection — heats hot water to 60°C+ using auxiliary heater (Zuheizer), then automatically resets to Automatic mode at 51°C. Includes UI toggle, Flow action and completion trigger.",
+    "de": "Neu: Legionellenschutz — erhitzt Warmwasser auf 60°C+ via Zuheizer und schaltet danach automatisch auf Automatik / 51°C zurück. UI-Toggle, Flow-Aktion und Abschluss-Trigger enthalten."
   }
 }

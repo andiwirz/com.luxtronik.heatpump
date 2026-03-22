@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.luxtronik.heatpump",
-  "version": "2.0.5",
+  "version": "2.1.0",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "name": {
@@ -849,8 +849,8 @@
               },
               "value": 60,
               "hint": {
-                "en": "How long the hot water boost runs before switching back to Automatic.",
-                "de": "Wie lange die Schnelladung läuft, bevor automatisch zurückgeschaltet wird."
+                "en": "How long the boost runs before switching back to Automatic.",
+                "de": "Wie lange die Schnelladung läuft, bevor auf Automatik zurückgeschaltet wird."
               }
             }
           ]
@@ -1024,26 +1024,6 @@
       "uiComponent": "sensor",
       "insights": false,
       "icon": "/assets/capabilities/operational_state.svg"
-    },
-    "hotwater_boost": {
-      "type": "boolean",
-      "title": {
-        "en": "Hot Water Boost",
-        "de": "Brauchwasser Schnelladung"
-      },
-      "getable": true,
-      "setable": true,
-      "uiComponent": "toggle",
-      "insights": false,
-      "icon": "/assets/capabilities/water.svg",
-      "titleTrue": {
-        "en": "Boost active",
-        "de": "Schnelladung aktiv"
-      },
-      "titleFalse": {
-        "en": "Boost inactive",
-        "de": "Schnelladung inaktiv"
-      }
     },
     "measure_hours_compressor": {
       "type": "number",
@@ -1453,6 +1433,26 @@
       "uiComponent": "slider",
       "insights": true,
       "icon": "/assets/capabilities/target_temperature_level.svg"
+    },
+    "hotwater_boost": {
+      "type": "boolean",
+      "title": {
+        "en": "Hot Water Boost",
+        "de": "Brauchwasser Schnelladung"
+      },
+      "getable": true,
+      "setable": true,
+      "uiComponent": "toggle",
+      "insights": false,
+      "icon": "/assets/capabilities/water.svg",
+      "titleTrue": {
+        "en": "Boost active",
+        "de": "Schnelladung aktiv"
+      },
+      "titleFalse": {
+        "en": "Boost inactive",
+        "de": "Schnelladung inaktiv"
+      }
     }
   }
 }
