@@ -12,18 +12,31 @@ const OPERATION_MODE_LABELS = {
   4: 'Off',
 };
 
-// Wärmepumpen-Status aus heatpump_state1
+// heatpump_state3 = Extended State (Detailstatus der Wärmepumpe)
+// Quelle: luxtronik2/types.js → extendetStateMessages
 const HEATPUMP_STATE_MAP = {
-  0:  'off',
-  1:  'heating',
-  2:  'hotwater',
-  3:  'swimming',
-  4:  'provider_lock',
-  5:  'defrost',
-  6:  'standby',
-  7:  'external',
-  8:  'cooling',
+  0:  'heating',        // Heizbetrieb
+  1:  'standby',        // Keine Anforderung
+  2:  'standby',        // Netz Einschaltverzögerung
+  3:  'standby',        // Schaltspielzeit
+  4:  'provider_lock',  // EVU Sperrzeit
+  5:  'hotwater',       // Brauchwasser
+  6:  'standby',        // Estrich Programm
+  7:  'defrost',        // Abtauen
+  8:  'standby',        // Pumpenvorlauf
+  9:  'hotwater',       // Thermische Desinfektion
+  10: 'cooling',        // Kühlbetrieb
+  12: 'swimming',       // Schwimmbad / Photovoltaik
+  13: 'external',       // Heizen Ext.
+  14: 'external',       // Brauchwasser Ext.
+  16: 'standby',        // Durchflussüberwachung
+  17: 'heating',        // Elektrische Zusatzheizung
+  19: 'hotwater',       // Warmwasser Nachheizung
 };
+
+// heatpump_state1 = Grob-Status (0=läuft, 1=steht, 4=Fehler)
+// Nur für Fehlerkennung verwendet
+const HEATPUMP_STATE1_ERROR = 4;
 
 class LuxtronikHeatpumpDevice extends Device {
 
@@ -90,6 +103,7 @@ class LuxtronikHeatpumpDevice extends Device {
     this._lastState    = null;
     this._lastHeatingMode   = null;
     this._lastWarmwaterMode = null;
+    this._lastErrorState    = false;
     // Timestamp map: nach einem Write diese Capability für 2 Polls nicht überschreiben
     this._writeProtectUntil = {};
     // Schnelladungs-Timer
@@ -267,8 +281,12 @@ class LuxtronikHeatpumpDevice extends Device {
     await this._setIfValid('measure_hours_hotwater',   this._n(v.hours_warmwater));
 
     // ── Wärmepumpen-Status ───────────────────────────────────────────────────
-    const rawState  = v.heatpump_state1;
-    const stateSlug = HEATPUMP_STATE_MAP[rawState] ?? 'unknown';
+    // state3 = detaillierter Betriebsstatus; state1 = grober Status (für Fehler)
+    const rawState  = v.heatpump_state3;
+    const state1    = v.heatpump_state1;
+    const stateSlug = (state1 === HEATPUMP_STATE1_ERROR)
+      ? 'off'
+      : (HEATPUMP_STATE_MAP[rawState] ?? 'unknown');
     if (stateSlug !== this._lastState) {
       await this._setIfValid('heatpump_state', stateSlug);
       if (this._lastState !== null) {
@@ -278,12 +296,19 @@ class LuxtronikHeatpumpDevice extends Device {
     }
 
     // ── Fehler ───────────────────────────────────────────────────────────────
-    const hasError = Array.isArray(v.errors) && v.errors.length > 0;
+    // heatpump_state1 === 4 bedeutet: Steuerung befindet sich AKTUELL im Fehlerzustand
+    // v.errors enthält die letzten 5 Fehler aus dem Protokoll (auch alte, behobene Fehler)
+    // → nur state1 === 4 ist zuverlässig für einen aktiven Fehler
+    const hasError = (v.heatpump_state1 === 4);
     await this._setIfValid('alarm_generic', hasError);
-    if (hasError) {
-      const msg = v.errors.map((e) => (typeof e === 'object' ? JSON.stringify(e) : String(e))).join(', ');
+    if (hasError && !this._lastErrorState) {
+      // Fehlermeldung aus dem Protokoll holen
+      const msg = Array.isArray(v.errors) && v.errors.length > 0
+        ? v.errors.map((e) => (typeof e === 'object' ? JSON.stringify(e) : String(e))).join(', ')
+        : 'Fehler (state1=4)';
       await this._triggerErrorOccurred.trigger(this, { error: msg }).catch(() => {});
     }
+    this._lastErrorState = hasError;
 
     // ── Betriebsmodus aus data.parameters ────────────────────────────────────
     const heatingMode = this._int(p.heating_operation_mode);

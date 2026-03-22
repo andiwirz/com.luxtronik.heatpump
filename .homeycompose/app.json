@@ -1,6 +1,6 @@
 {
   "id": "com.luxtronik.heatpump",
-  "version": "2.0.5",
+  "version": "2.0.7",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "name": {
