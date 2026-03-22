@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Luxtronik hinzufügen</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f7fafc;
+      color: #2d3748;
+      padding: 28px 24px 16px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .header img { width: 48px; height: 48px; border-radius: 10px; }
+    .header h1 { font-size: 17px; font-weight: 700; color: #1a202c; }
+    .header p  { font-size: 12px; color: #718096; margin-top: 2px; }
+
+    .info-box {
+      background: #ebf8ff;
+      border: 1px solid #bee3f8;
+      border-radius: 8px;
+      padding: 11px 14px;
+      font-size: 12px;
+      color: #2b6cb0;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    .form-group { margin-bottom: 16px; }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 5px;
+    }
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 10px 13px;
+      border: 1.5px solid #cbd5e0;
+      border-radius: 8px;
+      font-size: 15px;
+      color: #2d3748;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus {
+      border-color: #4299e1;
+      box-shadow: 0 0 0 3px rgba(66,153,225,0.15);
+    }
+    .hint { font-size: 11px; color: #a0aec0; margin-top: 4px; }
+    .error-msg {
+      display: none;
+      background: #fff5f5;
+      border: 1px solid #feb2b2;
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-size: 12px;
+      color: #c53030;
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+    .error-msg.visible { display: block; }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 13px;
+      background: #2b6cb0;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, opacity 0.2s;
+      margin-top: 6px;
+    }
+    .btn:hover { background: #2c5282; }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .status {
+      text-align: center;
+      font-size: 12px;
+      color: #718096;
+      margin-top: 10px;
+      min-height: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <img src="/app/com.luxtronik.heatpump/drivers/luxtronik-heatpump/assets/images/logo.png"
+         alt="" onerror="this.style.display='none'">
+    <div>
+      <h1>Luxtronik Wärmepumpe</h1>
+      <p>Verbindung zum Controller einrichten</p>
+    </div>
+  </div>
+
+  <div class="info-box">
+    ℹ️ Der Luxtronik-Controller muss über LAN erreichbar sein.<br>
+    Eine feste IP-Adresse wird empfohlen (DHCP-Reservierung im Router).
+  </div>
+
+  <div class="form-group">
+    <label for="ip">IP-Adresse</label>
+    <input type="text" id="ip" placeholder="192.168.1.100"
+           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <p class="hint">Die lokale IP-Adresse des Luxtronik-Controllers.</p>
+  </div>
+
+  <div class="form-group">
+    <label for="port">Port</label>
+    <input type="number" id="port" value="8889" min="1" max="65535" step="1">
+    <p class="hint">Standard-Port: 8889. Nur ändern wenn nötig.</p>
+  </div>
+
+  <div class="error-msg" id="error-msg"></div>
+
+  <button class="btn" id="btn-connect" onclick="connect()">
+    Verbinden &amp; hinzufügen
+  </button>
+  <div class="status" id="status"></div>
+
+  <script>
+    // Store Homey globally so onclick can reach it
+    var Homey;
+
+    function onHomeyReady(HomeyInstance) {
+      Homey = HomeyInstance;
+      Homey.ready();
+    }
+
+    function setStatus(msg) {
+      document.getElementById('status').textContent = msg;
+    }
+
+    function showError(msg) {
+      var el = document.getElementById('error-msg');
+      el.textContent = msg;
+      el.classList.add('visible');
+    }
+
+    function hideError() {
+      document.getElementById('error-msg').classList.remove('visible');
+    }
+
+    function setLoading(loading) {
+      var btn = document.getElementById('btn-connect');
+      btn.disabled = loading;
+      btn.textContent = loading ? 'Verbinde…' : 'Verbinden & hinzufügen';
+      setStatus(loading ? 'Verbindung wird getestet…' : '');
+    }
+
+    function connect() {
+      var ip   = document.getElementById('ip').value.trim();
+      var port = parseInt(document.getElementById('port').value, 10);
+
+      hideError();
+
+      if (!ip || !/^(\d{1,3}\.){3}\d{1,3}$/.test(ip)) {
+        showError('Bitte eine gültige IP-Adresse eingeben (z.B. 192.168.1.100).');
+        return;
+      }
+      if (!port || port < 1 || port > 65535) {
+        showError('Bitte einen gültigen Port eingeben (1–65535).');
+        return;
+      }
+
+      setLoading(true);
+
+      // emit → driver.js session.setHandler('connect') → returns device object or false
+      Homey.emit('connect', { ip: ip, port: port })
+        .then(function(device) {
+          if (!device) {
+            setLoading(false);
+            showError(
+              'Verbindung zu ' + ip + ':' + port + ' fehlgeschlagen. ' +
+              'Bitte IP-Adresse und Port prüfen und sicherstellen, ' +
+              'dass die Wärmepumpe eingeschaltet und im Netzwerk erreichbar ist.'
+            );
+            return;
+          }
+          setStatus('Gerät wird hinzugefügt…');
+          // Create the device directly – no list_devices step needed
+          return Homey.createDevice(device);
+        })
+        .then(function() {
+          setStatus('Erfolgreich hinzugefügt!');
+          Homey.alert('Wärmepumpe erfolgreich hinzugefügt!').then(function() {
+            Homey.done();
+          });
+        })
+        .catch(function(err) {
+          setLoading(false);
+          showError('Fehler: ' + (err && err.message ? err.message : String(err)));
+        });
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,85 @@
+{
+  "app": {
+    "name": "Luxtronik Wärmepumpe",
+    "description": "Steuern und überwachen Sie Ihre Luxtronik 2.0 Wärmepumpe"
+  },
+  "pair": {
+    "title": "Luxtronik Wärmepumpe hinzufügen",
+    "ip": "IP-Adresse",
+    "port": "Port",
+    "connecting": "Verbinde...",
+    "success": "Verbindung erfolgreich!",
+    "error": {
+      "no_ip": "Bitte geben Sie eine gültige IP-Adresse ein.",
+      "connection_failed": "Verbindung zur Wärmepumpe fehlgeschlagen. Bitte IP-Adresse und Port prüfen.",
+      "timeout": "Verbindungsabbruch. Bitte stellen Sie sicher, dass die Wärmepumpe eingeschaltet und erreichbar ist."
+    }
+  },
+  "settings": {
+    "ip": "IP-Adresse",
+    "port": "Port",
+    "poll_interval": "Abfrageintervall (Sekunden)"
+  },
+  "capability": {
+    "heating_operation_mode": {
+      "title": "Heizungs-Betriebsart",
+      "values": {
+        "0": "Automatik",
+        "1": "Zuheizer",
+        "2": "Party",
+        "3": "Ferien",
+        "4": "Aus"
+      }
+    },
+    "warmwater_operation_mode": {
+      "title": "Brauchwasser-Betriebsart",
+      "values": {
+        "0": "Automatik",
+        "1": "Zuheizer",
+        "2": "Party",
+        "3": "Ferien",
+        "4": "Aus"
+      }
+    },
+    "heating_temperature_correction": {
+      "title": "Heizungs-Temperaturkorrektur"
+    },
+    "warmwater_target_temperature": {
+      "title": "Brauchwasser Soll-Temperatur"
+    },
+    "heatpump_state": {
+      "title": "Wärmepumpen-Status",
+      "values": {
+        "heating":       "Heizen",
+        "hotwater":      "Warmwasser",
+        "swimming":      "Schwimmbad",
+        "provider_lock": "EVU-Sperre",
+        "defrost":       "Abtauen",
+        "off":           "Aus",
+        "external":      "Extern",
+        "cooling":       "Kühlen",
+        "standby":       "Standby",
+        "unknown":       "Unbekannt"
+      }
+    }
+  },
+  "flow": {
+    "triggers": {
+      "heating_operation_mode_changed": "Heizungs-Betriebsart geändert",
+      "warmwater_operation_mode_changed": "Brauchwasser-Betriebsart geändert",
+      "heatpump_state_changed": "Wärmepumpen-Status geändert",
+      "error_occurred": "Fehler aufgetreten"
+    },
+    "conditions": {
+      "heating_operation_mode_is": "Heizungs-Betriebsart ist",
+      "warmwater_operation_mode_is": "Brauchwasser-Betriebsart ist",
+      "heatpump_state_is": "Wärmepumpen-Status ist"
+    },
+    "actions": {
+      "set_heating_operation_mode": "Heizungs-Betriebsart setzen",
+      "set_warmwater_operation_mode": "Brauchwasser-Betriebsart setzen",
+      "set_heating_temperature_correction": "Heizungs-Temperaturkorrektur setzen",
+      "set_warmwater_target_temperature": "Brauchwasser Soll-Temperatur setzen"
+    }
+  }
+}

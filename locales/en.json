@@ -1,0 +1,85 @@
+{
+  "app": {
+    "name": "Luxtronik Heat Pump",
+    "description": "Control and monitor your Luxtronik 2.0 heat pump"
+  },
+  "pair": {
+    "title": "Add Luxtronik Heat Pump",
+    "ip": "IP Address",
+    "port": "Port",
+    "connecting": "Connecting...",
+    "success": "Successfully connected!",
+    "error": {
+      "no_ip": "Please enter a valid IP address.",
+      "connection_failed": "Could not connect to the heat pump. Please check the IP address and port.",
+      "timeout": "Connection timed out. Please verify the heat pump is powered on and reachable."
+    }
+  },
+  "settings": {
+    "ip": "IP Address",
+    "port": "Port",
+    "poll_interval": "Poll Interval (seconds)"
+  },
+  "capability": {
+    "heating_operation_mode": {
+      "title": "Heating Mode",
+      "values": {
+        "0": "Automatic",
+        "1": "Second Heat Source",
+        "2": "Party",
+        "3": "Holidays",
+        "4": "Off"
+      }
+    },
+    "warmwater_operation_mode": {
+      "title": "Hot Water Mode",
+      "values": {
+        "0": "Automatic",
+        "1": "Second Heat Source",
+        "2": "Party",
+        "3": "Holidays",
+        "4": "Off"
+      }
+    },
+    "heating_temperature_correction": {
+      "title": "Heating Temperature Correction"
+    },
+    "warmwater_target_temperature": {
+      "title": "Hot Water Target Temperature"
+    },
+    "heatpump_state": {
+      "title": "Heat Pump State",
+      "values": {
+        "heating":      "Heating",
+        "hotwater":     "Hot Water",
+        "swimming":     "Swimming Pool",
+        "provider_lock":"EVU Lock",
+        "defrost":      "Defrost",
+        "off":          "Off",
+        "external":     "External",
+        "cooling":      "Cooling",
+        "standby":      "Standby",
+        "unknown":      "Unknown"
+      }
+    }
+  },
+  "flow": {
+    "triggers": {
+      "heating_operation_mode_changed": "Heating mode changed",
+      "warmwater_operation_mode_changed": "Hot water mode changed",
+      "heatpump_state_changed": "Heat pump state changed",
+      "error_occurred": "Error occurred"
+    },
+    "conditions": {
+      "heating_operation_mode_is": "Heating mode is",
+      "warmwater_operation_mode_is": "Hot water mode is",
+      "heatpump_state_is": "Heat pump state is"
+    },
+    "actions": {
+      "set_heating_operation_mode": "Set heating mode",
+      "set_warmwater_operation_mode": "Set hot water mode",
+      "set_heating_temperature_correction": "Set heating temperature correction",
+      "set_warmwater_target_temperature": "Set hot water target temperature"
+    }
+  }
+}

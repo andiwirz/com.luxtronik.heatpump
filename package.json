@@ -1,0 +1,39 @@
+{
+  "name": "com.luxtronik.heatpump",
+  "version": "2.0.0",
+  "description": "Luxtronik Heat Pump for Homey",
+  "main": "app.js",
+  "scripts": {
+    "lint": "eslint --ext .js .",
+    "validate": "homey app validate",
+    "build": "homey app build",
+    "publish": "homey app publish",
+    "install-clean": "npm install && npm audit fix"
+  },
+  "keywords": [
+    "homey",
+    "luxtronik",
+    "heat pump",
+    "alpha innotec"
+  ],
+  "author": "Luxtronik Homey",
+  "license": "MIT",
+  "dependencies": {
+    "luxtronik2": "2.7.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1"
+  },
+  "overrides": {
+    "semver": "^7.5.4",
+    "tough-cookie": "^4.1.4",
+    "word-wrap": "^1.2.5",
+    "ip": "^2.0.1",
+    "lodash": "^4.17.21",
+    "path-to-regexp": "^0.1.10",
+    "minimatch": "^3.1.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,11 @@
+node_modules/
+.git/
+.github/
+*.test.js
+*.spec.js
+test/
+tests/
+.eslintrc*
+.prettierrc*
+tsconfig.json
+README.md
