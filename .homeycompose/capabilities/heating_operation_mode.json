@@ -1,0 +1,49 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "Heating Operation Mode",
+    "de": "Heizung Betriebsart"
+  },
+  "values": [
+    {
+      "id": "0",
+      "title": {
+        "en": "Automatic",
+        "de": "Automatik"
+      }
+    },
+    {
+      "id": "1",
+      "title": {
+        "en": "Second Heat Source",
+        "de": "Zuheizer"
+      }
+    },
+    {
+      "id": "2",
+      "title": {
+        "en": "Party",
+        "de": "Party"
+      }
+    },
+    {
+      "id": "3",
+      "title": {
+        "en": "Holidays",
+        "de": "Ferien"
+      }
+    },
+    {
+      "id": "4",
+      "title": {
+        "en": "Off",
+        "de": "Aus"
+      }
+    }
+  ],
+  "getable": true,
+  "setable": true,
+  "uiComponent": "picker",
+  "insights": false,
+  "icon": "/assets/capabilities/heating.svg"
+}

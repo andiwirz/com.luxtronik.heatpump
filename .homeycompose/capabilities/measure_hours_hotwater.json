@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Hot Water Hours",
+    "de": "Betriebsstunden Brauchwasser"
+  },
+  "units": {
+    "en": "h",
+    "de": "h"
+  },
+  "decimals": 1,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true,
+  "icon": "/assets/capabilities/clock.svg"
+}

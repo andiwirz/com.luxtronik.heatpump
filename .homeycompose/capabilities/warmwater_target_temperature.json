@@ -1,0 +1,20 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Hot Water Target Temperature",
+    "de": "Brauchwasser Soll-Temperatur"
+  },
+  "units": {
+    "en": "°C",
+    "de": "°C"
+  },
+  "decimals": 1,
+  "min": 30,
+  "max": 65,
+  "step": 0.5,
+  "getable": true,
+  "setable": true,
+  "uiComponent": "slider",
+  "insights": true,
+  "icon": "/assets/capabilities/target_temperature_level.svg"
+}

@@ -1,4 +1,5 @@
 {
+  "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.luxtronik.heatpump",
   "version": "2.0.3",
   "compatibility": ">=5.0.0",
@@ -49,585 +50,525 @@
     "name": "Andi",
     "email": "andi@wirzfamily.ch"
   },
-  "capabilities": {
-    "heating_operation_mode": {
-      "type": "enum",
-      "title": {
-        "en": "Heating Operation Mode",
-        "de": "Heizung Betriebsart"
+  "source": "https://github.com/andiwirz/com.luxtronik.heatpump",
+  "bugs": {
+    "url": "https://github.com/andiwirz/com.luxtronik.heatpump/issues"
+  },
+  "flow": {
+    "triggers": [
+      {
+        "id": "heating_operation_mode_changed",
+        "title": {
+          "en": "Heating mode changed",
+          "de": "Heizungs-Betriebsart geändert"
+        },
+        "tokens": [
+          {
+            "name": "mode",
+            "type": "string",
+            "title": {
+              "en": "Mode",
+              "de": "Betriebsart"
+            }
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          }
+        ]
       },
-      "values": [
-        {
-          "id": "0",
-          "title": {
-            "en": "Automatic",
-            "de": "Automatik"
-          }
+      {
+        "id": "warmwater_operation_mode_changed",
+        "title": {
+          "en": "Hot water mode changed",
+          "de": "Brauchwasser-Betriebsart geändert"
         },
-        {
-          "id": "1",
-          "title": {
-            "en": "Second Heat Source",
-            "de": "Zuheizer"
+        "tokens": [
+          {
+            "name": "mode",
+            "type": "string",
+            "title": {
+              "en": "Mode",
+              "de": "Betriebsart"
+            }
           }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          }
+        ]
+      },
+      {
+        "id": "heatpump_state_changed",
+        "title": {
+          "en": "Heat pump state changed",
+          "de": "Wärmepumpen-Status geändert"
         },
-        {
-          "id": "2",
-          "title": {
-            "en": "Party",
-            "de": "Party"
+        "tokens": [
+          {
+            "name": "state",
+            "type": "string",
+            "title": {
+              "en": "State",
+              "de": "Status"
+            }
           }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          }
+        ]
+      },
+      {
+        "id": "error_occurred",
+        "title": {
+          "en": "Error occurred",
+          "de": "Fehler aufgetreten"
         },
-        {
-          "id": "3",
-          "title": {
-            "en": "Holidays",
-            "de": "Ferien"
+        "tokens": [
+          {
+            "name": "error",
+            "type": "string",
+            "title": {
+              "en": "Error",
+              "de": "Fehler"
+            }
           }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          }
+        ]
+      }
+    ],
+    "conditions": [
+      {
+        "id": "heating_operation_mode_is",
+        "title": {
+          "en": "Heating mode !{{is|is not}}",
+          "de": "Heizungs-Betriebsart !{{ist|ist nicht}}"
         },
-        {
-          "id": "4",
-          "title": {
-            "en": "Off",
-            "de": "Aus"
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          },
+          {
+            "name": "mode",
+            "type": "dropdown",
+            "title": {
+              "en": "Mode",
+              "de": "Betriebsart"
+            },
+            "values": [
+              {
+                "id": "0",
+                "label": {
+                  "en": "Automatic",
+                  "de": "Automatik"
+                }
+              },
+              {
+                "id": "1",
+                "label": {
+                  "en": "Second Heat Source",
+                  "de": "Zuheizer"
+                }
+              },
+              {
+                "id": "2",
+                "label": {
+                  "en": "Party",
+                  "de": "Party"
+                }
+              },
+              {
+                "id": "3",
+                "label": {
+                  "en": "Holidays",
+                  "de": "Ferien"
+                }
+              },
+              {
+                "id": "4",
+                "label": {
+                  "en": "Off",
+                  "de": "Aus"
+                }
+              }
+            ]
           }
+        ],
+        "titleFormatted": {
+          "en": "The heating mode is [[mode]]",
+          "de": "Die Heizungs-Betriebsart ist [[mode]]"
         }
-      ],
-      "getable": true,
-      "setable": true,
-      "uiComponent": "picker",
-      "insights": false,
-      "icon": "/assets/capabilities/heating.svg"
-    },
-    "warmwater_operation_mode": {
-      "type": "enum",
-      "title": {
-        "en": "Hot Water Operation Mode",
-        "de": "Brauchwasser Betriebsart"
       },
-      "values": [
-        {
-          "id": "0",
-          "title": {
-            "en": "Automatic",
-            "de": "Automatik"
-          }
+      {
+        "id": "warmwater_operation_mode_is",
+        "title": {
+          "en": "Hot water mode !{{is|is not}}",
+          "de": "Brauchwasser-Betriebsart !{{ist|ist nicht}}"
         },
-        {
-          "id": "1",
-          "title": {
-            "en": "Second Heat Source",
-            "de": "Zuheizer"
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          },
+          {
+            "name": "mode",
+            "type": "dropdown",
+            "title": {
+              "en": "Mode",
+              "de": "Betriebsart"
+            },
+            "values": [
+              {
+                "id": "0",
+                "label": {
+                  "en": "Automatic",
+                  "de": "Automatik"
+                }
+              },
+              {
+                "id": "1",
+                "label": {
+                  "en": "Second Heat Source",
+                  "de": "Zuheizer"
+                }
+              },
+              {
+                "id": "2",
+                "label": {
+                  "en": "Party",
+                  "de": "Party"
+                }
+              },
+              {
+                "id": "3",
+                "label": {
+                  "en": "Holidays",
+                  "de": "Ferien"
+                }
+              },
+              {
+                "id": "4",
+                "label": {
+                  "en": "Off",
+                  "de": "Aus"
+                }
+              }
+            ]
           }
-        },
-        {
-          "id": "2",
-          "title": {
-            "en": "Party",
-            "de": "Party"
-          }
-        },
-        {
-          "id": "3",
-          "title": {
-            "en": "Holidays",
-            "de": "Ferien"
-          }
-        },
-        {
-          "id": "4",
-          "title": {
-            "en": "Off",
-            "de": "Aus"
-          }
+        ],
+        "titleFormatted": {
+          "en": "The hot water mode is [[mode]]",
+          "de": "Die Brauchwasser-Betriebsart ist [[mode]]"
         }
-      ],
-      "getable": true,
-      "setable": true,
-      "uiComponent": "picker",
-      "insights": false,
-      "icon": "/assets/capabilities/water.svg"
-    },
-    "heating_temperature_correction": {
-      "type": "number",
-      "title": {
-        "en": "Heating Temperature Correction",
-        "de": "Heizung Temperaturkorrektur"
       },
-      "units": {
-        "en": "°C",
-        "de": "°C"
-      },
-      "decimals": 1,
-      "min": -5,
-      "max": 5,
-      "step": 0.5,
-      "getable": true,
-      "setable": true,
-      "uiComponent": "slider",
-      "insights": true,
-      "icon": "/assets/capabilities/heating.svg"
-    },
-    "warmwater_target_temperature": {
-      "type": "number",
-      "title": {
-        "en": "Hot Water Target Temperature",
-        "de": "Brauchwasser Soll-Temperatur"
-      },
-      "units": {
-        "en": "°C",
-        "de": "°C"
-      },
-      "decimals": 1,
-      "min": 30,
-      "max": 65,
-      "step": 0.5,
-      "getable": true,
-      "setable": true,
-      "uiComponent": "slider",
-      "insights": true,
-      "icon": "/assets/capabilities/water.svg"
-    },
-    "heatpump_state": {
-      "type": "enum",
-      "title": {
-        "en": "Heat Pump State",
-        "de": "Wärmepumpen Status"
-      },
-      "values": [
-        {
-          "id": "heating",
-          "title": {
-            "en": "Heating",
-            "de": "Heizen"
-          }
+      {
+        "id": "heatpump_state_is",
+        "title": {
+          "en": "Heat pump state !{{is|is not}}",
+          "de": "Wärmepumpen-Status !{{ist|ist nicht}}"
         },
-        {
-          "id": "hotwater",
-          "title": {
-            "en": "Hot Water",
-            "de": "Warmwasser"
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          },
+          {
+            "name": "state",
+            "type": "dropdown",
+            "title": {
+              "en": "State",
+              "de": "Status"
+            },
+            "values": [
+              {
+                "id": "heating",
+                "label": {
+                  "en": "Heating",
+                  "de": "Heizen"
+                }
+              },
+              {
+                "id": "hotwater",
+                "label": {
+                  "en": "Hot Water",
+                  "de": "Warmwasser"
+                }
+              },
+              {
+                "id": "swimming",
+                "label": {
+                  "en": "Swimming Pool",
+                  "de": "Schwimmbad"
+                }
+              },
+              {
+                "id": "provider_lock",
+                "label": {
+                  "en": "EVU Lock",
+                  "de": "EVU-Sperre"
+                }
+              },
+              {
+                "id": "defrost",
+                "label": {
+                  "en": "Defrost",
+                  "de": "Abtauen"
+                }
+              },
+              {
+                "id": "off",
+                "label": {
+                  "en": "Off",
+                  "de": "Aus"
+                }
+              },
+              {
+                "id": "external",
+                "label": {
+                  "en": "External",
+                  "de": "Extern"
+                }
+              },
+              {
+                "id": "cooling",
+                "label": {
+                  "en": "Cooling",
+                  "de": "Kühlen"
+                }
+              },
+              {
+                "id": "standby",
+                "label": {
+                  "en": "Standby",
+                  "de": "Standby"
+                }
+              }
+            ]
           }
-        },
-        {
-          "id": "swimming",
-          "title": {
-            "en": "Swimming Pool",
-            "de": "Schwimmbad"
-          }
-        },
-        {
-          "id": "provider_lock",
-          "title": {
-            "en": "EVU Lock",
-            "de": "EVU-Sperre"
-          }
-        },
-        {
-          "id": "defrost",
-          "title": {
-            "en": "Defrost",
-            "de": "Abtauen"
-          }
-        },
-        {
-          "id": "off",
-          "title": {
-            "en": "Off",
-            "de": "Aus"
-          }
-        },
-        {
-          "id": "external",
-          "title": {
-            "en": "External",
-            "de": "Extern"
-          }
-        },
-        {
-          "id": "cooling",
-          "title": {
-            "en": "Cooling",
-            "de": "Kühlen"
-          }
-        },
-        {
-          "id": "standby",
-          "title": {
-            "en": "Standby",
-            "de": "Standby"
-          }
-        },
-        {
-          "id": "unknown",
-          "title": {
-            "en": "Unknown",
-            "de": "Unbekannt"
-          }
+        ],
+        "titleFormatted": {
+          "en": "The heat pump state is [[state]]",
+          "de": "Der Wärmepumpen-Status ist [[state]]"
         }
-      ],
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": false,
-      "icon": "/assets/capabilities/state.svg"
-    },
-    "alarm_generic": {
-      "type": "boolean",
-      "title": {
-        "en": "Error",
-        "de": "Fehler"
+      }
+    ],
+    "actions": [
+      {
+        "id": "set_heating_operation_mode",
+        "title": {
+          "en": "Set heating mode",
+          "de": "Heizungs-Betriebsart setzen"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          },
+          {
+            "name": "mode",
+            "type": "dropdown",
+            "title": {
+              "en": "Mode",
+              "de": "Betriebsart"
+            },
+            "values": [
+              {
+                "id": "0",
+                "label": {
+                  "en": "Automatic",
+                  "de": "Automatik"
+                }
+              },
+              {
+                "id": "1",
+                "label": {
+                  "en": "Second Heat Source",
+                  "de": "Zuheizer"
+                }
+              },
+              {
+                "id": "2",
+                "label": {
+                  "en": "Party",
+                  "de": "Party"
+                }
+              },
+              {
+                "id": "3",
+                "label": {
+                  "en": "Holidays",
+                  "de": "Ferien"
+                }
+              },
+              {
+                "id": "4",
+                "label": {
+                  "en": "Off",
+                  "de": "Aus"
+                }
+              }
+            ]
+          }
+        ],
+        "titleFormatted": {
+          "en": "Set heating mode to [[mode]]",
+          "de": "Heizungs-Betriebsart auf [[mode]] setzen"
+        }
       },
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": false,
-      "icon": "/assets/capabilities/alarm.svg"
-    },
-    "measure_temp_outdoor": {
-      "type": "number",
-      "title": {
-        "en": "Outdoor Temperature",
-        "de": "Außentemperatur"
+      {
+        "id": "set_warmwater_operation_mode",
+        "title": {
+          "en": "Set hot water mode",
+          "de": "Brauchwasser-Betriebsart setzen"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          },
+          {
+            "name": "mode",
+            "type": "dropdown",
+            "title": {
+              "en": "Mode",
+              "de": "Betriebsart"
+            },
+            "values": [
+              {
+                "id": "0",
+                "label": {
+                  "en": "Automatic",
+                  "de": "Automatik"
+                }
+              },
+              {
+                "id": "1",
+                "label": {
+                  "en": "Second Heat Source",
+                  "de": "Zuheizer"
+                }
+              },
+              {
+                "id": "2",
+                "label": {
+                  "en": "Party",
+                  "de": "Party"
+                }
+              },
+              {
+                "id": "3",
+                "label": {
+                  "en": "Holidays",
+                  "de": "Ferien"
+                }
+              },
+              {
+                "id": "4",
+                "label": {
+                  "en": "Off",
+                  "de": "Aus"
+                }
+              }
+            ]
+          }
+        ],
+        "titleFormatted": {
+          "en": "Set hot water mode to [[mode]]",
+          "de": "Brauchwasser-Betriebsart auf [[mode]] setzen"
+        }
       },
-      "units": {
-        "en": "°C",
-        "de": "°C"
+      {
+        "id": "set_heating_temperature_correction",
+        "title": {
+          "en": "Set heating temperature correction",
+          "de": "Heizungs-Temperaturkorrektur setzen"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          },
+          {
+            "name": "value",
+            "type": "number",
+            "title": {
+              "en": "Correction °C (−5 to +5)",
+              "de": "Korrektur °C (−5 bis +5)"
+            },
+            "placeholder": {
+              "en": "e.g. 0.5",
+              "de": "z.B. 0.5"
+            },
+            "min": -5,
+            "max": 5,
+            "step": 0.5
+          }
+        ],
+        "titleFormatted": {
+          "en": "Set heating temperature correction to [[value]] °C",
+          "de": "Heizungs-Temperaturkorrektur auf [[value]] °C setzen"
+        }
       },
-      "decimals": 1,
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
-    },
-    "measure_temp_outdoor_avg": {
-      "type": "number",
-      "title": {
-        "en": "Outdoor Avg. Temperature",
-        "de": "Mittlere Außentemperatur"
-      },
-      "units": {
-        "en": "°C",
-        "de": "°C"
-      },
-      "decimals": 1,
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
-    },
-    "measure_temp_flow": {
-      "type": "number",
-      "title": {
-        "en": "Flow Temperature",
-        "de": "Vorlauftemperatur"
-      },
-      "units": {
-        "en": "°C",
-        "de": "°C"
-      },
-      "decimals": 1,
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
-    },
-    "measure_temp_return": {
-      "type": "number",
-      "title": {
-        "en": "Return Temperature",
-        "de": "Rücklauftemperatur"
-      },
-      "units": {
-        "en": "°C",
-        "de": "°C"
-      },
-      "decimals": 1,
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
-    },
-    "measure_temp_return_target": {
-      "type": "number",
-      "title": {
-        "en": "Return Target Temperature",
-        "de": "Rücklauf Soll-Temperatur"
-      },
-      "units": {
-        "en": "°C",
-        "de": "°C"
-      },
-      "decimals": 1,
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
-    },
-    "measure_temp_hotgas": {
-      "type": "number",
-      "title": {
-        "en": "Hot Gas Temperature",
-        "de": "Heißgastemperatur"
-      },
-      "units": {
-        "en": "°C",
-        "de": "°C"
-      },
-      "decimals": 1,
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
-    },
-    "measure_temp_hotwater": {
-      "type": "number",
-      "title": {
-        "en": "Hot Water Temperature",
-        "de": "Warmwassertemperatur"
-      },
-      "units": {
-        "en": "°C",
-        "de": "°C"
-      },
-      "decimals": 1,
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": true,
-      "icon": "/assets/capabilities/water.svg"
-    },
-    "measure_temp_hotwater_target": {
-      "type": "number",
-      "title": {
-        "en": "Hot Water Target (read)",
-        "de": "Warmwasser Soll (gelesen)"
-      },
-      "units": {
-        "en": "°C",
-        "de": "°C"
-      },
-      "decimals": 1,
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": true,
-      "icon": "/assets/capabilities/water.svg"
-    },
-    "measure_temp_source_in": {
-      "type": "number",
-      "title": {
-        "en": "Heat Source Inlet",
-        "de": "Wärmequelle Eingang"
-      },
-      "units": {
-        "en": "°C",
-        "de": "°C"
-      },
-      "decimals": 1,
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
-    },
-    "measure_temp_source_out": {
-      "type": "number",
-      "title": {
-        "en": "Heat Source Outlet",
-        "de": "Wärmequelle Ausgang"
-      },
-      "units": {
-        "en": "°C",
-        "de": "°C"
-      },
-      "decimals": 1,
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
-    },
-    "measure_temp_suction_air": {
-      "type": "number",
-      "title": {
-        "en": "Suction Air Temperature",
-        "de": "Ansaugluft Temperatur"
-      },
-      "units": {
-        "en": "°C",
-        "de": "°C"
-      },
-      "decimals": 1,
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
-    },
-    "measure_temp_room": {
-      "type": "number",
-      "title": {
-        "en": "Room Temperature",
-        "de": "Raumtemperatur"
-      },
-      "units": {
-        "en": "°C",
-        "de": "°C"
-      },
-      "decimals": 1,
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
-    },
-    "measure_temp_room_target": {
-      "type": "number",
-      "title": {
-        "en": "Room Target Temperature",
-        "de": "Raumtemperatur Soll"
-      },
-      "units": {
-        "en": "°C",
-        "de": "°C"
-      },
-      "decimals": 1,
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
-    },
-    "meter_energy_heating": {
-      "type": "number",
-      "title": {
-        "en": "Energy Heating",
-        "de": "Energie Heizung"
-      },
-      "units": {
-        "en": "kWh",
-        "de": "kWh"
-      },
-      "decimals": 1,
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": true,
-      "icon": "/assets/capabilities/energy.svg"
-    },
-    "meter_energy_hotwater": {
-      "type": "number",
-      "title": {
-        "en": "Energy Hot Water",
-        "de": "Energie Brauchwasser"
-      },
-      "units": {
-        "en": "kWh",
-        "de": "kWh"
-      },
-      "decimals": 1,
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": true,
-      "icon": "/assets/capabilities/energy.svg"
-    },
-    "meter_energy_total": {
-      "type": "number",
-      "title": {
-        "en": "Energy Total",
-        "de": "Energie Gesamt"
-      },
-      "units": {
-        "en": "kWh",
-        "de": "kWh"
-      },
-      "decimals": 1,
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": true,
-      "icon": "/assets/capabilities/energy.svg"
-    },
-    "measure_hours_compressor": {
-      "type": "number",
-      "title": {
-        "en": "Compressor Hours",
-        "de": "Betriebsstunden Verdichter"
-      },
-      "units": {
-        "en": "h",
-        "de": "h"
-      },
-      "decimals": 1,
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": true,
-      "icon": "/assets/capabilities/clock.svg"
-    },
-    "measure_hours_heating": {
-      "type": "number",
-      "title": {
-        "en": "Heating Hours",
-        "de": "Betriebsstunden Heizung"
-      },
-      "units": {
-        "en": "h",
-        "de": "h"
-      },
-      "decimals": 1,
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": true,
-      "icon": "/assets/capabilities/clock.svg"
-    },
-    "measure_hours_hotwater": {
-      "type": "number",
-      "title": {
-        "en": "Hot Water Hours",
-        "de": "Betriebsstunden Brauchwasser"
-      },
-      "units": {
-        "en": "h",
-        "de": "h"
-      },
-      "decimals": 1,
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": true,
-      "icon": "/assets/capabilities/clock.svg"
-    },
-    "measure_volume_flow": {
-      "type": "number",
-      "title": {
-        "en": "Volume Flow",
-        "de": "Volumenstrom"
-      },
-      "units": {
-        "en": "l/h",
-        "de": "l/h"
-      },
-      "decimals": 0,
-      "getable": true,
-      "setable": false,
-      "uiComponent": "sensor",
-      "insights": true,
-      "icon": "/assets/capabilities/flow.svg"
-    }
+      {
+        "id": "set_warmwater_target_temperature",
+        "title": {
+          "en": "Set hot water target temperature",
+          "de": "Brauchwasser Soll-Temperatur setzen"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          },
+          {
+            "name": "value",
+            "type": "number",
+            "title": {
+              "en": "Temperature °C (30 to 65)",
+              "de": "Temperatur °C (30 bis 65)"
+            },
+            "placeholder": {
+              "en": "e.g. 50",
+              "de": "z.B. 50"
+            },
+            "min": 30,
+            "max": 65,
+            "step": 0.5
+          }
+        ],
+        "titleFormatted": {
+          "en": "Set hot water target temperature to [[value]] °C",
+          "de": "Brauchwasser Soll-Temperatur auf [[value]] °C setzen"
+        }
+      }
+    ]
   },
   "drivers": [
     {
-      "id": "luxtronik-heatpump",
       "name": {
         "en": "Luxtronik Heat Pump",
         "de": "Luxtronik Wärmepumpe"
@@ -835,524 +776,584 @@
             }
           ]
         }
-      ]
+      ],
+      "id": "luxtronik-heatpump"
     }
   ],
-  "flow": {
-    "triggers": [
-      {
-        "id": "heating_operation_mode_changed",
-        "title": {
-          "en": "Heating mode changed",
-          "de": "Heizungs-Betriebsart geändert"
-        },
-        "tokens": [
-          {
-            "name": "mode",
-            "type": "string",
-            "title": {
-              "en": "Mode",
-              "de": "Betriebsart"
-            }
-          }
-        ],
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=luxtronik-heatpump"
-          }
-        ]
+  "capabilities": {
+    "alarm_generic": {
+      "type": "boolean",
+      "title": {
+        "en": "Error",
+        "de": "Fehler"
       },
-      {
-        "id": "warmwater_operation_mode_changed",
-        "title": {
-          "en": "Hot water mode changed",
-          "de": "Brauchwasser-Betriebsart geändert"
-        },
-        "tokens": [
-          {
-            "name": "mode",
-            "type": "string",
-            "title": {
-              "en": "Mode",
-              "de": "Betriebsart"
-            }
-          }
-        ],
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=luxtronik-heatpump"
-          }
-        ]
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": false,
+      "icon": "/assets/capabilities/alarm.svg"
+    },
+    "heating_operation_mode": {
+      "type": "enum",
+      "title": {
+        "en": "Heating Operation Mode",
+        "de": "Heizung Betriebsart"
       },
-      {
-        "id": "heatpump_state_changed",
-        "title": {
-          "en": "Heat pump state changed",
-          "de": "Wärmepumpen-Status geändert"
+      "values": [
+        {
+          "id": "0",
+          "title": {
+            "en": "Automatic",
+            "de": "Automatik"
+          }
         },
-        "tokens": [
-          {
-            "name": "state",
-            "type": "string",
-            "title": {
-              "en": "State",
-              "de": "Status"
-            }
+        {
+          "id": "1",
+          "title": {
+            "en": "Second Heat Source",
+            "de": "Zuheizer"
           }
-        ],
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=luxtronik-heatpump"
-          }
-        ]
-      },
-      {
-        "id": "error_occurred",
-        "title": {
-          "en": "Error occurred",
-          "de": "Fehler aufgetreten"
         },
-        "tokens": [
-          {
-            "name": "error",
-            "type": "string",
-            "title": {
-              "en": "Error",
-              "de": "Fehler"
-            }
+        {
+          "id": "2",
+          "title": {
+            "en": "Party",
+            "de": "Party"
           }
-        ],
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=luxtronik-heatpump"
-          }
-        ]
-      }
-    ],
-    "conditions": [
-      {
-        "id": "heating_operation_mode_is",
-        "title": {
-          "en": "Heating mode !{{is|is not}}",
-          "de": "Heizungs-Betriebsart !{{ist|ist nicht}}"
         },
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=luxtronik-heatpump"
-          },
-          {
-            "name": "mode",
-            "type": "dropdown",
-            "title": {
-              "en": "Mode",
-              "de": "Betriebsart"
-            },
-            "values": [
-              {
-                "id": "0",
-                "label": {
-                  "en": "Automatic",
-                  "de": "Automatik"
-                }
-              },
-              {
-                "id": "1",
-                "label": {
-                  "en": "Second Heat Source",
-                  "de": "Zuheizer"
-                }
-              },
-              {
-                "id": "2",
-                "label": {
-                  "en": "Party",
-                  "de": "Party"
-                }
-              },
-              {
-                "id": "3",
-                "label": {
-                  "en": "Holidays",
-                  "de": "Ferien"
-                }
-              },
-              {
-                "id": "4",
-                "label": {
-                  "en": "Off",
-                  "de": "Aus"
-                }
-              }
-            ]
+        {
+          "id": "3",
+          "title": {
+            "en": "Holidays",
+            "de": "Ferien"
           }
-        ],
-        "titleFormatted": {
-          "en": "The heating mode is [[mode]]",
-          "de": "Die Heizungs-Betriebsart ist [[mode]]"
+        },
+        {
+          "id": "4",
+          "title": {
+            "en": "Off",
+            "de": "Aus"
+          }
         }
+      ],
+      "getable": true,
+      "setable": true,
+      "uiComponent": "picker",
+      "insights": false,
+      "icon": "/assets/capabilities/heating.svg"
+    },
+    "heating_temperature_correction": {
+      "type": "number",
+      "title": {
+        "en": "Heating Temperature Correction",
+        "de": "Heizung Temperaturkorrektur"
       },
-      {
-        "id": "warmwater_operation_mode_is",
-        "title": {
-          "en": "Hot water mode !{{is|is not}}",
-          "de": "Brauchwasser-Betriebsart !{{ist|ist nicht}}"
-        },
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=luxtronik-heatpump"
-          },
-          {
-            "name": "mode",
-            "type": "dropdown",
-            "title": {
-              "en": "Mode",
-              "de": "Betriebsart"
-            },
-            "values": [
-              {
-                "id": "0",
-                "label": {
-                  "en": "Automatic",
-                  "de": "Automatik"
-                }
-              },
-              {
-                "id": "1",
-                "label": {
-                  "en": "Second Heat Source",
-                  "de": "Zuheizer"
-                }
-              },
-              {
-                "id": "2",
-                "label": {
-                  "en": "Party",
-                  "de": "Party"
-                }
-              },
-              {
-                "id": "3",
-                "label": {
-                  "en": "Holidays",
-                  "de": "Ferien"
-                }
-              },
-              {
-                "id": "4",
-                "label": {
-                  "en": "Off",
-                  "de": "Aus"
-                }
-              }
-            ]
-          }
-        ],
-        "titleFormatted": {
-          "en": "The hot water mode is [[mode]]",
-          "de": "Die Brauchwasser-Betriebsart ist [[mode]]"
-        }
+      "units": {
+        "en": "°C",
+        "de": "°C"
       },
-      {
-        "id": "heatpump_state_is",
-        "title": {
-          "en": "Heat pump state !{{is|is not}}",
-          "de": "Wärmepumpen-Status !{{ist|ist nicht}}"
-        },
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=luxtronik-heatpump"
-          },
-          {
-            "name": "state",
-            "type": "dropdown",
-            "title": {
-              "en": "State",
-              "de": "Status"
-            },
-            "values": [
-              {
-                "id": "heating",
-                "label": {
-                  "en": "Heating",
-                  "de": "Heizen"
-                }
-              },
-              {
-                "id": "hotwater",
-                "label": {
-                  "en": "Hot Water",
-                  "de": "Warmwasser"
-                }
-              },
-              {
-                "id": "swimming",
-                "label": {
-                  "en": "Swimming Pool",
-                  "de": "Schwimmbad"
-                }
-              },
-              {
-                "id": "provider_lock",
-                "label": {
-                  "en": "EVU Lock",
-                  "de": "EVU-Sperre"
-                }
-              },
-              {
-                "id": "defrost",
-                "label": {
-                  "en": "Defrost",
-                  "de": "Abtauen"
-                }
-              },
-              {
-                "id": "off",
-                "label": {
-                  "en": "Off",
-                  "de": "Aus"
-                }
-              },
-              {
-                "id": "external",
-                "label": {
-                  "en": "External",
-                  "de": "Extern"
-                }
-              },
-              {
-                "id": "cooling",
-                "label": {
-                  "en": "Cooling",
-                  "de": "Kühlen"
-                }
-              },
-              {
-                "id": "standby",
-                "label": {
-                  "en": "Standby",
-                  "de": "Standby"
-                }
-              }
-            ]
-          }
-        ],
-        "titleFormatted": {
-          "en": "The heat pump state is [[state]]",
-          "de": "Der Wärmepumpen-Status ist [[state]]"
-        }
-      }
-    ],
-    "actions": [
-      {
-        "id": "set_heating_operation_mode",
-        "title": {
-          "en": "Set heating mode",
-          "de": "Heizungs-Betriebsart setzen"
-        },
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=luxtronik-heatpump"
-          },
-          {
-            "name": "mode",
-            "type": "dropdown",
-            "title": {
-              "en": "Mode",
-              "de": "Betriebsart"
-            },
-            "values": [
-              {
-                "id": "0",
-                "label": {
-                  "en": "Automatic",
-                  "de": "Automatik"
-                }
-              },
-              {
-                "id": "1",
-                "label": {
-                  "en": "Second Heat Source",
-                  "de": "Zuheizer"
-                }
-              },
-              {
-                "id": "2",
-                "label": {
-                  "en": "Party",
-                  "de": "Party"
-                }
-              },
-              {
-                "id": "3",
-                "label": {
-                  "en": "Holidays",
-                  "de": "Ferien"
-                }
-              },
-              {
-                "id": "4",
-                "label": {
-                  "en": "Off",
-                  "de": "Aus"
-                }
-              }
-            ]
-          }
-        ],
-        "titleFormatted": {
-          "en": "Set heating mode to [[mode]]",
-          "de": "Heizungs-Betriebsart auf [[mode]] setzen"
-        }
+      "decimals": 1,
+      "min": -5,
+      "max": 5,
+      "step": 0.5,
+      "getable": true,
+      "setable": true,
+      "uiComponent": "slider",
+      "insights": true,
+      "icon": "/assets/capabilities/heating.svg"
+    },
+    "heatpump_state": {
+      "type": "enum",
+      "title": {
+        "en": "Heat Pump State",
+        "de": "Wärmepumpen Status"
       },
-      {
-        "id": "set_warmwater_operation_mode",
-        "title": {
-          "en": "Set hot water mode",
-          "de": "Brauchwasser-Betriebsart setzen"
-        },
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=luxtronik-heatpump"
-          },
-          {
-            "name": "mode",
-            "type": "dropdown",
-            "title": {
-              "en": "Mode",
-              "de": "Betriebsart"
-            },
-            "values": [
-              {
-                "id": "0",
-                "label": {
-                  "en": "Automatic",
-                  "de": "Automatik"
-                }
-              },
-              {
-                "id": "1",
-                "label": {
-                  "en": "Second Heat Source",
-                  "de": "Zuheizer"
-                }
-              },
-              {
-                "id": "2",
-                "label": {
-                  "en": "Party",
-                  "de": "Party"
-                }
-              },
-              {
-                "id": "3",
-                "label": {
-                  "en": "Holidays",
-                  "de": "Ferien"
-                }
-              },
-              {
-                "id": "4",
-                "label": {
-                  "en": "Off",
-                  "de": "Aus"
-                }
-              }
-            ]
+      "values": [
+        {
+          "id": "heating",
+          "title": {
+            "en": "Heating",
+            "de": "Heizen"
           }
-        ],
-        "titleFormatted": {
-          "en": "Set hot water mode to [[mode]]",
-          "de": "Brauchwasser-Betriebsart auf [[mode]] setzen"
+        },
+        {
+          "id": "hotwater",
+          "title": {
+            "en": "Hot Water",
+            "de": "Warmwasser"
+          }
+        },
+        {
+          "id": "swimming",
+          "title": {
+            "en": "Swimming Pool",
+            "de": "Schwimmbad"
+          }
+        },
+        {
+          "id": "provider_lock",
+          "title": {
+            "en": "EVU Lock",
+            "de": "EVU-Sperre"
+          }
+        },
+        {
+          "id": "defrost",
+          "title": {
+            "en": "Defrost",
+            "de": "Abtauen"
+          }
+        },
+        {
+          "id": "off",
+          "title": {
+            "en": "Off",
+            "de": "Aus"
+          }
+        },
+        {
+          "id": "external",
+          "title": {
+            "en": "External",
+            "de": "Extern"
+          }
+        },
+        {
+          "id": "cooling",
+          "title": {
+            "en": "Cooling",
+            "de": "Kühlen"
+          }
+        },
+        {
+          "id": "standby",
+          "title": {
+            "en": "Standby",
+            "de": "Standby"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "de": "Unbekannt"
+          }
         }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": false,
+      "icon": "/assets/capabilities/state.svg"
+    },
+    "measure_hours_compressor": {
+      "type": "number",
+      "title": {
+        "en": "Compressor Hours",
+        "de": "Betriebsstunden Verdichter"
       },
-      {
-        "id": "set_heating_temperature_correction",
-        "title": {
-          "en": "Set heating temperature correction",
-          "de": "Heizungs-Temperaturkorrektur setzen"
-        },
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=luxtronik-heatpump"
-          },
-          {
-            "name": "value",
-            "type": "number",
-            "title": {
-              "en": "Correction °C (−5 to +5)",
-              "de": "Korrektur °C (−5 bis +5)"
-            },
-            "placeholder": {
-              "en": "e.g. 0.5",
-              "de": "z.B. 0.5"
-            },
-            "min": -5,
-            "max": 5,
-            "step": 0.5
-          }
-        ],
-        "titleFormatted": {
-          "en": "Set heating temperature correction to [[value]] °C",
-          "de": "Heizungs-Temperaturkorrektur auf [[value]] °C setzen"
-        }
+      "units": {
+        "en": "h",
+        "de": "h"
       },
-      {
-        "id": "set_warmwater_target_temperature",
-        "title": {
-          "en": "Set hot water target temperature",
-          "de": "Brauchwasser Soll-Temperatur setzen"
-        },
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_id=luxtronik-heatpump"
-          },
-          {
-            "name": "value",
-            "type": "number",
-            "title": {
-              "en": "Temperature °C (30 to 65)",
-              "de": "Temperatur °C (30 bis 65)"
-            },
-            "placeholder": {
-              "en": "e.g. 50",
-              "de": "z.B. 50"
-            },
-            "min": 30,
-            "max": 65,
-            "step": 0.5
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/clock.svg"
+    },
+    "measure_hours_heating": {
+      "type": "number",
+      "title": {
+        "en": "Heating Hours",
+        "de": "Betriebsstunden Heizung"
+      },
+      "units": {
+        "en": "h",
+        "de": "h"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/clock.svg"
+    },
+    "measure_hours_hotwater": {
+      "type": "number",
+      "title": {
+        "en": "Hot Water Hours",
+        "de": "Betriebsstunden Brauchwasser"
+      },
+      "units": {
+        "en": "h",
+        "de": "h"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/clock.svg"
+    },
+    "measure_temp_flow": {
+      "type": "number",
+      "title": {
+        "en": "Flow Temperature",
+        "de": "Vorlauftemperatur"
+      },
+      "units": {
+        "en": "°C",
+        "de": "°C"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/temperature.svg"
+    },
+    "measure_temp_hotgas": {
+      "type": "number",
+      "title": {
+        "en": "Hot Gas Temperature",
+        "de": "Heißgastemperatur"
+      },
+      "units": {
+        "en": "°C",
+        "de": "°C"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/temperature.svg"
+    },
+    "measure_temp_hotwater": {
+      "type": "number",
+      "title": {
+        "en": "Hot Water Temperature",
+        "de": "Warmwassertemperatur"
+      },
+      "units": {
+        "en": "°C",
+        "de": "°C"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/water.svg"
+    },
+    "measure_temp_hotwater_target": {
+      "type": "number",
+      "title": {
+        "en": "Hot Water Target (read)",
+        "de": "Warmwasser Soll (gelesen)"
+      },
+      "units": {
+        "en": "°C",
+        "de": "°C"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/water.svg"
+    },
+    "measure_temp_outdoor": {
+      "type": "number",
+      "title": {
+        "en": "Outdoor Temperature",
+        "de": "Außentemperatur"
+      },
+      "units": {
+        "en": "°C",
+        "de": "°C"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/temperature.svg"
+    },
+    "measure_temp_outdoor_avg": {
+      "type": "number",
+      "title": {
+        "en": "Outdoor Avg. Temperature",
+        "de": "Mittlere Außentemperatur"
+      },
+      "units": {
+        "en": "°C",
+        "de": "°C"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/temperature.svg"
+    },
+    "measure_temp_return": {
+      "type": "number",
+      "title": {
+        "en": "Return Temperature",
+        "de": "Rücklauftemperatur"
+      },
+      "units": {
+        "en": "°C",
+        "de": "°C"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/temperature.svg"
+    },
+    "measure_temp_return_target": {
+      "type": "number",
+      "title": {
+        "en": "Return Target Temperature",
+        "de": "Rücklauf Soll-Temperatur"
+      },
+      "units": {
+        "en": "°C",
+        "de": "°C"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/temperature.svg"
+    },
+    "measure_temp_room": {
+      "type": "number",
+      "title": {
+        "en": "Room Temperature",
+        "de": "Raumtemperatur"
+      },
+      "units": {
+        "en": "°C",
+        "de": "°C"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/temperature.svg"
+    },
+    "measure_temp_room_target": {
+      "type": "number",
+      "title": {
+        "en": "Room Target Temperature",
+        "de": "Raumtemperatur Soll"
+      },
+      "units": {
+        "en": "°C",
+        "de": "°C"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/temperature.svg"
+    },
+    "measure_temp_source_in": {
+      "type": "number",
+      "title": {
+        "en": "Heat Source Inlet",
+        "de": "Wärmequelle Eingang"
+      },
+      "units": {
+        "en": "°C",
+        "de": "°C"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/temperature.svg"
+    },
+    "measure_temp_source_out": {
+      "type": "number",
+      "title": {
+        "en": "Heat Source Outlet",
+        "de": "Wärmequelle Ausgang"
+      },
+      "units": {
+        "en": "°C",
+        "de": "°C"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/temperature.svg"
+    },
+    "measure_temp_suction_air": {
+      "type": "number",
+      "title": {
+        "en": "Suction Air Temperature",
+        "de": "Ansaugluft Temperatur"
+      },
+      "units": {
+        "en": "°C",
+        "de": "°C"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/temperature.svg"
+    },
+    "measure_volume_flow": {
+      "type": "number",
+      "title": {
+        "en": "Volume Flow",
+        "de": "Volumenstrom"
+      },
+      "units": {
+        "en": "l/h",
+        "de": "l/h"
+      },
+      "decimals": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/flow.svg"
+    },
+    "meter_energy_heating": {
+      "type": "number",
+      "title": {
+        "en": "Energy Heating",
+        "de": "Energie Heizung"
+      },
+      "units": {
+        "en": "kWh",
+        "de": "kWh"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/energy.svg"
+    },
+    "meter_energy_hotwater": {
+      "type": "number",
+      "title": {
+        "en": "Energy Hot Water",
+        "de": "Energie Brauchwasser"
+      },
+      "units": {
+        "en": "kWh",
+        "de": "kWh"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/energy.svg"
+    },
+    "meter_energy_total": {
+      "type": "number",
+      "title": {
+        "en": "Energy Total",
+        "de": "Energie Gesamt"
+      },
+      "units": {
+        "en": "kWh",
+        "de": "kWh"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/energy.svg"
+    },
+    "warmwater_operation_mode": {
+      "type": "enum",
+      "title": {
+        "en": "Hot Water Operation Mode",
+        "de": "Brauchwasser Betriebsart"
+      },
+      "values": [
+        {
+          "id": "0",
+          "title": {
+            "en": "Automatic",
+            "de": "Automatik"
           }
-        ],
-        "titleFormatted": {
-          "en": "Set hot water target temperature to [[value]] °C",
-          "de": "Brauchwasser Soll-Temperatur auf [[value]] °C setzen"
+        },
+        {
+          "id": "1",
+          "title": {
+            "en": "Second Heat Source",
+            "de": "Zuheizer"
+          }
+        },
+        {
+          "id": "2",
+          "title": {
+            "en": "Party",
+            "de": "Party"
+          }
+        },
+        {
+          "id": "3",
+          "title": {
+            "en": "Holidays",
+            "de": "Ferien"
+          }
+        },
+        {
+          "id": "4",
+          "title": {
+            "en": "Off",
+            "de": "Aus"
+          }
         }
-      }
-    ]
-  },
-  "source": "https://github.com/andiwirz/com.luxtronik.heatpump",
-  "bugs": {
-    "url": "https://github.com/andiwirz/com.luxtronik.heatpump/issues"
+      ],
+      "getable": true,
+      "setable": true,
+      "uiComponent": "picker",
+      "insights": false,
+      "icon": "/assets/capabilities/water.svg"
+    },
+    "warmwater_target_temperature": {
+      "type": "number",
+      "title": {
+        "en": "Hot Water Target Temperature",
+        "de": "Brauchwasser Soll-Temperatur"
+      },
+      "units": {
+        "en": "°C",
+        "de": "°C"
+      },
+      "decimals": 1,
+      "min": 30,
+      "max": 65,
+      "step": 0.5,
+      "getable": true,
+      "setable": true,
+      "uiComponent": "slider",
+      "insights": true,
+      "icon": "/assets/capabilities/target_temperature_level.svg"
+    }
   }
 }

@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Energy Hot Water",
+    "de": "Energie Brauchwasser"
+  },
+  "units": {
+    "en": "kWh",
+    "de": "kWh"
+  },
+  "decimals": 1,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true,
+  "icon": "/assets/capabilities/energy.svg"
+}

@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Hot Water Target (read)",
+    "de": "Warmwasser Soll (gelesen)"
+  },
+  "units": {
+    "en": "°C",
+    "de": "°C"
+  },
+  "decimals": 1,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true,
+  "icon": "/assets/capabilities/water.svg"
+}

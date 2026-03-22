@@ -1,0 +1,20 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Heating Temperature Correction",
+    "de": "Heizung Temperaturkorrektur"
+  },
+  "units": {
+    "en": "°C",
+    "de": "°C"
+  },
+  "decimals": 1,
+  "min": -5,
+  "max": 5,
+  "step": 0.5,
+  "getable": true,
+  "setable": true,
+  "uiComponent": "slider",
+  "insights": true,
+  "icon": "/assets/capabilities/heating.svg"
+}

@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Volume Flow",
+    "de": "Volumenstrom"
+  },
+  "units": {
+    "en": "l/h",
+    "de": "l/h"
+  },
+  "decimals": 0,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true,
+  "icon": "/assets/capabilities/flow.svg"
+}

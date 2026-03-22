@@ -1,0 +1,210 @@
+{
+  "name": {
+    "en": "Luxtronik Heat Pump",
+    "de": "Luxtronik Wärmepumpe"
+  },
+  "class": "other",
+  "capabilities": [
+    "heatpump_state",
+    "heating_operation_mode",
+    "warmwater_operation_mode",
+    "heating_temperature_correction",
+    "warmwater_target_temperature",
+    "measure_temp_outdoor",
+    "measure_temp_outdoor_avg",
+    "measure_temp_flow",
+    "measure_temp_return",
+    "measure_temp_return_target",
+    "measure_temp_hotgas",
+    "measure_temp_hotwater",
+    "measure_temp_hotwater_target",
+    "measure_temp_source_in",
+    "measure_temp_source_out",
+    "measure_temp_suction_air",
+    "measure_temp_room",
+    "measure_temp_room_target",
+    "measure_volume_flow",
+    "meter_energy_heating",
+    "meter_energy_hotwater",
+    "meter_energy_total",
+    "measure_hours_compressor",
+    "measure_hours_heating",
+    "measure_hours_hotwater",
+    "alarm_generic"
+  ],
+  "capabilitiesOptions": {
+    "measure_temp_outdoor": {
+      "title": {
+        "en": "Outdoor Temperature",
+        "de": "Außentemperatur"
+      }
+    },
+    "measure_temp_outdoor_avg": {
+      "title": {
+        "en": "Outdoor Avg. Temperature",
+        "de": "Mittlere Außentemperatur"
+      }
+    },
+    "measure_temp_flow": {
+      "title": {
+        "en": "Flow Temperature",
+        "de": "Vorlauftemperatur"
+      }
+    },
+    "measure_temp_return": {
+      "title": {
+        "en": "Return Temperature",
+        "de": "Rücklauftemperatur"
+      }
+    },
+    "measure_temp_return_target": {
+      "title": {
+        "en": "Return Target Temperature",
+        "de": "Rücklauf Soll"
+      }
+    },
+    "measure_temp_hotgas": {
+      "title": {
+        "en": "Hot Gas Temperature",
+        "de": "Heißgastemperatur"
+      }
+    },
+    "measure_temp_hotwater": {
+      "title": {
+        "en": "Hot Water Temperature",
+        "de": "Warmwassertemperatur"
+      }
+    },
+    "measure_temp_hotwater_target": {
+      "title": {
+        "en": "Hot Water Target (read)",
+        "de": "Warmwasser Soll (gelesen)"
+      }
+    },
+    "measure_temp_source_in": {
+      "title": {
+        "en": "Heat Source Inlet",
+        "de": "Wärmequelle Eingang"
+      }
+    },
+    "measure_temp_source_out": {
+      "title": {
+        "en": "Heat Source Outlet",
+        "de": "Wärmequelle Ausgang"
+      }
+    },
+    "measure_temp_suction_air": {
+      "title": {
+        "en": "Suction Air Temperature",
+        "de": "Ansaugluft Temperatur"
+      }
+    },
+    "measure_temp_room": {
+      "title": {
+        "en": "Room Temperature",
+        "de": "Raumtemperatur"
+      }
+    },
+    "measure_temp_room_target": {
+      "title": {
+        "en": "Room Target Temperature",
+        "de": "Raumtemperatur Soll"
+      }
+    },
+    "meter_energy_heating": {
+      "title": {
+        "en": "Energy Heating",
+        "de": "Energie Heizung"
+      }
+    },
+    "meter_energy_hotwater": {
+      "title": {
+        "en": "Energy Hot Water",
+        "de": "Energie Brauchwasser"
+      }
+    },
+    "meter_energy_total": {
+      "title": {
+        "en": "Energy Total",
+        "de": "Energie Gesamt"
+      }
+    },
+    "measure_hours_compressor": {
+      "title": {
+        "en": "Compressor Operating Hours",
+        "de": "Betriebsstunden Verdichter"
+      }
+    },
+    "measure_hours_heating": {
+      "title": {
+        "en": "Heating Operating Hours",
+        "de": "Betriebsstunden Heizung"
+      }
+    },
+    "measure_hours_hotwater": {
+      "title": {
+        "en": "Hot Water Operating Hours",
+        "de": "Betriebsstunden Brauchwasser"
+      }
+    }
+  },
+  "images": {
+    "small": "/drivers/luxtronik-heatpump/assets/images/small.png",
+    "large": "/drivers/luxtronik-heatpump/assets/images/large.png",
+    "xlarge": "/drivers/luxtronik-heatpump/assets/images/xlarge.png"
+  },
+  "pair": [
+    {
+      "id": "pair"
+    }
+  ],
+  "settings": [
+    {
+      "type": "group",
+      "label": {
+        "en": "Connection",
+        "de": "Verbindung"
+      },
+      "children": [
+        {
+          "id": "ip",
+          "type": "text",
+          "label": {
+            "en": "IP Address",
+            "de": "IP-Adresse"
+          },
+          "hint": {
+            "en": "The IP address of the Luxtronik controller.",
+            "de": "Die IP-Adresse des Luxtronik-Controllers."
+          }
+        },
+        {
+          "id": "port",
+          "type": "number",
+          "label": {
+            "en": "Port",
+            "de": "Port"
+          },
+          "value": 8889,
+          "hint": {
+            "en": "Default: 8889",
+            "de": "Standard: 8889"
+          }
+        },
+        {
+          "id": "poll_interval",
+          "type": "number",
+          "label": {
+            "en": "Poll Interval (seconds)",
+            "de": "Abfrageintervall (Sekunden)"
+          },
+          "value": 60,
+          "hint": {
+            "en": "How often to query the heat pump (min. 10 s).",
+            "de": "Wie oft die Wärmepumpe abgefragt wird (min. 10 s)."
+          }
+        }
+      ]
+    }
+  ]
+}

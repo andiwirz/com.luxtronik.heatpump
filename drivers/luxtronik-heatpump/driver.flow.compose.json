@@ -1,0 +1,454 @@
+{
+  "triggers": [
+    {
+      "id": "heating_operation_mode_changed",
+      "title": {
+        "en": "Heating mode changed",
+        "de": "Heizungs-Betriebsart geändert"
+      },
+      "tokens": [
+        {
+          "name": "mode",
+          "type": "string",
+          "title": {
+            "en": "Mode",
+            "de": "Betriebsart"
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "warmwater_operation_mode_changed",
+      "title": {
+        "en": "Hot water mode changed",
+        "de": "Brauchwasser-Betriebsart geändert"
+      },
+      "tokens": [
+        {
+          "name": "mode",
+          "type": "string",
+          "title": {
+            "en": "Mode",
+            "de": "Betriebsart"
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "heatpump_state_changed",
+      "title": {
+        "en": "Heat pump state changed",
+        "de": "Wärmepumpen-Status geändert"
+      },
+      "tokens": [
+        {
+          "name": "state",
+          "type": "string",
+          "title": {
+            "en": "State",
+            "de": "Status"
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "id": "error_occurred",
+      "title": {
+        "en": "Error occurred",
+        "de": "Fehler aufgetreten"
+      },
+      "tokens": [
+        {
+          "name": "error",
+          "type": "string",
+          "title": {
+            "en": "Error",
+            "de": "Fehler"
+          }
+        }
+      ],
+      "args": []
+    }
+  ],
+  "conditions": [
+    {
+      "id": "heating_operation_mode_is",
+      "title": {
+        "en": "Heating mode !{{is|is not}}",
+        "de": "Heizungs-Betriebsart !{{ist|ist nicht}}"
+      },
+      "args": [
+        {
+          "name": "mode",
+          "type": "dropdown",
+          "title": {
+            "en": "Mode",
+            "de": "Betriebsart"
+          },
+          "values": [
+            {
+              "id": "0",
+              "label": {
+                "en": "Automatic",
+                "de": "Automatik"
+              }
+            },
+            {
+              "id": "1",
+              "label": {
+                "en": "Second Heat Source",
+                "de": "Zuheizer"
+              }
+            },
+            {
+              "id": "2",
+              "label": {
+                "en": "Party",
+                "de": "Party"
+              }
+            },
+            {
+              "id": "3",
+              "label": {
+                "en": "Holidays",
+                "de": "Ferien"
+              }
+            },
+            {
+              "id": "4",
+              "label": {
+                "en": "Off",
+                "de": "Aus"
+              }
+            }
+          ]
+        }
+      ],
+      "titleFormatted": {
+        "en": "The heating mode is [[mode]]",
+        "de": "Die Heizungs-Betriebsart ist [[mode]]"
+      }
+    },
+    {
+      "id": "warmwater_operation_mode_is",
+      "title": {
+        "en": "Hot water mode !{{is|is not}}",
+        "de": "Brauchwasser-Betriebsart !{{ist|ist nicht}}"
+      },
+      "args": [
+        {
+          "name": "mode",
+          "type": "dropdown",
+          "title": {
+            "en": "Mode",
+            "de": "Betriebsart"
+          },
+          "values": [
+            {
+              "id": "0",
+              "label": {
+                "en": "Automatic",
+                "de": "Automatik"
+              }
+            },
+            {
+              "id": "1",
+              "label": {
+                "en": "Second Heat Source",
+                "de": "Zuheizer"
+              }
+            },
+            {
+              "id": "2",
+              "label": {
+                "en": "Party",
+                "de": "Party"
+              }
+            },
+            {
+              "id": "3",
+              "label": {
+                "en": "Holidays",
+                "de": "Ferien"
+              }
+            },
+            {
+              "id": "4",
+              "label": {
+                "en": "Off",
+                "de": "Aus"
+              }
+            }
+          ]
+        }
+      ],
+      "titleFormatted": {
+        "en": "The hot water mode is [[mode]]",
+        "de": "Die Brauchwasser-Betriebsart ist [[mode]]"
+      }
+    },
+    {
+      "id": "heatpump_state_is",
+      "title": {
+        "en": "Heat pump state !{{is|is not}}",
+        "de": "Wärmepumpen-Status !{{ist|ist nicht}}"
+      },
+      "args": [
+        {
+          "name": "state",
+          "type": "dropdown",
+          "title": {
+            "en": "State",
+            "de": "Status"
+          },
+          "values": [
+            {
+              "id": "heating",
+              "label": {
+                "en": "Heating",
+                "de": "Heizen"
+              }
+            },
+            {
+              "id": "hotwater",
+              "label": {
+                "en": "Hot Water",
+                "de": "Warmwasser"
+              }
+            },
+            {
+              "id": "swimming",
+              "label": {
+                "en": "Swimming Pool",
+                "de": "Schwimmbad"
+              }
+            },
+            {
+              "id": "provider_lock",
+              "label": {
+                "en": "EVU Lock",
+                "de": "EVU-Sperre"
+              }
+            },
+            {
+              "id": "defrost",
+              "label": {
+                "en": "Defrost",
+                "de": "Abtauen"
+              }
+            },
+            {
+              "id": "off",
+              "label": {
+                "en": "Off",
+                "de": "Aus"
+              }
+            },
+            {
+              "id": "external",
+              "label": {
+                "en": "External",
+                "de": "Extern"
+              }
+            },
+            {
+              "id": "cooling",
+              "label": {
+                "en": "Cooling",
+                "de": "Kühlen"
+              }
+            },
+            {
+              "id": "standby",
+              "label": {
+                "en": "Standby",
+                "de": "Standby"
+              }
+            }
+          ]
+        }
+      ],
+      "titleFormatted": {
+        "en": "The heat pump state is [[state]]",
+        "de": "Der Wärmepumpen-Status ist [[state]]"
+      }
+    }
+  ],
+  "actions": [
+    {
+      "id": "set_heating_operation_mode",
+      "title": {
+        "en": "Set heating mode",
+        "de": "Heizungs-Betriebsart setzen"
+      },
+      "args": [
+        {
+          "name": "mode",
+          "type": "dropdown",
+          "title": {
+            "en": "Mode",
+            "de": "Betriebsart"
+          },
+          "values": [
+            {
+              "id": "0",
+              "label": {
+                "en": "Automatic",
+                "de": "Automatik"
+              }
+            },
+            {
+              "id": "1",
+              "label": {
+                "en": "Second Heat Source",
+                "de": "Zuheizer"
+              }
+            },
+            {
+              "id": "2",
+              "label": {
+                "en": "Party",
+                "de": "Party"
+              }
+            },
+            {
+              "id": "3",
+              "label": {
+                "en": "Holidays",
+                "de": "Ferien"
+              }
+            },
+            {
+              "id": "4",
+              "label": {
+                "en": "Off",
+                "de": "Aus"
+              }
+            }
+          ]
+        }
+      ],
+      "titleFormatted": {
+        "en": "Set heating mode to [[mode]]",
+        "de": "Heizungs-Betriebsart auf [[mode]] setzen"
+      }
+    },
+    {
+      "id": "set_warmwater_operation_mode",
+      "title": {
+        "en": "Set hot water mode",
+        "de": "Brauchwasser-Betriebsart setzen"
+      },
+      "args": [
+        {
+          "name": "mode",
+          "type": "dropdown",
+          "title": {
+            "en": "Mode",
+            "de": "Betriebsart"
+          },
+          "values": [
+            {
+              "id": "0",
+              "label": {
+                "en": "Automatic",
+                "de": "Automatik"
+              }
+            },
+            {
+              "id": "1",
+              "label": {
+                "en": "Second Heat Source",
+                "de": "Zuheizer"
+              }
+            },
+            {
+              "id": "2",
+              "label": {
+                "en": "Party",
+                "de": "Party"
+              }
+            },
+            {
+              "id": "3",
+              "label": {
+                "en": "Holidays",
+                "de": "Ferien"
+              }
+            },
+            {
+              "id": "4",
+              "label": {
+                "en": "Off",
+                "de": "Aus"
+              }
+            }
+          ]
+        }
+      ],
+      "titleFormatted": {
+        "en": "Set hot water mode to [[mode]]",
+        "de": "Brauchwasser-Betriebsart auf [[mode]] setzen"
+      }
+    },
+    {
+      "id": "set_heating_temperature_correction",
+      "title": {
+        "en": "Set heating temperature correction",
+        "de": "Heizungs-Temperaturkorrektur setzen"
+      },
+      "args": [
+        {
+          "name": "value",
+          "type": "number",
+          "title": {
+            "en": "Correction °C (−5 to +5)",
+            "de": "Korrektur °C (−5 bis +5)"
+          },
+          "placeholder": {
+            "en": "e.g. 0.5",
+            "de": "z.B. 0.5"
+          },
+          "min": -5,
+          "max": 5,
+          "step": 0.5
+        }
+      ],
+      "titleFormatted": {
+        "en": "Set heating temperature correction to [[value]] °C",
+        "de": "Heizungs-Temperaturkorrektur auf [[value]] °C setzen"
+      }
+    },
+    {
+      "id": "set_warmwater_target_temperature",
+      "title": {
+        "en": "Set hot water target temperature",
+        "de": "Brauchwasser Soll-Temperatur setzen"
+      },
+      "args": [
+        {
+          "name": "value",
+          "type": "number",
+          "title": {
+            "en": "Temperature °C (30 to 65)",
+            "de": "Temperatur °C (30 bis 65)"
+          },
+          "placeholder": {
+            "en": "e.g. 50",
+            "de": "z.B. 50"
+          },
+          "min": 30,
+          "max": 65,
+          "step": 0.5
+        }
+      ],
+      "titleFormatted": {
+        "en": "Set hot water target temperature to [[value]] °C",
+        "de": "Brauchwasser Soll-Temperatur auf [[value]] °C setzen"
+      }
+    }
+  ]
+}

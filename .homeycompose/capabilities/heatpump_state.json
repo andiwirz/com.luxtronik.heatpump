@@ -1,0 +1,84 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "Heat Pump State",
+    "de": "Wärmepumpen Status"
+  },
+  "values": [
+    {
+      "id": "heating",
+      "title": {
+        "en": "Heating",
+        "de": "Heizen"
+      }
+    },
+    {
+      "id": "hotwater",
+      "title": {
+        "en": "Hot Water",
+        "de": "Warmwasser"
+      }
+    },
+    {
+      "id": "swimming",
+      "title": {
+        "en": "Swimming Pool",
+        "de": "Schwimmbad"
+      }
+    },
+    {
+      "id": "provider_lock",
+      "title": {
+        "en": "EVU Lock",
+        "de": "EVU-Sperre"
+      }
+    },
+    {
+      "id": "defrost",
+      "title": {
+        "en": "Defrost",
+        "de": "Abtauen"
+      }
+    },
+    {
+      "id": "off",
+      "title": {
+        "en": "Off",
+        "de": "Aus"
+      }
+    },
+    {
+      "id": "external",
+      "title": {
+        "en": "External",
+        "de": "Extern"
+      }
+    },
+    {
+      "id": "cooling",
+      "title": {
+        "en": "Cooling",
+        "de": "Kühlen"
+      }
+    },
+    {
+      "id": "standby",
+      "title": {
+        "en": "Standby",
+        "de": "Standby"
+      }
+    },
+    {
+      "id": "unknown",
+      "title": {
+        "en": "Unknown",
+        "de": "Unbekannt"
+      }
+    }
+  ],
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": false,
+  "icon": "/assets/capabilities/state.svg"
+}
