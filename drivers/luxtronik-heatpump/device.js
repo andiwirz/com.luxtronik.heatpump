@@ -84,7 +84,7 @@ class LuxtronikHeatpumpDevice extends Device {
       }
     }
     // ── Neue Capabilities hinzufügen falls noch nicht vorhanden ─────────────────
-    const NEW_CAPABILITIES = ['hotwater_boost'];
+    const NEW_CAPABILITIES = ['hotwater_boost', 'firmware_version'];
     for (const cap of NEW_CAPABILITIES) {
       if (!this.hasCapability(cap)) {
         this.log(`Füge neue Capability hinzu: ${cap}`);
@@ -252,7 +252,9 @@ class LuxtronikHeatpumpDevice extends Device {
     await this._setIfValid('measure_temp_source_in',    this._n(v.temperature_heat_source_in));
     await this._setIfValid('measure_temp_source_out',   this._n(v.temperature_heat_source_out));
     // Ansaugluft / Zuluft (Luft-WP)
-    await this._setIfValid('measure_temp_suction_air',  this._n(v.Temp_Lueftung_Zuluft));
+    // Ansaugluft nur bei Luft-WP vorhanden → nur anzeigen wenn Wert > 0
+    const suctionAirTemp = this._n(v.Temp_Lueftung_Zuluft);
+    await this._setCapabilityConditional('measure_temp_suction_air', suctionAirTemp, suctionAirTemp !== null && suctionAirTemp > 0);
     // Raumtemperatur (nur mit RBE-Raumdisplay — Capability nur anzeigen wenn Wert > 0)
     const roomTemp       = this._n(v.Temperatur_RFV);
     const roomTempTarget = this._n(v.Temperatur_RFV2);
@@ -260,13 +262,13 @@ class LuxtronikHeatpumpDevice extends Device {
     await this._setCapabilityConditional('measure_temp_room_target', roomTempTarget, roomTempTarget !== null && roomTempTarget > 0);
 
     // ── Volumenstrom ─────────────────────────────────────────────────────────
-    // Durchfluss_WQ in l/min → Homey in l/h, oder flowRate direkt
+    // Durchfluss_WQ: Rohwert vom Controller direkt in l/h (keine Umrechnung nötig)
+    // flowRate (Index 155): ebenfalls direkt in l/h
     const flowRaw = v.Durchfluss_WQ;
     if (flowRaw !== undefined && flowRaw !== 'no') {
-      // Einheit prüfen: luxtronik2 liefert l/min (×60 = l/h)
-      await this._setIfValid('measure_volume_flow', this._n(flowRaw) * 60);
-    } else if (v.flowRate !== undefined && v.flowRate !== 'no') {
-      await this._setIfValid('measure_volume_flow', this._n(v.flowRate) * 60);
+      await this._setIfValid('measure_volume_flow', this._n(flowRaw));
+    } else if (v.flowRate !== undefined && v.flowRate !== 'no' && v.flowRate !== 'inconsistent') {
+      await this._setIfValid('measure_volume_flow', this._n(v.flowRate));
     }
 
     // ── Energie (kWh) ────────────────────────────────────────────────────────
@@ -309,6 +311,11 @@ class LuxtronikHeatpumpDevice extends Device {
       await this._triggerErrorOccurred.trigger(this, { error: msg }).catch(() => {});
     }
     this._lastErrorState = hasError;
+
+    // ── Firmware-Version ─────────────────────────────────────────────────────
+    if (v.firmware && v.firmware !== '') {
+      await this._setIfValid('firmware_version', String(v.firmware));
+    }
 
     // ── Betriebsmodus aus data.parameters ────────────────────────────────────
     const heatingMode = this._int(p.heating_operation_mode);

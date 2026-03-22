@@ -8,7 +8,13 @@
   "setable": true,
   "uiComponent": "toggle",
   "insights": false,
-  "icon": "/assets/capabilities/water.svg",
-  "titleTrue":  { "en": "Boost active",   "de": "Schnelladung aktiv" },
-  "titleFalse": { "en": "Boost inactive", "de": "Schnelladung inaktiv" }
+  "icon": "/assets/capabilities/hotwater_boost.svg",
+  "titleTrue": {
+    "en": "Boost active",
+    "de": "Schnelladung aktiv"
+  },
+  "titleFalse": {
+    "en": "Boost inactive",
+    "de": "Schnelladung inaktiv"
+  }
 }

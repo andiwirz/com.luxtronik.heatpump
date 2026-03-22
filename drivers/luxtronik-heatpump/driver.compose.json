@@ -31,7 +31,8 @@
     "measure_hours_compressor",
     "measure_hours_heating",
     "measure_hours_hotwater",
-    "alarm_generic"
+    "alarm_generic",
+    "firmware_version"
   ],
   "capabilitiesOptions": {
     "measure_temp_outdoor": {

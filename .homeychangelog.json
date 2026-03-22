@@ -20,6 +20,9 @@
     "de": "Neu: Brauchwasser Schnelladung — sofortige Warmwasserbereitung mit konfigurierbarem Auto-Reset-Timer (UI-Toggle + Flow-Aktion). Behebt Schreibfehler durch gleichzeitige TCP-Verbindungen."
   },
   "2.0.7": {
-    "en": "Fix Status und Error capability"
+    "en": "Korrektur Wert Volumenstrom, Ansaugluft nur verfügbar wenn vorhanden, Firmware als neue Capability, Schnelladung neues Icon"
+  },
+  "2.0.8": {
+    "en": "Korrektur Wert Volumenstrom, Ansaugluft nur verfügbar wenn vorhanden, Firmware als neue Capability, Schnelladung neues Icon"
   }
 }
