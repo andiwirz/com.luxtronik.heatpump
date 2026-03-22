@@ -2,5 +2,8 @@
   "2.0.0": {
     "en": "Complete rewrite with new app ID (com.luxtronik.heatpump). Added: hot water mode control, heating mode control, heating temperature correction (-5..+5°C), hot water target temperature control. Extended sensor coverage including all luxtronik2 temperatures, energy, operating hours. Full flow card support for triggers, conditions, and actions.",
     "de": "Vollständige Neuentwicklung mit neuer App-ID (com.luxtronik.heatpump). Neu: Brauchwasser-Betriebsart, Heizungs-Betriebsart, Heizungs-Temperaturkorrektur (-5..+5°C), Brauchwasser-Solltemperatur. Erweiterte Sensorabdeckung inkl. aller Luxtronik-Temperaturen, Energie und Betriebsstunden. Vollständige Flow-Karten (Auslöser, Bedingungen, Aktionen)."
+  },
+  "2.0.2": {
+    "en": "Change BrandColor"
   }
 }
