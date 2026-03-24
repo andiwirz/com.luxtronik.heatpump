@@ -30,10 +30,10 @@ Diese App kommuniziert mit dem **Luxtronik 2.0 / 2.1** Controller, der in Wärme
 | Fähigkeit                         | Beschreibung                         |
 |-----------------------------------|--------------------------------------|
 | Wärmepumpen-Status                | Heizen / Warmwasser / Abtauen / ...  |
-| Außentemperatur                   | Aktuell + gleitender Mittelwert      |
+| Aussentemperatur                   | Aktuell + gleitender Mittelwert      |
 | Vorlauftemperatur                 | Heizkreis Vorlauf                    |
 | Rücklauftemperatur                | Heizkreis Rücklauf + Sollwert        |
-| Heißgastemperatur                 | Verdichter Austritt                  |
+| Heissgastemperatur                 | Verdichter Austritt                  |
 | Warmwassertemperatur              | Ist + Soll                           |
 | Wärmequelle Eingang / Ausgang     | Sole- / Lufttemperatur               |
 | Ansauglufttemperatur              | Bei Luft-WP                          |

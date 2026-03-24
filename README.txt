@@ -17,10 +17,6 @@ Requirements
 - Local access to the Luxtronik controller (fixed IP address or DHCP reservation recommended).
 - Standard ports of the Luxtronik interface (8889) must be reachable.
 
-Note on Images and Copyright
-
-Images of Alpha-Innotec heat pumps are the property of Alpha-Innotec and/or are protected by copyright. In case of problems with copyright or image usage, please get in touch.
-
 Quick Guide for Installation
 
 Simple pairing via IP address and port — all sensor values and control functions are immediately available in Homey afterwards. Changes to target values affect the system directly — please consult the operating manual and observe local regulations.

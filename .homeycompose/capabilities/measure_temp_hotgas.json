@@ -2,7 +2,7 @@
   "type": "number",
   "title": {
     "en": "Hot Gas Temperature",
-    "de": "Heißgastemperatur"
+    "de": "Heissgastemperatur"
   },
   "units": {
     "en": "°C",

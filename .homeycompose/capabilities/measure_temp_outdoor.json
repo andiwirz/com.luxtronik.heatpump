@@ -2,7 +2,7 @@
   "type": "number",
   "title": {
     "en": "Outdoor Temperature",
-    "de": "Außentemperatur"
+    "de": "Aussentemperatur"
   },
   "units": {
     "en": "°C",

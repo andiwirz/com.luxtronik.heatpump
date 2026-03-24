@@ -1,8 +1,8 @@
 {
   "type": "number",
   "title": {
-    "en": "Hot Water Target (read)",
-    "de": "Warmwasser Soll (gelesen)"
+    "en": "Hot Water Target",
+    "de": "Warmwasser Soll"
   },
   "units": {
     "en": "°C",

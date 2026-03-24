@@ -38,13 +38,13 @@
     "measure_temp_outdoor": {
       "title": {
         "en": "Outdoor Temperature",
-        "de": "Außentemperatur"
+        "de": "Aussentemperatur"
       }
     },
     "measure_temp_outdoor_avg": {
       "title": {
         "en": "Outdoor Avg. Temperature",
-        "de": "Mittlere Außentemperatur"
+        "de": "Mittlere Aussentemperatur"
       }
     },
     "measure_temp_flow": {
@@ -68,7 +68,7 @@
     "measure_temp_hotgas": {
       "title": {
         "en": "Hot Gas Temperature",
-        "de": "Heißgastemperatur"
+        "de": "Heissgastemperatur"
       }
     },
     "measure_temp_hotwater": {
@@ -79,8 +79,8 @@
     },
     "measure_temp_hotwater_target": {
       "title": {
-        "en": "Hot Water Target (read)",
-        "de": "Warmwasser Soll (gelesen)"
+        "en": "Hot Water Target",
+        "de": "Warmwasser Soll"
       }
     },
     "measure_temp_source_in": {
