@@ -11,7 +11,7 @@
     "heating_temperature_correction",
     "warmwater_target_temperature",
     "hotwater_boost",
-    "thermal_disinfection",
+    "thermal_disinfection_continuous",
     "measure_temp_outdoor",
     "measure_temp_outdoor_avg",
     "measure_temp_flow",

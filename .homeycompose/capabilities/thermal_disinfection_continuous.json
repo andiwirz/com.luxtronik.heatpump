@@ -10,11 +10,11 @@
   "insights": false,
   "icon": "/assets/capabilities/hotwater_boost.svg",
   "titleTrue": {
-    "en": "Disinfection active",
-    "de": "Desinfektion aktiv"
+    "en": "Thermal disinfection active",
+    "de": "Thermische Desinfektion aktiv"
   },
   "titleFalse": {
-    "en": "Disinfection inactive",
-    "de": "Desinfektion inaktiv"
+    "en": "Thermal disinfection inactive",
+    "de": "Thermische Desinfektion inaktiv"
   }
 }

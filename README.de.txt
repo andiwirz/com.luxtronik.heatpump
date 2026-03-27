@@ -1,4 +1,4 @@
-Luxtronik Wärmepumpe verbindet deine Luxtronik-basierte Wärmepumpe (z. B. Alpha-Innotec, CTA, Novelan, Roth, Elco, Buderus, Nibe, Wolf Heiztechnik) mit Homey. Die App liest alle verfügbaren Messwerte der Steuerung aus und ermöglicht es, diese Werte in Homey Flows zu nutzen sowie zentrale Steuerfunktionen direkt aus Homey heraus zu schreiben.
+Luxtronik Wärmepumpen Manager verbindet deine Luxtronik-basierte Wärmepumpe (z. B. Alpha-Innotec, CTA, Novelan, Roth, Elco, Buderus, Nibe, Wolf Heiztechnik) mit Homey. Die App liest alle verfügbaren Messwerte der Steuerung aus und ermöglicht es, diese Werte in Homey Flows zu nutzen sowie zentrale Steuerfunktionen direkt aus Homey heraus zu schreiben.
 
 Funktionen
 
@@ -10,7 +10,7 @@ Funktionen
 
 Kompatibilität
 
-Luxtronik Wärmepumpe ist mit vielen Luxtronik-basierten Systemen und Wärmepumpenherstellern kompatibel, darunter häufig eingesetzte Modelle wie Alpha-Innotec, CTA Aeroheat, Siemens Novelan, Roth ThermoAura, Elco Aquatop, Buderus Logamatic, Nibe AP-AW10 und Wolf Heiztechnik BWL/BWS. Die App nutzt die standardisierten Werte der Luxtronik-Schnittstelle und funktioniert daher in verschiedenen Anlagenkonfigurationen.
+Luxtronik Wärmepumpen Manager ist mit vielen Luxtronik-basierten Systemen und Wärmepumpenherstellern kompatibel, darunter häufig eingesetzte Modelle wie Alpha-Innotec, CTA Aeroheat, Siemens Novelan, Roth ThermoAura, Elco Aquatop, Buderus Logamatic, Nibe AP-AW10 und Wolf Heiztechnik BWL/BWS. Die App nutzt die standardisierten Werte der Luxtronik-Schnittstelle und funktioniert daher in verschiedenen Anlagenkonfigurationen.
 
 Voraussetzungen
 

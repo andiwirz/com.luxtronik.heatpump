@@ -1,4 +1,4 @@
-Luxtronik Heatpump connects your Luxtronik-based heat pump (e.g. Alpha-Innotec, CTA, Novelan, Roth, Elco, Buderus, Nibe, Wolf Heiztechnik) with Homey. The app reads all available measurement values from the controller and allows you to use these values in Homey Flows as well as write central control functions directly from Homey.
+Luxtronik Heat Pump Manager connects your Luxtronik-based heat pump (e.g. Alpha-Innotec, CTA, Novelan, Roth, Elco, Buderus, Nibe, Wolf Heiztechnik) with Homey. The app reads all available measurement values from the controller and allows you to use these values in Homey Flows as well as write central control functions directly from Homey.
 
 Features
 
@@ -10,7 +10,7 @@ Features
 
 Compatibility
 
-Luxtronik Heatpump is compatible with many Luxtronik-based systems and heat pump manufacturers, including frequently used models such as Alpha-Innotec, CTA Aeroheat, Siemens Novelan, Roth ThermoAura, Elco Aquatop, Buderus Logamatic, Nibe AP-AW10 and Wolf Heiztechnik BWL/BWS. The app uses the standardised values of the Luxtronik interface, so it works in different system configurations.
+Luxtronik Heat Pump Manager is compatible with many Luxtronik-based systems and heat pump manufacturers, including frequently used models such as Alpha-Innotec, CTA Aeroheat, Siemens Novelan, Roth ThermoAura, Elco Aquatop, Buderus Logamatic, Nibe AP-AW10 and Wolf Heiztechnik BWL/BWS. The app uses the standardised values of the Luxtronik interface, so it works in different system configurations.
 
 Requirements
 

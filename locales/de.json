@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Luxtronik Wärmepumpe",
+    "name": "Luxtronik Wärmepumpen Manager",
     "description": "Steuern und überwachen Sie Ihre Luxtronik 2.0 Wärmepumpe"
   },
   "pair": {
@@ -50,16 +50,16 @@
     "heatpump_state": {
       "title": "Wärmepumpen-Status",
       "values": {
-        "heating":       "Heizen",
-        "hotwater":      "Warmwasser",
-        "swimming":      "Schwimmbad",
+        "heating": "Heizen",
+        "hotwater": "Warmwasser",
+        "swimming": "Schwimmbad",
         "provider_lock": "EVU-Sperre",
-        "defrost":       "Abtauen",
-        "off":           "Aus",
-        "external":      "Extern",
-        "cooling":       "Kühlen",
-        "standby":       "Standby",
-        "unknown":       "Unbekannt"
+        "defrost": "Abtauen",
+        "off": "Aus",
+        "external": "Extern",
+        "cooling": "Kühlen",
+        "standby": "Standby",
+        "unknown": "Unbekannt"
       }
     }
   },

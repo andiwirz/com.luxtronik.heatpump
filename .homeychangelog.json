@@ -29,6 +29,9 @@
     "en": "add german description and optimize capabilities"
   },
   "2.0.10": {
-    "en": "contribution link, new feature: thermal desinfection"
+    "en": "change app name"
+  },
+  "2.0.11": {
+    "en": "change name"
   }
 }

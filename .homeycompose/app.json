@@ -1,11 +1,11 @@
 {
   "id": "com.luxtronik.heatpump",
-  "version": "2.0.10",
+  "version": "2.0.11",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "name": {
-    "en": "Luxtronik Heat Pump",
-    "de": "Luxtronik Wärmepumpe"
+    "en": "Luxtronik Heat Pump Manager",
+    "de": "Luxtronik Wärmepumpen Manager"
   },
   "description": {
     "en": "Control and monitor your Luxtronik 2.0 heat pump",

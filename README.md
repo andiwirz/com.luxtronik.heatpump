@@ -1,4 +1,4 @@
-# Luxtronik Heat Pump – Homey App
+# Luxtronik Heat Pump Manager – Homey App
 
 **App ID:** `com.luxtronik.heatpump`  
 **SDK:** Homey SDK 3  
@@ -47,34 +47,38 @@ Diese App kommuniziert mit dem **Luxtronik 2.0 / 2.1** Controller, der in Wärme
 
 ### Steuerbare Werte (Aktoren)
 
-| Fähigkeit                        | Wertebereich / Optionen                         |
-|----------------------------------|-------------------------------------------------|
-| **Heizungs-Betriebsart**         | Automatik · Zuheizer · Party · Ferien · Aus     |
-| **Brauchwasser-Betriebsart**     | Automatik · Zuheizer · Party · Ferien · Aus     |
-| **Heizungs-Temperaturkorrektur** | −5 °C bis +5 °C in 0,5 °C-Schritten             |
-| **Brauchwasser Soll-Temperatur** | 30 °C bis 65 °C in 0,5 °C-Schritten             |
-| **Brauchwasser Schnelladung**    | Toggle – Dauer konfigurierbar (Standard 60 min) |
-| **Thermische Desinfektion**      | Toggle – automatische Abschaltung (siehe unten) |
+| Fähigkeit                         | Wertebereich / Optionen                                   |
+|-----------------------------------|-----------------------------------------------------------|
+| **Heizungs-Betriebsart**          | Automatik · Zuheizer · Party · Ferien · Aus               |
+| **Brauchwasser-Betriebsart**      | Automatik · Zuheizer · Party · Ferien · Aus               |
+| **Heizungs-Temperaturkorrektur**  | −5 °C bis +5 °C in 0,5 °C-Schritten                       |
+| **Brauchwasser Soll-Temperatur**  | 30 °C bis 65 °C in 0,5 °C-Schritten                       |
+| **Brauchwasser Schnelladung**     | Toggle – Zuheizer-Modus, automatische Abschaltung         |
+| **Thermische Desinfektion**       | Toggle – Dauerbetrieb, automatische Abschaltung bei 60 °C |
 
 ---
 
 ## Brauchwasser Schnelladung
 
-Der Toggle **Brauchwasser Schnelladung** setzt die Betriebsart vorübergehend auf „Party" und schaltet nach Ablauf der konfigurierten Dauer automatisch auf „Automatik" zurück.
+Der Toggle **Brauchwasser Schnelladung** ermöglicht eine sofortige Warmwasserbereitung ausserhalb des regulären Zeitschaltprogramms:
 
-Die Dauer kann in den Geräteeinstellungen unter **Schnelladung Dauer (Minuten)** festgelegt werden (Standard: 60 Minuten).
+- **Starten:** Setzt die Brauchwasser-Betriebsart auf „Zuheizer"
+- **Automatische Abschaltung** sobald die aktuelle Warmwassertemperatur die eingestellte Soll-Temperatur erreicht
+- **Zeitliche Begrenzung** nach der konfigurierten Maximaldauer (Standard 60 Minuten, einstellbar in den Geräteeinstellungen)
+- **Manuelles Beenden:** jederzeit über Toggle oder Flow-Karte möglich
+- Nach dem Beenden wird die Betriebsart automatisch auf „Automatik" zurückgestellt
+- Der Flow-Trigger **„Brauchwasser Schnelladung beendet"** wird bei automatischer und manueller Abschaltung ausgelöst
 
 ---
 
 ## Thermische Desinfektion
 
-Der Toggle **Thermische Desinfektion** ermöglicht eine manuelle Legionellenschutz-Erwärmung:
+Der Toggle **Thermische Desinfektion** aktiviert den Dauerbetrieb für den Legionellenschutz direkt am Luxtronik-Controller (Parameter 27):
 
-- **Starten:** Setzt Brauchwasser Soll-Temperatur auf 65 °C und Betriebsart auf „Zuheizer"
-- **Automatische Abschaltung** sobald die Warmwassertemperatur ≥ 60 °C erreicht
-- **Notabschaltung** nach spätestens 2 Stunden
-- **Manuelles Beenden:** jederzeit über Toggle oder Flow-Karte möglich
-- Nach dem Beenden werden Soll-Temperatur und Betriebsart automatisch auf die vorherigen Werte zurückgestellt
+- **Starten:** Aktiviert den Dauerbetrieb — nach jeder Warmwasserbereitung folgt automatisch eine thermische Desinfektion
+- **Automatische Abschaltung** sobald die Warmwassertemperatur einmalig ≥ 60 °C erreicht
+- **Manuelles Beenden:** jederzeit über Toggle möglich
+- Der aktuelle Zustand (aktiv / inaktiv) wird direkt vom Controller gelesen und bei jedem Polling aktualisiert
 
 > **Hinweis:** Die Funktion setzt einen angeschlossenen zweiten Wärmeerzeuger (ZWE) voraus. Im Luxtronik-Menü erscheint die Thermische Desinfektion nur, wenn ein ZWE für die Warmwasserbereitung freigeschaltet ist.
 
@@ -102,7 +106,7 @@ Der Toggle **Thermische Desinfektion** ermöglicht eine manuelle Legionellenschu
 | IP-Adresse                      | –        | IP des Luxtronik-Controllers                       |
 | Port                            | 8889     | TCP-Port des Controllers                           |
 | Abfrageintervall (Sekunden)     | 60       | Wie oft die Wärmepumpe abgefragt wird (min. 10 s) |
-| Schnelladung Dauer (Minuten)    | 60       | Laufzeit der Brauchwasser-Schnelladung             |
+| Schnelladung Dauer (Minuten)    | 60       | Maximale Laufzeit der Brauchwasser-Schnelladung    |
 
 ---
 
@@ -136,8 +140,6 @@ Der Toggle **Thermische Desinfektion** ermöglicht eine manuelle Legionellenschu
 | Brauchwasser Soll-Temperatur setzen      | Zahl: 30 … 65 °C               |
 | Brauchwasser Schnelladung starten        | Dauer in Minuten (5 – 480)     |
 | Brauchwasser Schnelladung stoppen        | –                              |
-| Thermische Desinfektion starten          | –                              |
-| Thermische Desinfektion beenden          | –                              |
 
 ---
 

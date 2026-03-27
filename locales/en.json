@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Luxtronik Heat Pump",
+    "name": "Luxtronik Heat Pump Manager",
     "description": "Control and monitor your Luxtronik 2.0 heat pump"
   },
   "pair": {
@@ -50,16 +50,16 @@
     "heatpump_state": {
       "title": "Heat Pump State",
       "values": {
-        "heating":      "Heating",
-        "hotwater":     "Hot Water",
-        "swimming":     "Swimming Pool",
-        "provider_lock":"EVU Lock",
-        "defrost":      "Defrost",
-        "off":          "Off",
-        "external":     "External",
-        "cooling":      "Cooling",
-        "standby":      "Standby",
-        "unknown":      "Unknown"
+        "heating": "Heating",
+        "hotwater": "Hot Water",
+        "swimming": "Swimming Pool",
+        "provider_lock": "EVU Lock",
+        "defrost": "Defrost",
+        "off": "Off",
+        "external": "External",
+        "cooling": "Cooling",
+        "standby": "Standby",
+        "unknown": "Unknown"
       }
     }
   },

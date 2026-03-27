@@ -497,30 +497,6 @@
         "de": "Brauchwasser Schnelladung stoppen"
       },
       "args": []
-    },
-    {
-      "id": "start_thermal_disinfection",
-      "title": {
-        "en": "Start thermal disinfection",
-        "de": "Thermische Desinfektion starten"
-      },
-      "titleFormatted": {
-        "en": "Start thermal disinfection",
-        "de": "Thermische Desinfektion starten"
-      },
-      "args": []
-    },
-    {
-      "id": "stop_thermal_disinfection",
-      "title": {
-        "en": "Stop thermal disinfection",
-        "de": "Thermische Desinfektion beenden"
-      },
-      "titleFormatted": {
-        "en": "Stop thermal disinfection",
-        "de": "Thermische Desinfektion beenden"
-      },
-      "args": []
     }
   ]
 }

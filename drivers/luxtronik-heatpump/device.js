@@ -84,7 +84,7 @@ class LuxtronikHeatpumpDevice extends Device {
       }
     }
     // ── Neue Capabilities hinzufügen falls noch nicht vorhanden ─────────────────
-    const NEW_CAPABILITIES = ['hotwater_boost', 'firmware_version', 'thermal_disinfection'];
+    const NEW_CAPABILITIES = ['hotwater_boost', 'firmware_version', 'thermal_disinfection_continuous'];
     for (const cap of NEW_CAPABILITIES) {
       if (!this.hasCapability(cap)) {
         this.log(`Füge neue Capability hinzu: ${cap}`);
@@ -93,7 +93,7 @@ class LuxtronikHeatpumpDevice extends Device {
       }
     }
     // ── Cleanup: unerwünschte Capabilities entfernen ────────────────────────────
-    const REMOVE_CAPABILITIES = ['target_temperature', 'measure_temperature'];
+    const REMOVE_CAPABILITIES = ['target_temperature', 'measure_temperature', 'thermal_disinfection'];
     for (const cap of REMOVE_CAPABILITIES) {
       if (this.hasCapability(cap)) {
         this.log(`Entferne Capability: ${cap}`);
@@ -117,7 +117,6 @@ class LuxtronikHeatpumpDevice extends Device {
     this._writeProtectUntil = {};
     // Schnelladungs-Timer
     this._boostTimer = null;
-    this._tdiTimer    = null;
 
     // Flow-Trigger
     this._triggerHeatingModeChanged  = this.homey.flow.getDeviceTriggerCard('heating_operation_mode_changed');
@@ -149,12 +148,6 @@ class LuxtronikHeatpumpDevice extends Device {
     this.homey.flow.getActionCard('set_warmwater_target_temperature')
       .registerRunListener(async (args) => this._setWarmwaterTargetTemperature(parseFloat(args.value)));
 
-    this.homey.flow.getActionCard('start_thermal_disinfection')
-      .registerRunListener(async () => this._startThermalDisinfection());
-
-    this.homey.flow.getActionCard('stop_thermal_disinfection')
-      .registerRunListener(async () => this._stopThermalDisinfection());
-
     this.homey.flow.getActionCard('start_hotwater_boost')
       .registerRunListener(async (args) => this._startHotwaterBoost(parseInt(args.duration, 10)));
 
@@ -166,12 +159,8 @@ class LuxtronikHeatpumpDevice extends Device {
     this.registerCapabilityListener('warmwater_operation_mode',       async (v) => this._setWarmwaterOperationMode(parseInt(v, 10)));
     this.registerCapabilityListener('heating_temperature_correction', async (v) => this._setHeatingTemperatureCorrection(parseFloat(v)));
     this.registerCapabilityListener('warmwater_target_temperature',   async (v) => this._setWarmwaterTargetTemperature(parseFloat(v)));
-    this.registerCapabilityListener('thermal_disinfection',            async (v) => {
-      if (v) {
-        await this._startThermalDisinfection();
-      } else {
-        await this._stopThermalDisinfection();
-      }
+    this.registerCapabilityListener('thermal_disinfection_continuous', async (v) => {
+      await this._setThermalDisinfectionContinuous(v);
     });
 
     this.registerCapabilityListener('hotwater_boost',                  async (v) => {
@@ -191,7 +180,6 @@ class LuxtronikHeatpumpDevice extends Device {
   async onDeleted() {
     this._stopPolling();
     if (this._boostTimer) { clearTimeout(this._boostTimer); this._boostTimer = null; }
-    if (this._tdiTimer)   { clearTimeout(this._tdiTimer);   this._tdiTimer   = null; }
   }
 
   async onSettings({ newSettings }) {
@@ -273,14 +261,30 @@ class LuxtronikHeatpumpDevice extends Device {
     await this._setIfValid('measure_temp_return_target',this._n(v.temperature_target_return));
     await this._setIfValid('measure_temp_hotgas',       this._n(v.temperature_hot_gas));
     await this._setIfValid('measure_temp_hotwater',     this._n(v.temperature_hot_water));
-    // Thermische Desinfektion: automatisch beenden wenn ≥ 60°C erreicht
-    if (this.getCapabilityValue('thermal_disinfection') === true) {
-      const hotwaterTemp = this._n(v.temperature_hot_water);
-      if (hotwaterTemp !== null && hotwaterTemp >= 60) {
-        this.log(`TDI: Zieltemperatur 60°C erreicht (${hotwaterTemp}°C) — beende automatisch`);
-        await this._stopThermalDisinfection();
+    // Thermische Desinfektion Dauerbetrieb: Wert aus Controller lesen
+    if (p.thermal_desinfection_continuous_operation !== undefined) {
+      const contActive = p.thermal_desinfection_continuous_operation === 1;
+      await this._setIfValid('thermal_disinfection_continuous', contActive);
+    }
+    // Brauchwasser Schnelladung: automatisch beenden wenn Zieltemperatur erreicht
+    if (this._boostTimer && this.getCapabilityValue('hotwater_boost') === true) {
+      const currentTemp = this._n(v.temperature_hot_water);
+      const targetTemp  = this.getCapabilityValue('warmwater_target_temperature');
+      if (currentTemp !== null && targetTemp !== null && currentTemp >= targetTemp) {
+        this.log(`Schnelladung: Zieltemperatur ${targetTemp}°C erreicht (${currentTemp}°C) — beende automatisch`);
+        await this._stopHotwaterBoost();
+        await this._triggerBoostEnded.trigger(this, {}).catch(() => {});
       }
     }
+    // Thermische Desinfektion: automatisch deaktivieren wenn ≥ 60°C erreicht
+    if (this.getCapabilityValue('thermal_disinfection_continuous') === true) {
+      const currentTemp = this._n(v.temperature_hot_water);
+      if (currentTemp !== null && currentTemp >= 60) {
+        this.log(`Thermische Desinfektion: 60°C erreicht (${currentTemp}°C) — deaktiviere Dauerbetrieb`);
+        await this._setThermalDisinfectionContinuous(false).catch((e) => this.error('TDI auto-off fehlgeschlagen:', e.message));
+      }
+    }
+
     await this._setIfValid('measure_temp_hotwater_target', this._n(v.temperature_hot_water_target));
     await this._setIfValid('measure_temp_source_in',    this._n(v.temperature_heat_source_in));
     await this._setIfValid('measure_temp_source_out',   this._n(v.temperature_heat_source_out));
@@ -403,40 +407,6 @@ class LuxtronikHeatpumpDevice extends Device {
     await this.setCapabilityValue('heating_temperature_correction', clamped);
   }
 
-  async _startThermalDisinfection() {
-    this.log('Starte Thermische Desinfektion: Temp → 65°C, Modus → Zuheizer');
-    // Vorherigen Sollwert merken
-    this._tdiPreviousTemp = this.getCapabilityValue('warmwater_target_temperature') ?? 50;
-    this._tdiPreviousMode = this.getCapabilityValue('warmwater_operation_mode') ?? '0';
-    // Soll-Temperatur auf 65°C setzen
-    await this._setWarmwaterTargetTemperature(65);
-    // Betriebsart auf Zuheizer (1) setzen
-    await this._setWarmwaterOperationMode(1);
-    await this.setCapabilityValue('thermal_disinfection', true);
-    // Notabschaltung nach 2 Stunden
-    if (this._tdiTimer) { clearTimeout(this._tdiTimer); this._tdiTimer = null; }
-    this._tdiTimer = setTimeout(async () => {
-      this._tdiTimer = null;
-      this.log('TDI: Notabschaltung nach 2 Stunden');
-      await this._stopThermalDisinfection();
-    }, 2 * 60 * 60 * 1000);
-    this.log('Thermische Desinfektion gestartet (max. 2h Notabschaltung)');
-  }
-
-  async _stopThermalDisinfection() {
-    this.log('Beende Thermische Desinfektion');
-    // Notabschaltungs-Timer aufräumen
-    if (this._tdiTimer) { clearTimeout(this._tdiTimer); this._tdiTimer = null; }
-    // Vorherigen Sollwert wiederherstellen (Fallback: 50°C)
-    const prevTemp = this._tdiPreviousTemp ?? 50;
-    const prevMode = parseInt(this._tdiPreviousMode ?? '0', 10);
-    await this._setWarmwaterTargetTemperature(prevTemp);
-    await this._setWarmwaterOperationMode(prevMode);
-    await this.setCapabilityValue('thermal_disinfection', false).catch(() => {});
-    this._tdiPreviousTemp = null;
-    this._tdiPreviousMode = null;
-    this.log(`Thermische Desinfektion beendet — Temp: ${prevTemp}°C, Modus: ${prevMode}`);
-  }
 
   async _setWarmwaterTargetTemperature(value) {
     const clamped = Math.min(65, Math.max(30, value));
@@ -460,8 +430,8 @@ class LuxtronikHeatpumpDevice extends Device {
       this._boostTimer = null;
     }
 
-    // Party-Modus setzen
-    await this._setWarmwaterOperationMode(2);
+    // Zuheizer-Modus setzen
+    await this._setWarmwaterOperationMode(1);
     await this.setCapabilityValue('hotwater_boost', true);
 
     // Auto-Reset nach konfigurierbarer Zeit
@@ -482,6 +452,19 @@ class LuxtronikHeatpumpDevice extends Device {
     }
     await this._setWarmwaterOperationMode(0);
     await this.setCapabilityValue('hotwater_boost', false);
+  }
+
+  async _setThermalDisinfectionContinuous(enabled) {
+    const value = enabled ? 1 : 0;
+    this.log(`Thermische Desinfektion Dauerbetrieb: ${enabled ? 'ein' : 'aus'}`);
+    await new Promise((resolve, reject) => {
+      this._pump.writeRaw(27, value, (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
+    await this.setCapabilityValue('thermal_disinfection_continuous', enabled);
+    this.log(`Thermische Desinfektion Dauerbetrieb erfolgreich gesetzt: ${value}`);
   }
 
   // ─── Low-level Write ───────────────────────────────────────────────────────
