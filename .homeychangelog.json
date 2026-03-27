@@ -33,5 +33,8 @@
   },
   "2.0.11": {
     "en": "change name"
+  },
+  "2.0.12": {
+    "en": "Added: Hot Water Boost (Auxiliary Heating) — uses Second Heat Source mode, auto-stops when target temperature is reached or after configurable duration. Added: Hot Water Boost (Party) — same behaviour using Party mode. Added: Thermal Disinfection (Continuous) — enables continuous disinfection mode on the controller (parameter 27), auto-disables when hot water reaches the configurable target temperature (default 65 °C, adjustable in device settings). Renamed app to 'Luxtronik Heat Pump Manager'. Improved capability display order. Added PayPal donation link."
   }
 }

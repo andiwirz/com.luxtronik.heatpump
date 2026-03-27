@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.luxtronik.heatpump",
-  "version": "2.0.11",
+  "version": "2.0.12",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "name": {
@@ -155,8 +155,22 @@
       {
         "id": "hotwater_boost_ended",
         "title": {
-          "en": "Hot water boost ended",
-          "de": "Brauchwasser Schnelladung beendet"
+          "en": "Hot Water Boost (Auxiliary Heating) ended",
+          "de": "Brauchwasser Schnellladung (Zuheizung) beendet"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          }
+        ]
+      },
+      {
+        "id": "hotwater_boost_party_ended",
+        "title": {
+          "en": "Hot Water Boost (Party) ended",
+          "de": "Brauchwasser Schnellladung (Party) beendet"
         },
         "args": [
           {
@@ -384,6 +398,126 @@
           "en": "The heat pump state is [[state]]",
           "de": "Der Wärmepumpen-Status ist [[state]]"
         }
+      },
+      {
+        "id": "hotwater_temperature_above",
+        "title": {
+          "en": "Hot water temperature !{{is above|is not above}}",
+          "de": "Warmwassertemperatur !{{ist über|ist nicht über}}"
+        },
+        "titleFormatted": {
+          "en": "Hot water temperature is above [[temperature]] °C",
+          "de": "Warmwassertemperatur ist über [[temperature]] °C"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          },
+          {
+            "name": "temperature",
+            "type": "number",
+            "title": {
+              "en": "Temperature (°C)",
+              "de": "Temperatur (°C)"
+            },
+            "min": 0,
+            "max": 95,
+            "step": 0.5,
+            "placeholder": {
+              "en": "e.g. 50",
+              "de": "z.B. 50"
+            }
+          }
+        ]
+      },
+      {
+        "id": "hotwater_temperature_below",
+        "title": {
+          "en": "Hot water temperature !{{is below|is not below}}",
+          "de": "Warmwassertemperatur !{{ist unter|ist nicht unter}}"
+        },
+        "titleFormatted": {
+          "en": "Hot water temperature is below [[temperature]] °C",
+          "de": "Warmwassertemperatur ist unter [[temperature]] °C"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          },
+          {
+            "name": "temperature",
+            "type": "number",
+            "title": {
+              "en": "Temperature (°C)",
+              "de": "Temperatur (°C)"
+            },
+            "min": 0,
+            "max": 95,
+            "step": 0.5,
+            "placeholder": {
+              "en": "e.g. 45",
+              "de": "z.B. 45"
+            }
+          }
+        ]
+      },
+      {
+        "id": "thermal_disinfection_is_active",
+        "title": {
+          "en": "Thermal disinfection !{{is|is not}} active",
+          "de": "Thermische Desinfektion !{{ist|ist nicht}} aktiv"
+        },
+        "titleFormatted": {
+          "en": "Thermal disinfection is active",
+          "de": "Thermische Desinfektion ist aktiv"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          }
+        ]
+      },
+      {
+        "id": "hotwater_boost_is_active",
+        "title": {
+          "en": "Hot water boost (auxiliary heating) !{{is|is not}} active",
+          "de": "Brauchwasser Schnellladung (Zuheizung) !{{ist|ist nicht}} aktiv"
+        },
+        "titleFormatted": {
+          "en": "Hot water boost (auxiliary heating) is active",
+          "de": "Brauchwasser Schnellladung (Zuheizung) ist aktiv"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          }
+        ]
+      },
+      {
+        "id": "hotwater_boost_party_is_active",
+        "title": {
+          "en": "Hot water boost (party) !{{is|is not}} active",
+          "de": "Brauchwasser Schnellladung (Party) !{{ist|ist nicht}} aktiv"
+        },
+        "titleFormatted": {
+          "en": "Hot water boost (party) is active",
+          "de": "Brauchwasser Schnellladung (Party) ist aktiv"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          }
+        ]
       }
     ],
     "actions": [
@@ -582,12 +716,12 @@
       {
         "id": "start_hotwater_boost",
         "title": {
-          "en": "Start hot water boost",
-          "de": "Brauchwasser Schnelladung starten"
+          "en": "Start Hot Water Boost (Auxiliary Heating)",
+          "de": "Brauchwasser Schnellladung (Zuheizung) starten"
         },
         "titleFormatted": {
-          "en": "Start hot water boost for [[duration]] minutes",
-          "de": "Brauchwasser Schnelladung für [[duration]] Minuten starten"
+          "en": "Start Hot Water Boost (Auxiliary Heating) for [[duration]] minutes",
+          "de": "Brauchwasser Schnellladung (Zuheizung) für [[duration]] Minuten starten"
         },
         "args": [
           {
@@ -615,12 +749,99 @@
       {
         "id": "stop_hotwater_boost",
         "title": {
-          "en": "Stop hot water boost",
-          "de": "Brauchwasser Schnelladung stoppen"
+          "en": "Stop Hot Water Boost (Auxiliary Heating)",
+          "de": "Brauchwasser Schnellladung (Zuheizung) stoppen"
         },
         "titleFormatted": {
-          "en": "Stop hot water boost",
-          "de": "Brauchwasser Schnelladung stoppen"
+          "en": "Stop Hot Water Boost (Auxiliary Heating)",
+          "de": "Brauchwasser Schnellladung (Zuheizung) stoppen"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          }
+        ]
+      },
+      {
+        "id": "start_hotwater_boost_party",
+        "title": {
+          "en": "Start Hot Water Boost (Party)",
+          "de": "Brauchwasser Schnellladung (Party) starten"
+        },
+        "titleFormatted": {
+          "en": "Start Hot Water Boost (Party) for [[duration]] minutes",
+          "de": "Brauchwasser Schnellladung (Party) für [[duration]] Minuten starten"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          },
+          {
+            "name": "duration",
+            "type": "number",
+            "title": {
+              "en": "Duration (minutes)",
+              "de": "Dauer (Minuten)"
+            },
+            "placeholder": {
+              "en": "e.g. 60",
+              "de": "z.B. 60"
+            },
+            "min": 5,
+            "max": 480,
+            "step": 5
+          }
+        ]
+      },
+      {
+        "id": "stop_hotwater_boost_party",
+        "title": {
+          "en": "Stop Hot Water Boost (Party)",
+          "de": "Brauchwasser Schnellladung (Party) stoppen"
+        },
+        "titleFormatted": {
+          "en": "Stop Hot Water Boost (Party)",
+          "de": "Brauchwasser Schnellladung (Party) stoppen"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          }
+        ]
+      },
+      {
+        "id": "enable_thermal_disinfection",
+        "title": {
+          "en": "Enable thermal disinfection",
+          "de": "Thermische Desinfektion aktivieren"
+        },
+        "titleFormatted": {
+          "en": "Enable thermal disinfection",
+          "de": "Thermische Desinfektion aktivieren"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          }
+        ]
+      },
+      {
+        "id": "disable_thermal_disinfection",
+        "title": {
+          "en": "Disable thermal disinfection",
+          "de": "Thermische Desinfektion deaktivieren"
+        },
+        "titleFormatted": {
+          "en": "Disable thermal disinfection",
+          "de": "Thermische Desinfektion deaktivieren"
         },
         "args": [
           {
@@ -641,20 +862,21 @@
       "class": "other",
       "capabilities": [
         "heatpump_state",
-        "heating_operation_mode",
         "warmwater_operation_mode",
-        "heating_temperature_correction",
+        "heating_operation_mode",
         "warmwater_target_temperature",
+        "heating_temperature_correction",
+        "hotwater_boost_party",
         "hotwater_boost",
         "thermal_disinfection_continuous",
         "measure_temp_outdoor",
+        "measure_temp_hotwater",
+        "measure_temp_hotwater_target",
         "measure_temp_outdoor_avg",
         "measure_temp_flow",
         "measure_temp_return",
         "measure_temp_return_target",
         "measure_temp_hotgas",
-        "measure_temp_hotwater",
-        "measure_temp_hotwater_target",
         "measure_temp_source_in",
         "measure_temp_source_out",
         "measure_temp_suction_air",
@@ -847,13 +1069,28 @@
               "type": "number",
               "label": {
                 "en": "Hot Water Boost Duration (minutes)",
-                "de": "Schnelladung Dauer (Minuten)"
+                "de": "Schnellladung Dauer (Minuten)"
               },
               "value": 60,
               "hint": {
                 "en": "How long the hot water boost runs before switching back to Automatic.",
                 "de": "Wie lange die Schnelladung läuft, bevor automatisch zurückgeschaltet wird."
               }
+            },
+            {
+              "id": "thermal_disinfection_target_temp",
+              "type": "number",
+              "label": {
+                "en": "Thermal Disinfection Target Temperature (°C)",
+                "de": "Thermische Desinfektion Zieltemperatur (°C)"
+              },
+              "value": 65,
+              "hint": {
+                "en": "The hot water temperature at which thermal disinfection is automatically disabled (default: 65 °C).",
+                "de": "Warmwassertemperatur bei der die thermische Desinfektion automatisch abschaltet (Standard: 65 °C)."
+              },
+              "min": 60,
+              "max": 70
             }
           ]
         }
@@ -1042,8 +1279,8 @@
     "hotwater_boost": {
       "type": "boolean",
       "title": {
-        "en": "Hot Water Boost",
-        "de": "Brauchwasser Schnelladung"
+        "en": "Hot Water Boost (Auxiliary Heating)",
+        "de": "Brauchwasser Schnellladung (Zuheizung)"
       },
       "getable": true,
       "setable": true,
@@ -1052,11 +1289,31 @@
       "icon": "/assets/capabilities/hotwater_boost.svg",
       "titleTrue": {
         "en": "Boost active",
-        "de": "Schnelladung aktiv"
+        "de": "Schnellladung aktiv"
       },
       "titleFalse": {
         "en": "Boost inactive",
-        "de": "Schnelladung inaktiv"
+        "de": "Schnellladung inaktiv"
+      }
+    },
+    "hotwater_boost_party": {
+      "type": "boolean",
+      "title": {
+        "en": "Hot Water Boost (Party)",
+        "de": "Brauchwasser Schnellladung (Party)"
+      },
+      "getable": true,
+      "setable": true,
+      "uiComponent": "toggle",
+      "insights": false,
+      "icon": "/assets/capabilities/hotwater_boost.svg",
+      "titleTrue": {
+        "en": "Party boost active",
+        "de": "Party Schnellladung aktiv"
+      },
+      "titleFalse": {
+        "en": "Party boost inactive",
+        "de": "Party Schnellladung inaktiv"
       }
     },
     "measure_hours_compressor": {
@@ -1402,8 +1659,8 @@
     "thermal_disinfection_continuous": {
       "type": "boolean",
       "title": {
-        "en": "Thermal Disinfection",
-        "de": "Thermische Desinfektion"
+        "en": "Thermal Disinfection (after next hot water cycle)",
+        "de": "Thermische Desinfektion (nach nächster Warmwasserbereitung)"
       },
       "getable": true,
       "setable": true,
