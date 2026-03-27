@@ -1,0 +1,20 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Hot Water Boost (Party)",
+    "de": "Brauchwasser Schnellladung (Party)"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "toggle",
+  "insights": false,
+  "icon": "/assets/capabilities/hotwater_boost.svg",
+  "titleTrue": {
+    "en": "Party boost active",
+    "de": "Party Schnellladung aktiv"
+  },
+  "titleFalse": {
+    "en": "Party boost inactive",
+    "de": "Party Schnellladung inaktiv"
+  }
+}

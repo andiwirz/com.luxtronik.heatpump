@@ -1,8 +1,8 @@
 {
   "type": "boolean",
   "title": {
-    "en": "Thermal Disinfection",
-    "de": "Thermische Desinfektion"
+    "en": "Thermal Disinfection (after next hot water cycle)",
+    "de": "Thermische Desinfektion (nach nächster Warmwasserbereitung)"
   },
   "getable": true,
   "setable": true,

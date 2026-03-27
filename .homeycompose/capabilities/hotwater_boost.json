@@ -1,8 +1,8 @@
 {
   "type": "boolean",
   "title": {
-    "en": "Hot Water Boost",
-    "de": "Brauchwasser Schnelladung"
+    "en": "Hot Water Boost (Auxiliary Heating)",
+    "de": "Brauchwasser Schnellladung (Zuheizung)"
   },
   "getable": true,
   "setable": true,
@@ -11,10 +11,10 @@
   "icon": "/assets/capabilities/hotwater_boost.svg",
   "titleTrue": {
     "en": "Boost active",
-    "de": "Schnelladung aktiv"
+    "de": "Schnellladung aktiv"
   },
   "titleFalse": {
     "en": "Boost inactive",
-    "de": "Schnelladung inaktiv"
+    "de": "Schnellladung inaktiv"
   }
 }

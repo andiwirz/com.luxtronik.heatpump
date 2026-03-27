@@ -6,20 +6,21 @@
   "class": "other",
   "capabilities": [
     "heatpump_state",
-    "heating_operation_mode",
     "warmwater_operation_mode",
-    "heating_temperature_correction",
+    "heating_operation_mode",
     "warmwater_target_temperature",
+    "heating_temperature_correction",
+    "hotwater_boost_party",
     "hotwater_boost",
     "thermal_disinfection_continuous",
     "measure_temp_outdoor",
+    "measure_temp_hotwater",
+    "measure_temp_hotwater_target",
     "measure_temp_outdoor_avg",
     "measure_temp_flow",
     "measure_temp_return",
     "measure_temp_return_target",
     "measure_temp_hotgas",
-    "measure_temp_hotwater",
-    "measure_temp_hotwater_target",
     "measure_temp_source_in",
     "measure_temp_source_out",
     "measure_temp_suction_air",
@@ -212,13 +213,28 @@
           "type": "number",
           "label": {
             "en": "Hot Water Boost Duration (minutes)",
-            "de": "Schnelladung Dauer (Minuten)"
+            "de": "Schnellladung Dauer (Minuten)"
           },
           "value": 60,
           "hint": {
             "en": "How long the hot water boost runs before switching back to Automatic.",
             "de": "Wie lange die Schnelladung läuft, bevor automatisch zurückgeschaltet wird."
           }
+        },
+        {
+          "id": "thermal_disinfection_target_temp",
+          "type": "number",
+          "label": {
+            "en": "Thermal Disinfection Target Temperature (°C)",
+            "de": "Thermische Desinfektion Zieltemperatur (°C)"
+          },
+          "value": 65,
+          "hint": {
+            "en": "The hot water temperature at which thermal disinfection is automatically disabled (default: 65 °C).",
+            "de": "Warmwassertemperatur bei der die thermische Desinfektion automatisch abschaltet (Standard: 65 °C)."
+          },
+          "min": 60,
+          "max": 70
         }
       ]
     }

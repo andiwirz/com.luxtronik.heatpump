@@ -84,7 +84,7 @@ class LuxtronikHeatpumpDevice extends Device {
       }
     }
     // ── Neue Capabilities hinzufügen falls noch nicht vorhanden ─────────────────
-    const NEW_CAPABILITIES = ['hotwater_boost', 'firmware_version', 'thermal_disinfection_continuous'];
+    const NEW_CAPABILITIES = ['hotwater_boost', 'firmware_version', 'thermal_disinfection_continuous', 'hotwater_boost_party'];
     for (const cap of NEW_CAPABILITIES) {
       if (!this.hasCapability(cap)) {
         this.log(`Füge neue Capability hinzu: ${cap}`);
@@ -101,6 +101,27 @@ class LuxtronikHeatpumpDevice extends Device {
         catch (e) { this.error(`removeCapability ${cap} fehlgeschlagen:`, e.message); }
       }
     }
+
+    // ── Capability-Reihenfolge erzwingen (ohne neu pairen) ───────────────────
+    const DESIRED_ORDER = ['heatpump_state', 'warmwater_operation_mode', 'heating_operation_mode', 'warmwater_target_temperature', 'heating_temperature_correction', 'hotwater_boost_party', 'hotwater_boost', 'thermal_disinfection_continuous', 'measure_temp_outdoor', 'measure_temp_hotwater', 'measure_temp_hotwater_target', 'measure_temp_outdoor_avg', 'measure_temp_flow', 'measure_temp_return', 'measure_temp_return_target', 'measure_temp_hotgas', 'measure_temp_source_in', 'measure_temp_source_out', 'measure_temp_suction_air', 'measure_temp_room', 'measure_temp_room_target', 'measure_volume_flow', 'meter_energy_heating', 'meter_energy_hotwater', 'meter_energy_total', 'measure_hours_compressor', 'measure_hours_heating', 'measure_hours_hotwater', 'alarm_generic', 'firmware_version'];
+    const currentCaps = this.getCapabilities();
+    const needsReorder = currentCaps.some((cap, i) => cap !== DESIRED_ORDER[i]);
+    if (needsReorder) {
+      this.log('Capability-Reihenfolge wird aktualisiert...');
+      for (const cap of DESIRED_ORDER) {
+        if (this.hasCapability(cap)) {
+          await this.removeCapability(cap);
+        }
+      }
+      for (const cap of DESIRED_ORDER) {
+        if (!this.hasCapability(cap)) {
+          await this.addCapability(cap);
+        }
+      }
+      this.log('Capability-Reihenfolge aktualisiert ✓');
+    }
+    // ── Ende Capability-Reihenfolge ──────────────────────────────────────────
+
     // ── Ende Migration ────────────────────────────────────────────────────────
 
     const s = this.getSettings();
@@ -116,7 +137,8 @@ class LuxtronikHeatpumpDevice extends Device {
     // Timestamp map: nach einem Write diese Capability für 2 Polls nicht überschreiben
     this._writeProtectUntil = {};
     // Schnelladungs-Timer
-    this._boostTimer = null;
+    this._boostTimer      = null;
+    this._boostPartyTimer = null;
 
     // Flow-Trigger
     this._triggerHeatingModeChanged  = this.homey.flow.getDeviceTriggerCard('heating_operation_mode_changed');
@@ -124,6 +146,7 @@ class LuxtronikHeatpumpDevice extends Device {
     this._triggerStateChanged         = this.homey.flow.getDeviceTriggerCard('heatpump_state_changed');
     this._triggerErrorOccurred        = this.homey.flow.getDeviceTriggerCard('error_occurred');
     this._triggerBoostEnded           = this.homey.flow.getDeviceTriggerCard('hotwater_boost_ended');
+    this._triggerBoostPartyEnded      = this.homey.flow.getDeviceTriggerCard('hotwater_boost_party_ended');
 
     // Flow-Bedingungen
     this.homey.flow.getConditionCard('heating_operation_mode_is')
@@ -134,6 +157,27 @@ class LuxtronikHeatpumpDevice extends Device {
 
     this.homey.flow.getConditionCard('heatpump_state_is')
       .registerRunListener((args) => this.getCapabilityValue('heatpump_state') === args.state);
+
+    this.homey.flow.getConditionCard('hotwater_temperature_above')
+      .registerRunListener((args) => {
+        const temp = this.getCapabilityValue('measure_temp_hotwater');
+        return temp !== null && temp > args.temperature;
+      });
+
+    this.homey.flow.getConditionCard('hotwater_temperature_below')
+      .registerRunListener((args) => {
+        const temp = this.getCapabilityValue('measure_temp_hotwater');
+        return temp !== null && temp < args.temperature;
+      });
+
+    this.homey.flow.getConditionCard('thermal_disinfection_is_active')
+      .registerRunListener(() => this.getCapabilityValue('thermal_disinfection_continuous') === true);
+
+    this.homey.flow.getConditionCard('hotwater_boost_is_active')
+      .registerRunListener(() => this.getCapabilityValue('hotwater_boost') === true);
+
+    this.homey.flow.getConditionCard('hotwater_boost_party_is_active')
+      .registerRunListener(() => this.getCapabilityValue('hotwater_boost_party') === true);
 
     // Flow-Aktionen
     this.homey.flow.getActionCard('set_heating_operation_mode')
@@ -154,11 +198,32 @@ class LuxtronikHeatpumpDevice extends Device {
     this.homey.flow.getActionCard('stop_hotwater_boost')
       .registerRunListener(async () => this._stopHotwaterBoost());
 
+    this.homey.flow.getActionCard('start_hotwater_boost_party')
+      .registerRunListener(async (args) => this._startHotwaterBoostParty(parseInt(args.duration, 10)));
+
+    this.homey.flow.getActionCard('stop_hotwater_boost_party')
+      .registerRunListener(async () => this._stopHotwaterBoostParty());
+
+    this.homey.flow.getActionCard('enable_thermal_disinfection')
+      .registerRunListener(async () => this._setThermalDisinfectionContinuous(true));
+
+    this.homey.flow.getActionCard('disable_thermal_disinfection')
+      .registerRunListener(async () => this._setThermalDisinfectionContinuous(false));
+
     // Capability-Listener (UI)
     this.registerCapabilityListener('heating_operation_mode',        async (v) => this._setHeatingOperationMode(parseInt(v, 10)));
     this.registerCapabilityListener('warmwater_operation_mode',       async (v) => this._setWarmwaterOperationMode(parseInt(v, 10)));
     this.registerCapabilityListener('heating_temperature_correction', async (v) => this._setHeatingTemperatureCorrection(parseFloat(v)));
     this.registerCapabilityListener('warmwater_target_temperature',   async (v) => this._setWarmwaterTargetTemperature(parseFloat(v)));
+    this.registerCapabilityListener('hotwater_boost_party',             async (v) => {
+      const s = await this.getSettings();
+      if (v) {
+        await this._startHotwaterBoostParty(Number(s.hotwater_boost_duration) || 60);
+      } else {
+        await this._stopHotwaterBoostParty();
+      }
+    });
+
     this.registerCapabilityListener('thermal_disinfection_continuous', async (v) => {
       await this._setThermalDisinfectionContinuous(v);
     });
@@ -179,7 +244,8 @@ class LuxtronikHeatpumpDevice extends Device {
 
   async onDeleted() {
     this._stopPolling();
-    if (this._boostTimer) { clearTimeout(this._boostTimer); this._boostTimer = null; }
+    if (this._boostTimer)      { clearTimeout(this._boostTimer);      this._boostTimer      = null; }
+    if (this._boostPartyTimer) { clearTimeout(this._boostPartyTimer); this._boostPartyTimer = null; }
   }
 
   async onSettings({ newSettings }) {
@@ -266,7 +332,7 @@ class LuxtronikHeatpumpDevice extends Device {
       const contActive = p.thermal_desinfection_continuous_operation === 1;
       await this._setIfValid('thermal_disinfection_continuous', contActive);
     }
-    // Brauchwasser Schnelladung: automatisch beenden wenn Zieltemperatur erreicht
+    // Brauchwasser Schnellladung (Zuheizung): automatisch beenden wenn Zieltemperatur erreicht
     if (this._boostTimer && this.getCapabilityValue('hotwater_boost') === true) {
       const currentTemp = this._n(v.temperature_hot_water);
       const targetTemp  = this.getCapabilityValue('warmwater_target_temperature');
@@ -276,11 +342,22 @@ class LuxtronikHeatpumpDevice extends Device {
         await this._triggerBoostEnded.trigger(this, {}).catch(() => {});
       }
     }
-    // Thermische Desinfektion: automatisch deaktivieren wenn ≥ 60°C erreicht
+    // Brauchwasser Schnellladung (Party): automatisch beenden wenn Zieltemperatur erreicht
+    if (this._boostPartyTimer && this.getCapabilityValue('hotwater_boost_party') === true) {
+      const currentTempP = this._n(v.temperature_hot_water);
+      const targetTempP  = this.getCapabilityValue('warmwater_target_temperature');
+      if (currentTempP !== null && targetTempP !== null && currentTempP >= targetTempP) {
+        this.log(`Schnellladung (Party): Zieltemperatur ${targetTempP}°C erreicht (${currentTempP}°C) — beende automatisch`);
+        await this._stopHotwaterBoostParty();
+        await this._triggerBoostPartyEnded.trigger(this, {}).catch(() => {});
+      }
+    }
+    // Thermische Desinfektion: automatisch deaktivieren wenn Zieltemperatur erreicht
     if (this.getCapabilityValue('thermal_disinfection_continuous') === true) {
       const currentTemp = this._n(v.temperature_hot_water);
-      if (currentTemp !== null && currentTemp >= 60) {
-        this.log(`Thermische Desinfektion: 60°C erreicht (${currentTemp}°C) — deaktiviere Dauerbetrieb`);
+      const tdiTarget   = Number((await this.getSettings()).thermal_disinfection_target_temp) || 65;
+      if (currentTemp !== null && currentTemp >= tdiTarget) {
+        this.log(`Thermische Desinfektion: ${tdiTarget}°C erreicht (${currentTemp}°C) — deaktiviere Dauerbetrieb`);
         await this._setThermalDisinfectionContinuous(false).catch((e) => this.error('TDI auto-off fehlgeschlagen:', e.message));
       }
     }
@@ -452,6 +529,36 @@ class LuxtronikHeatpumpDevice extends Device {
     }
     await this._setWarmwaterOperationMode(0);
     await this.setCapabilityValue('hotwater_boost', false);
+  }
+
+  async _startHotwaterBoostParty(durationMinutes) {
+    const duration = Math.min(480, Math.max(5, durationMinutes || 60));
+    this.log(`Schnellladung (Party) starten: ${duration} Minuten`);
+    if (this._boostPartyTimer) {
+      clearTimeout(this._boostPartyTimer);
+      this._boostPartyTimer = null;
+    }
+    // Party-Modus setzen
+    await this._setWarmwaterOperationMode(2);
+    await this.setCapabilityValue('hotwater_boost_party', true);
+    // Auto-Reset nach konfigurierbarer Zeit
+    this._boostPartyTimer = setTimeout(async () => {
+      this.log(`Schnellladung (Party) beendet (${duration} min), schalte zurück auf Automatik`);
+      this._boostPartyTimer = null;
+      await this._setWarmwaterOperationMode(0).catch((e) => this.error('Party-Boost-Reset fehlgeschlagen:', e.message));
+      await this.setCapabilityValue('hotwater_boost_party', false).catch(() => {});
+      await this._triggerBoostPartyEnded.trigger(this, {}).catch(() => {});
+    }, duration * 60 * 1000);
+  }
+
+  async _stopHotwaterBoostParty() {
+    this.log('Schnellladung (Party) manuell gestoppt');
+    if (this._boostPartyTimer) {
+      clearTimeout(this._boostPartyTimer);
+      this._boostPartyTimer = null;
+    }
+    await this._setWarmwaterOperationMode(0);
+    await this.setCapabilityValue('hotwater_boost_party', false);
   }
 
   async _setThermalDisinfectionContinuous(enabled) {
