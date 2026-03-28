@@ -84,7 +84,7 @@ class LuxtronikHeatpumpDevice extends Device {
       }
     }
     // ── Neue Capabilities hinzufügen falls noch nicht vorhanden ─────────────────
-    const NEW_CAPABILITIES = ['hotwater_boost', 'firmware_version', 'thermal_disinfection_continuous', 'hotwater_boost_party'];
+    const NEW_CAPABILITIES = ['hotwater_boost', 'firmware_version', 'thermal_disinfection_continuous', 'hotwater_boost_party', 'target_temperature', 'measure_temperature', 'heating_state_string', 'hotwater_state_string'];
     for (const cap of NEW_CAPABILITIES) {
       if (!this.hasCapability(cap)) {
         this.log(`Füge neue Capability hinzu: ${cap}`);
@@ -93,7 +93,7 @@ class LuxtronikHeatpumpDevice extends Device {
       }
     }
     // ── Cleanup: unerwünschte Capabilities entfernen ────────────────────────────
-    const REMOVE_CAPABILITIES = ['target_temperature', 'measure_temperature', 'thermal_disinfection'];
+    const REMOVE_CAPABILITIES = ['thermal_disinfection'];
     for (const cap of REMOVE_CAPABILITIES) {
       if (this.hasCapability(cap)) {
         this.log(`Entferne Capability: ${cap}`);
@@ -103,7 +103,7 @@ class LuxtronikHeatpumpDevice extends Device {
     }
 
     // ── Capability-Reihenfolge erzwingen (ohne neu pairen) ───────────────────
-    const DESIRED_ORDER = ['heatpump_state', 'warmwater_operation_mode', 'heating_operation_mode', 'warmwater_target_temperature', 'heating_temperature_correction', 'hotwater_boost_party', 'hotwater_boost', 'thermal_disinfection_continuous', 'measure_temp_outdoor', 'measure_temp_hotwater', 'measure_temp_hotwater_target', 'measure_temp_outdoor_avg', 'measure_temp_flow', 'measure_temp_return', 'measure_temp_return_target', 'measure_temp_hotgas', 'measure_temp_source_in', 'measure_temp_source_out', 'measure_temp_suction_air', 'measure_temp_room', 'measure_temp_room_target', 'measure_volume_flow', 'meter_energy_heating', 'meter_energy_hotwater', 'meter_energy_total', 'measure_hours_compressor', 'measure_hours_heating', 'measure_hours_hotwater', 'alarm_generic', 'firmware_version'];
+    const DESIRED_ORDER = ['heatpump_state', 'heating_state_string', 'hotwater_state_string', 'warmwater_operation_mode', 'heating_operation_mode', 'warmwater_target_temperature', 'heating_temperature_correction', 'hotwater_boost_party', 'hotwater_boost', 'thermal_disinfection_continuous', 'measure_temp_outdoor', 'measure_temp_hotwater', 'measure_temp_hotwater_target', 'measure_temp_outdoor_avg', 'measure_temp_flow', 'measure_temp_return', 'measure_temp_return_target', 'measure_temp_hotgas', 'measure_temp_source_in', 'measure_temp_source_out', 'measure_temp_suction_air', 'measure_temp_room', 'measure_temp_room_target', 'measure_volume_flow', 'meter_energy_heating', 'meter_energy_hotwater', 'meter_energy_total', 'measure_hours_compressor', 'measure_hours_heating', 'measure_hours_hotwater', 'alarm_generic', 'firmware_version'];
     const currentCaps = this.getCapabilities();
     const needsReorder = currentCaps.some((cap, i) => cap !== DESIRED_ORDER[i]);
     if (needsReorder) {
@@ -214,6 +214,7 @@ class LuxtronikHeatpumpDevice extends Device {
     this.registerCapabilityListener('heating_operation_mode',        async (v) => this._setHeatingOperationMode(parseInt(v, 10)));
     this.registerCapabilityListener('warmwater_operation_mode',       async (v) => this._setWarmwaterOperationMode(parseInt(v, 10)));
     this.registerCapabilityListener('heating_temperature_correction', async (v) => this._setHeatingTemperatureCorrection(parseFloat(v)));
+    this.registerCapabilityListener('target_temperature',               async (v) => this._setWarmwaterTargetTemperature(parseFloat(v)));
     this.registerCapabilityListener('warmwater_target_temperature',   async (v) => this._setWarmwaterTargetTemperature(parseFloat(v)));
     this.registerCapabilityListener('hotwater_boost_party',             async (v) => {
       const s = await this.getSettings();
@@ -327,6 +328,8 @@ class LuxtronikHeatpumpDevice extends Device {
     await this._setIfValid('measure_temp_return_target',this._n(v.temperature_target_return));
     await this._setIfValid('measure_temp_hotgas',       this._n(v.temperature_hot_gas));
     await this._setIfValid('measure_temp_hotwater',     this._n(v.temperature_hot_water));
+    // Mirror → built-in measure_temperature (Thermostat-Widget Ist-Wert)
+    await this._setIfValid('measure_temperature', this._n(v.temperature_hot_water));
     // Thermische Desinfektion Dauerbetrieb: Wert aus Controller lesen
     if (p.thermal_desinfection_continuous_operation !== undefined) {
       const contActive = p.thermal_desinfection_continuous_operation === 1;
@@ -417,6 +420,14 @@ class LuxtronikHeatpumpDevice extends Device {
     // → nur state1 === 4 ist zuverlässig für einen aktiven Fehler
     const hasError = (v.heatpump_state1 === 4);
     await this._setIfValid('alarm_generic', hasError);
+    // Heizung Status (Extended State String)
+    if (v.heatpump_extendet_state_string !== undefined) {
+      await this._setIfValid('heating_state_string', String(v.heatpump_extendet_state_string));
+    }
+    // Warmwasser Status
+    if (v.opStateHotWaterString !== undefined) {
+      await this._setIfValid('hotwater_state_string', String(v.opStateHotWaterString));
+    }
     if (hasError && !this._lastErrorState) {
       // Fehlermeldung aus dem Protokoll holen
       const msg = Array.isArray(v.errors) && v.errors.length > 0
@@ -458,6 +469,8 @@ class LuxtronikHeatpumpDevice extends Device {
     // Brauchwasser-Solltemperatur: p.warmwater_temperature oder p.temperature_hot_water_target
     const wwTarget = p.warmwater_temperature ?? p.temperature_hot_water_target;
     await this._setIfValid('warmwater_target_temperature', this._n(wwTarget));
+    // Mirror → built-in target_temperature (Thermostat-Widget, mit Write-Schutz)
+    await this._setIfValid('target_temperature', this._n(wwTarget));
   }
 
   // ─── Setzer ────────────────────────────────────────────────────────────────
@@ -490,7 +503,9 @@ class LuxtronikHeatpumpDevice extends Device {
     this.log(`Setze Brauchwasser Soll-Temperatur: ${clamped} °C`);
     // Sofort UI-Wert setzen, dann Write-Schutz, dann senden
     await this.setCapabilityValue('warmwater_target_temperature', clamped);
+    await this.setCapabilityValue('target_temperature', clamped).catch(() => {});
     this._setWriteProtect('warmwater_target_temperature', 120000);
+    this._setWriteProtect('target_temperature', 120000);
     await this._write('warmwater_target_temperature', clamped);
     this.log(`Brauchwasser Soll-Temperatur erfolgreich gesendet: ${clamped} °C`);
   }

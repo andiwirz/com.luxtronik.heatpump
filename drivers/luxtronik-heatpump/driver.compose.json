@@ -3,12 +3,16 @@
     "en": "Luxtronik Heat Pump",
     "de": "Luxtronik Wärmepumpe"
   },
-  "class": "other",
+  "class": "heater",
   "capabilities": [
     "heatpump_state",
+    "heating_state_string",
+    "hotwater_state_string",
     "warmwater_operation_mode",
     "heating_operation_mode",
     "warmwater_target_temperature",
+    "target_temperature",
+    "measure_temperature",
     "heating_temperature_correction",
     "hotwater_boost_party",
     "hotwater_boost",
@@ -149,6 +153,21 @@
       "title": {
         "en": "Hot Water Operating Hours",
         "de": "Betriebsstunden Brauchwasser"
+      }
+    },
+    "target_temperature": {
+      "min": 30,
+      "max": 65,
+      "step": 0.5,
+      "title": {
+        "en": "Hot Water Target",
+        "de": "Warmwasser Soll"
+      }
+    },
+    "measure_temperature": {
+      "title": {
+        "en": "Hot Water Temperature",
+        "de": "Warmwassertemperatur"
       }
     }
   },

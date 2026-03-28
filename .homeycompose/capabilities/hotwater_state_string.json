@@ -1,0 +1,12 @@
+{
+  "type": "string",
+  "title": {
+    "en": "Hot Water Status",
+    "de": "Warmwasser Status"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": false,
+  "icon": "/assets/capabilities/operational_state.svg"
+}

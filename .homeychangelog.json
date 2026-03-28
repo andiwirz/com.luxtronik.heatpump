@@ -36,5 +36,9 @@
   },
   "2.0.12": {
     "en": "Added: Hot Water Boost (Auxiliary Heating) — uses Second Heat Source mode, auto-stops when target temperature is reached or after configurable duration. Added: Hot Water Boost (Party) — same behaviour using Party mode. Added: Thermal Disinfection (Continuous) — enables continuous disinfection mode on the controller (parameter 27), auto-disables when hot water reaches the configurable target temperature (default 65 °C, adjustable in device settings). Renamed app to 'Luxtronik Heat Pump Manager'. Improved capability display order. Added PayPal donation link."
+  },
+  "2.0.13": {
+    "en": "New: Heating Status and Hot Water Status sensors. New: In-app help page. Improved: Thermostat widget for hot water temperature. Improved: Thermal Disinfection target temperature now configurable in device settings (default 65 °C). Changed: Device class set to heater, minimum compatibility raised to >=11.0.0. Fixed: Capability order and labels.",
+    "de": "Neu: Heizung Status und Warmwasser Status als Sensoren. Neu: Hilfeseite in den App-Einstellungen. Verbessert: Thermostat-Widget für Warmwasser-Temperatur. Verbessert: Zieltemperatur der Thermischen Desinfektion nun in den Geräteeinstellungen konfigurierbar (Standard 65 °C). Geändert: Device Class auf heater, Mindestkompatibilität auf >=11.0.0 erhöht. Behoben: Capability-Reihenfolge und Bezeichnungen."
   }
 }
