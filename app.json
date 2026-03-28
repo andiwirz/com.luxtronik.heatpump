@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.luxtronik.heatpump",
-  "version": "2.0.12",
+  "version": "2.0.13",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "name": {
@@ -859,12 +859,16 @@
         "en": "Luxtronik Heat Pump",
         "de": "Luxtronik Wärmepumpe"
       },
-      "class": "other",
+      "class": "heater",
       "capabilities": [
         "heatpump_state",
+        "heating_state_string",
+        "hotwater_state_string",
         "warmwater_operation_mode",
         "heating_operation_mode",
         "warmwater_target_temperature",
+        "target_temperature",
+        "measure_temperature",
         "heating_temperature_correction",
         "hotwater_boost_party",
         "hotwater_boost",
@@ -1005,6 +1009,21 @@
           "title": {
             "en": "Hot Water Operating Hours",
             "de": "Betriebsstunden Brauchwasser"
+          }
+        },
+        "target_temperature": {
+          "min": 30,
+          "max": 65,
+          "step": 0.5,
+          "title": {
+            "en": "Hot Water Target",
+            "de": "Warmwasser Soll"
+          }
+        },
+        "measure_temperature": {
+          "title": {
+            "en": "Hot Water Temperature",
+            "de": "Warmwassertemperatur"
           }
         }
       },
@@ -1172,6 +1191,18 @@
       "insights": false,
       "icon": "/assets/capabilities/operational_state.svg"
     },
+    "heating_state_string": {
+      "type": "string",
+      "title": {
+        "en": "Heating Status",
+        "de": "Heizung Status"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": false,
+      "icon": "/assets/capabilities/operational_state.svg"
+    },
     "heating_temperature_correction": {
       "type": "number",
       "title": {
@@ -1315,6 +1346,18 @@
         "en": "Party boost inactive",
         "de": "Party Schnellladung inaktiv"
       }
+    },
+    "hotwater_state_string": {
+      "type": "string",
+      "title": {
+        "en": "Hot Water Status",
+        "de": "Warmwasser Status"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": false,
+      "icon": "/assets/capabilities/operational_state.svg"
     },
     "measure_hours_compressor": {
       "type": "number",
