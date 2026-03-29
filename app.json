@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.luxtronik.heatpump",
-  "version": "2.0.14",
+  "version": "2.0.15",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "name": {
@@ -177,6 +177,138 @@
             "type": "device",
             "name": "device",
             "filter": "driver_id=luxtronik-heatpump"
+          }
+        ]
+      },
+      {
+        "id": "device_unavailable",
+        "title": {
+          "en": "Device became unavailable",
+          "de": "Gerät nicht erreichbar"
+        },
+        "titleFormatted": {
+          "en": "Device became unavailable",
+          "de": "Gerät nicht erreichbar"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          }
+        ]
+      },
+      {
+        "id": "device_available",
+        "title": {
+          "en": "Device became available again",
+          "de": "Gerät wieder erreichbar"
+        },
+        "titleFormatted": {
+          "en": "Device became available again",
+          "de": "Gerät wieder erreichbar"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          }
+        ]
+      },
+      {
+        "id": "thermal_disinfection_ended",
+        "title": {
+          "en": "Thermal Disinfection ended",
+          "de": "Thermische Desinfektion beendet"
+        },
+        "titleFormatted": {
+          "en": "Thermal Disinfection ended",
+          "de": "Thermische Desinfektion beendet"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          }
+        ]
+      },
+      {
+        "id": "error_cleared",
+        "title": {
+          "en": "Error cleared",
+          "de": "Fehler quittiert"
+        },
+        "titleFormatted": {
+          "en": "Error cleared",
+          "de": "Fehler quittiert"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          }
+        ]
+      },
+      {
+        "id": "outdoor_temp_dropped_below",
+        "title": {
+          "en": "Outdoor temperature dropped below",
+          "de": "Aussentemperatur fiel unter"
+        },
+        "titleFormatted": {
+          "en": "Outdoor temperature dropped below [[temperature]] °C",
+          "de": "Aussentemperatur fiel unter [[temperature]] °C"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          },
+          {
+            "name": "temperature",
+            "type": "number",
+            "title": {
+              "en": "Temperature (°C)",
+              "de": "Temperatur (°C)"
+            },
+            "placeholder": {
+              "en": "e.g. 0",
+              "de": "z.B. 0"
+            }
+          }
+        ]
+      },
+      {
+        "id": "outdoor_temp_rose_above",
+        "title": {
+          "en": "Outdoor temperature rose above",
+          "de": "Aussentemperatur stieg über"
+        },
+        "titleFormatted": {
+          "en": "Outdoor temperature rose above [[temperature]] °C",
+          "de": "Aussentemperatur stieg über [[temperature]] °C"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          },
+          {
+            "name": "temperature",
+            "type": "number",
+            "title": {
+              "en": "Temperature (°C)",
+              "de": "Temperatur (°C)"
+            },
+            "placeholder": {
+              "en": "e.g. 20",
+              "de": "z.B. 20"
+            }
           }
         ]
       }
@@ -518,6 +650,170 @@
             "filter": "driver_id=luxtronik-heatpump"
           }
         ]
+      },
+      {
+        "id": "device_is_available",
+        "title": {
+          "en": "Device is available",
+          "de": "Gerät ist erreichbar"
+        },
+        "titleFormatted": {
+          "en": "Device !{{is|is not}} available",
+          "de": "Gerät ist !{{erreichbar|nicht erreichbar}}"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          }
+        ]
+      },
+      {
+        "id": "heating_state_is",
+        "title": {
+          "en": "Heating status is",
+          "de": "Heizung Status ist"
+        },
+        "titleFormatted": {
+          "en": "Heating status !{{is|is not}} [[state]]",
+          "de": "Heizung Status ist !{{|nicht}} [[state]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          },
+          {
+            "name": "state",
+            "type": "text",
+            "title": {
+              "en": "Status",
+              "de": "Status"
+            },
+            "placeholder": {
+              "en": "e.g. Heating",
+              "de": "z.B. Heizbetrieb"
+            }
+          }
+        ]
+      },
+      {
+        "id": "hotwater_state_is",
+        "title": {
+          "en": "Hot water status is",
+          "de": "Warmwasser Status ist"
+        },
+        "titleFormatted": {
+          "en": "Hot water status !{{is|is not}} [[state]]",
+          "de": "Warmwasser Status ist !{{|nicht}} [[state]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          },
+          {
+            "name": "state",
+            "type": "dropdown",
+            "title": {
+              "en": "Status",
+              "de": "Status"
+            },
+            "values": [
+              {
+                "id": "Sperrzeit",
+                "label": {
+                  "en": "Blocked",
+                  "de": "Sperrzeit"
+                }
+              },
+              {
+                "id": "Aufheizen",
+                "label": {
+                  "en": "Heating",
+                  "de": "Aufheizen"
+                }
+              },
+              {
+                "id": "Temp. OK",
+                "label": {
+                  "en": "Temp. OK",
+                  "de": "Temp. OK"
+                }
+              },
+              {
+                "id": "Aus",
+                "label": {
+                  "en": "Off",
+                  "de": "Aus"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "outdoor_temp_above",
+        "title": {
+          "en": "Outdoor temperature is above",
+          "de": "Aussentemperatur ist über"
+        },
+        "titleFormatted": {
+          "en": "Outdoor temperature !{{is|is not}} above [[temperature]] °C",
+          "de": "Aussentemperatur ist !{{über|nicht über}} [[temperature]] °C"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          },
+          {
+            "name": "temperature",
+            "type": "number",
+            "title": {
+              "en": "Temperature (°C)",
+              "de": "Temperatur (°C)"
+            },
+            "placeholder": {
+              "en": "e.g. 0",
+              "de": "z.B. 0"
+            }
+          }
+        ]
+      },
+      {
+        "id": "outdoor_temp_below",
+        "title": {
+          "en": "Outdoor temperature is below",
+          "de": "Aussentemperatur ist unter"
+        },
+        "titleFormatted": {
+          "en": "Outdoor temperature !{{is|is not}} below [[temperature]] °C",
+          "de": "Aussentemperatur ist !{{unter|nicht unter}} [[temperature]] °C"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          },
+          {
+            "name": "temperature",
+            "type": "number",
+            "title": {
+              "en": "Temperature (°C)",
+              "de": "Temperatur (°C)"
+            },
+            "placeholder": {
+              "en": "e.g. 0",
+              "de": "z.B. 0"
+            }
+          }
+        ]
       }
     ],
     "actions": [
@@ -850,6 +1146,39 @@
             "filter": "driver_id=luxtronik-heatpump"
           }
         ]
+      },
+      {
+        "id": "set_warmwater_target_temperature_relative",
+        "title": {
+          "en": "Adjust hot water target temperature",
+          "de": "Brauchwasser Soll-Temperatur anpassen"
+        },
+        "titleFormatted": {
+          "en": "Adjust hot water target temperature by [[offset]] °C",
+          "de": "Brauchwasser Soll-Temperatur um [[offset]] °C anpassen"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          },
+          {
+            "name": "offset",
+            "type": "number",
+            "title": {
+              "en": "Offset (°C)",
+              "de": "Anpassung (°C)"
+            },
+            "placeholder": {
+              "en": "e.g. -5 or +5",
+              "de": "z.B. -5 oder +5"
+            },
+            "min": -20,
+            "max": 20,
+            "step": 0.5
+          }
+        ]
       }
     ]
   },
@@ -894,6 +1223,7 @@
         "measure_hours_heating",
         "measure_hours_hotwater",
         "alarm_generic",
+        "last_poll",
         "firmware_version"
       ],
       "capabilitiesOptions": {
@@ -1216,7 +1546,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": false,
-      "icon": "/assets/capabilities/operational_state.svg"
+      "icon": "/assets/capabilities/heating_state_string.svg"
     },
     "heating_temperature_correction": {
       "type": "number",
@@ -1320,7 +1650,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": false,
-      "icon": "/assets/capabilities/operational_state.svg"
+      "icon": "/assets/capabilities/heatpump_state.svg"
     },
     "hotwater_boost": {
       "type": "boolean",
@@ -1372,7 +1702,19 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": false,
-      "icon": "/assets/capabilities/operational_state.svg"
+      "icon": "/assets/capabilities/hotwater_state_string.svg"
+    },
+    "last_poll": {
+      "type": "string",
+      "title": {
+        "en": "Last Poll",
+        "de": "Letzte Abfrage"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": false,
+      "icon": "/assets/capabilities/last_poll.svg"
     },
     "measure_hours_compressor": {
       "type": "number",
