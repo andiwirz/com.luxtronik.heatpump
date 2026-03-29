@@ -1,12 +1,12 @@
 {
   "type": "string",
   "title": {
-    "en": "Hot Water Status",
-    "de": "Warmwasser Status"
+    "en": "Last Poll",
+    "de": "Letzte Abfrage"
   },
   "getable": true,
   "setable": false,
   "uiComponent": "sensor",
   "insights": false,
-  "icon": "/assets/capabilities/hotwater_state_string.svg"
+  "icon": "/assets/capabilities/last_poll.svg"
 }

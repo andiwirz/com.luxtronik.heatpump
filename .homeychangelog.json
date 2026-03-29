@@ -1,47 +1,62 @@
 {
   "2.0.0": {
-    "en": "Complete rewrite with new app ID (com.luxtronik.heatpump). Added: hot water mode control, heating mode control, heating temperature correction (-5..+5°C), hot water target temperature control. Extended sensor coverage including all luxtronik2 temperatures, energy, operating hours. Full flow card support for triggers, conditions, and actions.",
-    "de": "Vollständige Neuentwicklung mit neuer App-ID (com.luxtronik.heatpump). Neu: Brauchwasser-Betriebsart, Heizungs-Betriebsart, Heizungs-Temperaturkorrektur (-5..+5°C), Brauchwasser-Solltemperatur. Erweiterte Sensorabdeckung inkl. aller Luxtronik-Temperaturen, Energie und Betriebsstunden. Vollständige Flow-Karten (Auslöser, Bedingungen, Aktionen)."
+    "en": "Complete rewrite with new app ID (com.luxtronik.heatpump). Added: hot water mode control, heating mode control, heating temperature correction (−5 to +5 °C), hot water target temperature. Extended sensor coverage including all Luxtronik temperatures, energy values and operating hours. Full flow card support: triggers, conditions and actions.",
+    "de": "Vollständige Neuentwicklung mit neuer App-ID (com.luxtronik.heatpump). Neu: Brauchwasser-Betriebsart, Heizungs-Betriebsart, Heizungs-Temperaturkorrektur (−5 bis +5 °C), Brauchwasser-Solltemperatur. Erweiterte Sensorabdeckung inkl. aller Luxtronik-Temperaturen, Energiewerte und Betriebsstunden. Vollständige Flow-Karten (Auslöser, Bedingungen, Aktionen)."
   },
   "2.0.2": {
-    "en": "Change BrandColor"
+    "en": "Updated brand color.",
+    "de": "Markenfarbe aktualisiert."
   },
   "2.0.3": {
-    "en": "New Images"
+    "en": "Updated app and driver images.",
+    "de": "App- und Gerätebilder aktualisiert."
   },
   "2.0.4": {
-    "en": "Change icons"
+    "en": "Updated capability icons.",
+    "de": "Capability-Icons aktualisiert."
   },
   "2.0.5": {
-    "en": "SVG icon issues"
+    "en": "Fixed SVG icon rendering issues.",
+    "de": "Darstellungsprobleme bei SVG-Icons behoben."
   },
   "2.0.6": {
-    "en": "New: Hot Water Boost — start instant hot water heating with configurable auto-reset timer (UI toggle + Flow action). Fixes write issues caused by concurrent TCP connections.",
-    "de": "Neu: Brauchwasser Schnelladung — sofortige Warmwasserbereitung mit konfigurierbarem Auto-Reset-Timer (UI-Toggle + Flow-Aktion). Behebt Schreibfehler durch gleichzeitige TCP-Verbindungen."
+    "en": "New: Hot Water Boost — start instant hot water heating with configurable auto-stop timer (UI toggle + Flow action). Fixed write errors caused by concurrent TCP connections.",
+    "de": "Neu: Brauchwasser Schnellladung — sofortige Warmwasserbereitung mit konfigurierbarem Auto-Stop-Timer (UI-Toggle + Flow-Aktion). Schreibfehler durch gleichzeitige TCP-Verbindungen behoben."
   },
   "2.0.7": {
-    "en": "Korrektur Wert Volumenstrom, Ansaugluft nur verfügbar wenn vorhanden, Firmware als neue Capability, Schnelladung neues Icon"
+    "en": "Fixed volume flow value. Suction air temperature now only shown when available. Added firmware version as new capability. Updated Hot Water Boost icon.",
+    "de": "Volumenstrom-Wert korrigiert. Ansauglufttemperatur wird nur angezeigt wenn vorhanden. Firmware-Version als neue Capability hinzugefügt. Neues Icon für Brauchwasser Schnellladung."
   },
   "2.0.8": {
-    "en": "Korrektur Wert Volumenstrom, Ansaugluft nur verfügbar wenn vorhanden, Firmware als neue Capability, Schnelladung neues Icon"
+    "en": "Stability improvements for volume flow and suction air temperature. Minor fixes.",
+    "de": "Stabilitätsverbesserungen für Volumenstrom und Ansauglufttemperatur. Kleinere Korrekturen."
   },
   "2.0.9": {
-    "en": "add german description and optimize capabilities"
+    "en": "Added German app description. Optimized capability definitions.",
+    "de": "Deutsche App-Beschreibung hinzugefügt. Capability-Definitionen optimiert."
   },
   "2.0.10": {
-    "en": "change app name"
+    "en": "Renamed app to 'Luxtronik Heat Pump Manager'.",
+    "de": "App umbenannt zu 'Luxtronik Wärmepumpen Manager'."
   },
   "2.0.11": {
-    "en": "change name"
+    "en": "Updated app name in all locale files.",
+    "de": "App-Name in allen Sprachdateien aktualisiert."
   },
   "2.0.12": {
-    "en": "Added: Hot Water Boost (Auxiliary Heating) — uses Second Heat Source mode, auto-stops when target temperature is reached or after configurable duration. Added: Hot Water Boost (Party) — same behaviour using Party mode. Added: Thermal Disinfection (Continuous) — enables continuous disinfection mode on the controller (parameter 27), auto-disables when hot water reaches the configurable target temperature (default 65 °C, adjustable in device settings). Renamed app to 'Luxtronik Heat Pump Manager'. Improved capability display order. Added PayPal donation link."
+    "en": "New: Hot Water Boost (Auxiliary Heating) — uses Second Heat Source mode, auto-stops at target temperature or after configurable duration. New: Hot Water Boost (Party) — same behaviour using Party mode. New: Thermal Disinfection — enables continuous disinfection mode on the controller (parameter 27), auto-disables when hot water reaches configurable target temperature (default 65 °C). Improved capability display order.",
+    "de": "Neu: Brauchwasser Schnellladung (Zuheizung) — Zuheizer-Modus, automatische Abschaltung bei Zieltemperatur oder Zeitlimit. Neu: Brauchwasser Schnellladung (Party) — gleiche Funktion im Party-Modus. Neu: Thermische Desinfektion — Dauerbetrieb am Controller (Parameter 27), automatische Abschaltung bei konfigurierbarer Zieltemperatur (Standard 65 °C). Verbesserte Capability-Reihenfolge."
   },
   "2.0.13": {
-    "en": "New: Heating Status and Hot Water Status sensors. New: In-app help page. Improved: Thermostat widget for hot water temperature. Improved: Thermal Disinfection target temperature now configurable in device settings (default 65 °C). Changed: Device class set to heater, minimum compatibility raised to >=11.0.0. Fixed: Capability order and labels.",
-    "de": "Neu: Heizung Status und Warmwasser Status als Sensoren. Neu: Hilfeseite in den App-Einstellungen. Verbessert: Thermostat-Widget für Warmwasser-Temperatur. Verbessert: Zieltemperatur der Thermischen Desinfektion nun in den Geräteeinstellungen konfigurierbar (Standard 65 °C). Geändert: Device Class auf heater, Mindestkompatibilität auf >=11.0.0 erhöht. Behoben: Capability-Reihenfolge und Bezeichnungen."
+    "en": "New: Heating Status and Hot Water Status sensors. New: In-app help page with DE/EN toggle. New: Thermostat widget for heating temperature correction. Improved: Thermostat widget for hot water. Improved: Thermal Disinfection target temperature configurable in device settings (default 65 °C). Changed: Device class set to heater, minimum compatibility raised to >=11.0.0. Fixed: Capability order and labels.",
+    "de": "Neu: Heizung Status und Warmwasser Status als Sensoren. Neu: Hilfeseite in den App-Einstellungen mit DE/EN-Umschalter. Neu: Thermostat-Widget für Heizungs-Temperaturkorrektur. Verbessert: Thermostat-Widget für Warmwasser. Verbessert: Zieltemperatur der Thermischen Desinfektion konfigurierbar (Standard 65 °C). Geändert: Device Class auf heater, Mindestkompatibilität auf >=11.0.0 erhöht. Behoben: Capability-Reihenfolge und Bezeichnungen."
   },
   "2.0.14": {
-    "en": "Changed some icons and fully moved from sliders to thermostats"
+    "en": "Updated capability icons. Replaced sliders with thermostat widgets for hot water target temperature and heating correction.",
+    "de": "Capability-Icons aktualisiert. Slider durch Thermostat-Widgets für Warmwasser-Solltemperatur und Heizungskorrektur ersetzt."
+  },
+  "2.0.15": {
+    "en": "New: Custom icons for Heating Status, Hot Water Status and Heat Pump State. New: Connection watchdog — poll timeout (30s) and watchdog timer mark device unavailable when controller stops responding. New: 'Last Poll' capability shows time of last successful connection in local time (24h format). New: 6 flow triggers (device unavailable/available, thermal disinfection ended, error cleared, outdoor temperature thresholds). New: 5 flow conditions (device available, heating/hot water status, outdoor temperature above/below). New: Flow action to adjust hot water target temperature by relative offset. Updated README, in-app help page and changelog.",
+    "de": "Neu: Eigene Icons für Heizung Status, Warmwasser Status und Wärmepumpen Status. Neu: Verbindungs-Watchdog — Poll-Timeout (30s) und Watchdog-Timer markieren Gerät als nicht erreichbar wenn Controller nicht antwortet. Neu: Capability 'Letzte Abfrage' zeigt Zeitpunkt der letzten erfolgreichen Verbindung in lokaler Zeit (24h-Format). Neu: 6 Flow-Auslöser (Gerät nicht erreichbar/wieder erreichbar, Thermische Desinfektion beendet, Fehler quittiert, Aussentemperatur-Schwellwerte). Neu: 5 Flow-Bedingungen (Gerät erreichbar, Heizung-/Warmwasser-Status, Aussentemperatur über/unter). Neu: Flow-Aktion für relative Anpassung der Brauchwasser-Solltemperatur. README, Hilfeseite und Changelog aktualisiert."
   }
 }

@@ -87,6 +87,104 @@
         "de": "Brauchwasser Schnellladung (Party) beendet"
       },
       "args": []
+    },
+    {
+      "id": "device_unavailable",
+      "title": {
+        "en": "Device became unavailable",
+        "de": "Gerät nicht erreichbar"
+      },
+      "titleFormatted": {
+        "en": "Device became unavailable",
+        "de": "Gerät nicht erreichbar"
+      },
+      "args": []
+    },
+    {
+      "id": "device_available",
+      "title": {
+        "en": "Device became available again",
+        "de": "Gerät wieder erreichbar"
+      },
+      "titleFormatted": {
+        "en": "Device became available again",
+        "de": "Gerät wieder erreichbar"
+      },
+      "args": []
+    },
+    {
+      "id": "thermal_disinfection_ended",
+      "title": {
+        "en": "Thermal Disinfection ended",
+        "de": "Thermische Desinfektion beendet"
+      },
+      "titleFormatted": {
+        "en": "Thermal Disinfection ended",
+        "de": "Thermische Desinfektion beendet"
+      },
+      "args": []
+    },
+    {
+      "id": "error_cleared",
+      "title": {
+        "en": "Error cleared",
+        "de": "Fehler quittiert"
+      },
+      "titleFormatted": {
+        "en": "Error cleared",
+        "de": "Fehler quittiert"
+      },
+      "args": []
+    },
+    {
+      "id": "outdoor_temp_dropped_below",
+      "title": {
+        "en": "Outdoor temperature dropped below",
+        "de": "Aussentemperatur fiel unter"
+      },
+      "titleFormatted": {
+        "en": "Outdoor temperature dropped below [[temperature]] °C",
+        "de": "Aussentemperatur fiel unter [[temperature]] °C"
+      },
+      "args": [
+        {
+          "name": "temperature",
+          "type": "number",
+          "title": {
+            "en": "Temperature (°C)",
+            "de": "Temperatur (°C)"
+          },
+          "placeholder": {
+            "en": "e.g. 0",
+            "de": "z.B. 0"
+          }
+        }
+      ]
+    },
+    {
+      "id": "outdoor_temp_rose_above",
+      "title": {
+        "en": "Outdoor temperature rose above",
+        "de": "Aussentemperatur stieg über"
+      },
+      "titleFormatted": {
+        "en": "Outdoor temperature rose above [[temperature]] °C",
+        "de": "Aussentemperatur stieg über [[temperature]] °C"
+      },
+      "args": [
+        {
+          "name": "temperature",
+          "type": "number",
+          "title": {
+            "en": "Temperature (°C)",
+            "de": "Temperatur (°C)"
+          },
+          "placeholder": {
+            "en": "e.g. 20",
+            "de": "z.B. 20"
+          }
+        }
+      ]
     }
   ],
   "conditions": [
@@ -383,6 +481,144 @@
         "de": "Brauchwasser Schnellladung (Party) ist aktiv"
       },
       "args": []
+    },
+    {
+      "id": "device_is_available",
+      "title": {
+        "en": "Device is available",
+        "de": "Gerät ist erreichbar"
+      },
+      "titleFormatted": {
+        "en": "Device !{{is|is not}} available",
+        "de": "Gerät ist !{{erreichbar|nicht erreichbar}}"
+      },
+      "args": []
+    },
+    {
+      "id": "heating_state_is",
+      "title": {
+        "en": "Heating status is",
+        "de": "Heizung Status ist"
+      },
+      "titleFormatted": {
+        "en": "Heating status !{{is|is not}} [[state]]",
+        "de": "Heizung Status ist !{{|nicht}} [[state]]"
+      },
+      "args": [
+        {
+          "name": "state",
+          "type": "text",
+          "title": {
+            "en": "Status",
+            "de": "Status"
+          },
+          "placeholder": {
+            "en": "e.g. Heating",
+            "de": "z.B. Heizbetrieb"
+          }
+        }
+      ]
+    },
+    {
+      "id": "hotwater_state_is",
+      "title": {
+        "en": "Hot water status is",
+        "de": "Warmwasser Status ist"
+      },
+      "titleFormatted": {
+        "en": "Hot water status !{{is|is not}} [[state]]",
+        "de": "Warmwasser Status ist !{{|nicht}} [[state]]"
+      },
+      "args": [
+        {
+          "name": "state",
+          "type": "dropdown",
+          "title": {
+            "en": "Status",
+            "de": "Status"
+          },
+          "values": [
+            {
+              "id": "Sperrzeit",
+              "label": {
+                "en": "Blocked",
+                "de": "Sperrzeit"
+              }
+            },
+            {
+              "id": "Aufheizen",
+              "label": {
+                "en": "Heating",
+                "de": "Aufheizen"
+              }
+            },
+            {
+              "id": "Temp. OK",
+              "label": {
+                "en": "Temp. OK",
+                "de": "Temp. OK"
+              }
+            },
+            {
+              "id": "Aus",
+              "label": {
+                "en": "Off",
+                "de": "Aus"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "outdoor_temp_above",
+      "title": {
+        "en": "Outdoor temperature is above",
+        "de": "Aussentemperatur ist über"
+      },
+      "titleFormatted": {
+        "en": "Outdoor temperature !{{is|is not}} above [[temperature]] °C",
+        "de": "Aussentemperatur ist !{{über|nicht über}} [[temperature]] °C"
+      },
+      "args": [
+        {
+          "name": "temperature",
+          "type": "number",
+          "title": {
+            "en": "Temperature (°C)",
+            "de": "Temperatur (°C)"
+          },
+          "placeholder": {
+            "en": "e.g. 0",
+            "de": "z.B. 0"
+          }
+        }
+      ]
+    },
+    {
+      "id": "outdoor_temp_below",
+      "title": {
+        "en": "Outdoor temperature is below",
+        "de": "Aussentemperatur ist unter"
+      },
+      "titleFormatted": {
+        "en": "Outdoor temperature !{{is|is not}} below [[temperature]] °C",
+        "de": "Aussentemperatur ist !{{unter|nicht unter}} [[temperature]] °C"
+      },
+      "args": [
+        {
+          "name": "temperature",
+          "type": "number",
+          "title": {
+            "en": "Temperature (°C)",
+            "de": "Temperatur (°C)"
+          },
+          "placeholder": {
+            "en": "e.g. 0",
+            "de": "z.B. 0"
+          }
+        }
+      ]
     }
   ],
   "actions": [
@@ -661,6 +897,34 @@
         "de": "Thermische Desinfektion deaktivieren"
       },
       "args": []
+    },
+    {
+      "id": "set_warmwater_target_temperature_relative",
+      "title": {
+        "en": "Adjust hot water target temperature",
+        "de": "Brauchwasser Soll-Temperatur anpassen"
+      },
+      "titleFormatted": {
+        "en": "Adjust hot water target temperature by [[offset]] °C",
+        "de": "Brauchwasser Soll-Temperatur um [[offset]] °C anpassen"
+      },
+      "args": [
+        {
+          "name": "offset",
+          "type": "number",
+          "title": {
+            "en": "Offset (°C)",
+            "de": "Anpassung (°C)"
+          },
+          "placeholder": {
+            "en": "e.g. -5 or +5",
+            "de": "z.B. -5 oder +5"
+          },
+          "min": -20,
+          "max": 20,
+          "step": 0.5
+        }
+      ]
     }
   ]
 }

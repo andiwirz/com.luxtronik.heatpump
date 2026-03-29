@@ -46,6 +46,7 @@
     .flow-item:hover { border-color: rgba(232,98,42,.4); }
     .flow-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
     .dot-trigger { background: var(--blue); box-shadow: 0 0 6px rgba(88,166,255,.5); }
+    .dot-condition { background: #a78bfa; box-shadow: 0 0 6px rgba(167,139,250,.5); }
     .dot-action  { background: var(--green); box-shadow: 0 0 6px rgba(63,185,80,.5); }
     .flow-name { font-weight: 600; font-size: 13px; color: var(--text); }
     .flow-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
@@ -101,7 +102,6 @@
 </div>
 
 <div class="container">
-
   <div class="tabs">
     <button class="tab active" onclick="showTab('sensors', this)">📡 <span data-lang="de">Sensoren</span><span data-lang="en">Sensors</span></button>
     <button class="tab" onclick="showTab('controls', this)">🎛️ <span data-lang="de">Steuerung</span><span data-lang="en">Controls</span></button>
@@ -119,69 +119,33 @@
       </div>
 
       <div class="card">
-        <div class="card-header">
-          <span class="card-tag tag-read"><span data-lang="de">Lesen</span><span data-lang="en">Read</span></span>
-          <span class="card-name"><span data-lang="de">Wärmepumpen Status</span><span data-lang="en">Heat Pump State</span></span>
-        </div>
-        <div class="card-desc">
-          <span data-lang="de">Aktueller Betriebszustand: Heizen · Warmwasser · Abtauen · Standby · EVU-Sperre · Kühlen · Extern · Aus</span>
-          <span data-lang="en">Current operating state: Heating · Hot Water · Defrost · Standby · EVU Lock · Cooling · External · Off</span>
-        </div>
+        <div class="card-header"><span class="card-tag tag-read"><span data-lang="de">Lesen</span><span data-lang="en">Read</span></span><span class="card-name"><span data-lang="de">Wärmepumpen Status</span><span data-lang="en">Heat Pump State</span></span></div>
+        <div class="card-desc"><span data-lang="de">Betriebszustand: Heizen · Warmwasser · Abtauen · Standby · EVU-Sperre · Kühlen · Extern · Aus</span><span data-lang="en">Operating state: Heating · Hot Water · Defrost · Standby · EVU Lock · Cooling · External · Off</span></div>
       </div>
 
       <div class="card">
-        <div class="card-header">
-          <span class="card-tag tag-read"><span data-lang="de">Lesen</span><span data-lang="en">Read</span></span>
-          <span class="card-name"><span data-lang="de">Heizung Status</span><span data-lang="en">Heating Status</span></span>
-        </div>
-        <div class="card-desc">
-          <span data-lang="de">Detaillierter Heizungsstatus vom Controller, z.B. „Heizbetrieb", „Abtauen (Kreisumkehr)", „Estrich Programm Stufe 2 – 35°C"</span>
-          <span data-lang="en">Detailed heating status from the controller, e.g. "Heating", "Defrost (reverse cycle)", "Screed Program Level 2 – 35°C"</span>
-        </div>
+        <div class="card-header"><span class="card-tag tag-read"><span data-lang="de">Lesen</span><span data-lang="en">Read</span></span><span class="card-name"><span data-lang="de">Heizung Status</span><span data-lang="en">Heating Status</span></span></div>
+        <div class="card-desc"><span data-lang="de">Detaillierter Heizungsstatus direkt vom Controller, z.B. „Heizbetrieb", „Abtauen (Kreisumkehr)", „Estrich Programm Stufe 2 – 35°C"</span><span data-lang="en">Detailed heating status from the controller, e.g. "Heating", "Defrost (reverse cycle)", "Screed Program Level 2 – 35°C"</span></div>
       </div>
 
       <div class="card">
-        <div class="card-header">
-          <span class="card-tag tag-read"><span data-lang="de">Lesen</span><span data-lang="en">Read</span></span>
-          <span class="card-name"><span data-lang="de">Warmwasser Status</span><span data-lang="en">Hot Water Status</span></span>
-        </div>
-        <div class="card-desc">
-          <span data-lang="de">Status der Warmwasserbereitung: Sperrzeit · Aufheizen · Temp. OK · Aus</span>
-          <span data-lang="en">Hot water status: Blocked · Heating · Temp. OK · Off</span>
-        </div>
+        <div class="card-header"><span class="card-tag tag-read"><span data-lang="de">Lesen</span><span data-lang="en">Read</span></span><span class="card-name"><span data-lang="de">Warmwasser Status</span><span data-lang="en">Hot Water Status</span></span></div>
+        <div class="card-desc"><span data-lang="de">Sperrzeit · Aufheizen · Temp. OK · Aus</span><span data-lang="en">Blocked · Heating · Temp. OK · Off</span></div>
       </div>
 
       <div class="card">
-        <div class="card-header">
-          <span class="card-tag tag-read"><span data-lang="de">Lesen</span><span data-lang="en">Read</span></span>
-          <span class="card-name"><span data-lang="de">Temperaturen</span><span data-lang="en">Temperatures</span></span>
-        </div>
-        <div class="card-desc">
-          <span data-lang="de">Aussentemperatur · 24h-Mittelwert · Vorlauf · Rücklauf · Rücklauf Soll · Heissgas · Warmwasser Ist/Soll · Wärmequelle Ein/Aus · Ansaugluft (nur Luft-WP) · Raumtemperatur Ist/Soll (nur mit RBE)</span>
-          <span data-lang="en">Outdoor temp · 24h average · Flow · Return · Return target · Hot gas · Hot water actual/target · Heat source in/out · Suction air (air-source only) · Room temp actual/target (RBE only)</span>
-        </div>
+        <div class="card-header"><span class="card-tag tag-read"><span data-lang="de">Lesen</span><span data-lang="en">Read</span></span><span class="card-name"><span data-lang="de">Temperaturen</span><span data-lang="en">Temperatures</span></span></div>
+        <div class="card-desc"><span data-lang="de">Aussentemperatur · 24h-Mittelwert · Vorlauf · Rücklauf · Rücklauf Soll · Heissgas · Warmwasser Ist/Soll · Wärmequelle Ein/Aus · Ansaugluft (nur Luft-WP) · Raumtemperatur Ist/Soll (nur mit RBE)</span><span data-lang="en">Outdoor temp · 24h average · Flow · Return · Return target · Hot gas · Hot water actual/target · Heat source in/out · Suction air (air-source only) · Room temp actual/target (RBE only)</span></div>
       </div>
 
       <div class="card">
-        <div class="card-header">
-          <span class="card-tag tag-read"><span data-lang="de">Lesen</span><span data-lang="en">Read</span></span>
-          <span class="card-name"><span data-lang="de">Energie &amp; Betriebsstunden</span><span data-lang="en">Energy &amp; Operating Hours</span></span>
-        </div>
-        <div class="card-desc">
-          <span data-lang="de">Wärmeenergie Heizung / Warmwasser / Gesamt (kWh) · Betriebsstunden Verdichter / Heizung / Warmwasser</span>
-          <span data-lang="en">Thermal energy Heating / Hot Water / Total (kWh) · Operating hours Compressor / Heating / Hot Water</span>
-        </div>
+        <div class="card-header"><span class="card-tag tag-read"><span data-lang="de">Lesen</span><span data-lang="en">Read</span></span><span class="card-name"><span data-lang="de">Energie &amp; Betriebsstunden</span><span data-lang="en">Energy &amp; Operating Hours</span></span></div>
+        <div class="card-desc"><span data-lang="de">Wärmeenergie Heizung / Warmwasser / Gesamt (kWh) · Betriebsstunden Verdichter / Heizung / Warmwasser</span><span data-lang="en">Thermal energy Heating / Hot Water / Total (kWh) · Operating hours Compressor / Heating / Hot Water</span></div>
       </div>
 
       <div class="card">
-        <div class="card-header">
-          <span class="card-tag tag-read"><span data-lang="de">Lesen</span><span data-lang="en">Read</span></span>
-          <span class="card-name"><span data-lang="de">Volumenstrom · Fehleralarm · Firmware</span><span data-lang="en">Volume Flow · Error Alarm · Firmware</span></span>
-        </div>
-        <div class="card-desc">
-          <span data-lang="de">Durchfluss der Wärmequelle in l/h · Aktiver Fehler Ja/Nein · Softwarestand des Controllers</span>
-          <span data-lang="en">Heat source flow rate in l/h · Active error Yes/No · Controller firmware version</span>
-        </div>
+        <div class="card-header"><span class="card-tag tag-read"><span data-lang="de">Lesen</span><span data-lang="en">Read</span></span><span class="card-name"><span data-lang="de">Volumenstrom · Fehleralarm · Letzte Abfrage · Firmware</span><span data-lang="en">Volume Flow · Error Alarm · Last Poll · Firmware</span></span></div>
+        <div class="card-desc"><span data-lang="de">Durchfluss in l/h · Aktiver Fehler Ja/Nein · Uhrzeit der letzten erfolgreichen Abfrage (lokale Zeit) · Softwarestand des Controllers</span><span data-lang="en">Flow rate in l/h · Active error Yes/No · Time of last successful poll (local time) · Controller firmware version</span></div>
       </div>
     </div>
   </div>
@@ -195,47 +159,23 @@
       </div>
 
       <div class="card">
-        <div class="card-header">
-          <span class="card-tag tag-write"><span data-lang="de">Schreiben</span><span data-lang="en">Write</span></span>
-          <span class="card-name"><span data-lang="de">Brauchwasser Betriebsart</span><span data-lang="en">Hot Water Mode</span></span>
-        </div>
-        <div class="card-desc">
-          <span data-lang="de">Automatik · Zuheizer · Party · Ferien · Aus</span>
-          <span data-lang="en">Automatic · Auxiliary Heating · Party · Holidays · Off</span>
-        </div>
+        <div class="card-header"><span class="card-tag tag-write"><span data-lang="de">Schreiben</span><span data-lang="en">Write</span></span><span class="card-name"><span data-lang="de">Warmwasser Thermostat</span><span data-lang="en">Hot Water Thermostat</span></span></div>
+        <div class="card-desc"><span data-lang="de">Soll-Temperatur 30–65 °C in 0,5 °C-Schritten · Ist-Wert: aktuelle Warmwassertemperatur</span><span data-lang="en">Target temperature 30–65 °C in 0.5 °C steps · Actual value: current hot water temperature</span></div>
       </div>
 
       <div class="card">
-        <div class="card-header">
-          <span class="card-tag tag-write"><span data-lang="de">Schreiben</span><span data-lang="en">Write</span></span>
-          <span class="card-name"><span data-lang="de">Heizungs Betriebsart</span><span data-lang="en">Heating Mode</span></span>
-        </div>
-        <div class="card-desc">
-          <span data-lang="de">Automatik · Zuheizer · Party · Ferien · Aus</span>
-          <span data-lang="en">Automatic · Auxiliary Heating · Party · Holidays · Off</span>
-        </div>
+        <div class="card-header"><span class="card-tag tag-write"><span data-lang="de">Schreiben</span><span data-lang="en">Write</span></span><span class="card-name"><span data-lang="de">Heizungs Thermostat</span><span data-lang="en">Heating Thermostat</span></span></div>
+        <div class="card-desc"><span data-lang="de">Korrekturwert −5 bis +5 °C in 0,5 °C-Schritten · Ist-Wert: aktuelle Vorlauftemperatur · Positiv = wärmer, negativ = kühler</span><span data-lang="en">Correction value −5 to +5 °C in 0.5 °C steps · Actual value: current flow temperature · Positive = warmer, negative = cooler</span></div>
       </div>
 
       <div class="card">
-        <div class="card-header">
-          <span class="card-tag tag-write"><span data-lang="de">Schreiben</span><span data-lang="en">Write</span></span>
-          <span class="card-name"><span data-lang="de">Warmwasser Thermostat</span><span data-lang="en">Hot Water Thermostat</span></span>
-        </div>
-        <div class="card-desc">
-          <span data-lang="de">Soll-Temperatur 30–65 °C in 0,5 °C-Schritten · Ist-Wert: aktuelle Warmwassertemperatur</span>
-          <span data-lang="en">Target temperature 30–65 °C in 0.5 °C steps · Actual value: current hot water temperature</span>
-        </div>
+        <div class="card-header"><span class="card-tag tag-write"><span data-lang="de">Schreiben</span><span data-lang="en">Write</span></span><span class="card-name"><span data-lang="de">Brauchwasser Betriebsart</span><span data-lang="en">Hot Water Mode</span></span></div>
+        <div class="card-desc"><span data-lang="de">Automatik · Zuheizer · Party · Ferien · Aus</span><span data-lang="en">Automatic · Auxiliary Heating · Party · Holidays · Off</span></div>
       </div>
 
       <div class="card">
-        <div class="card-header">
-          <span class="card-tag tag-write"><span data-lang="de">Schreiben</span><span data-lang="en">Write</span></span>
-          <span class="card-name"><span data-lang="de">Heizungs Thermostat</span><span data-lang="en">Heating Thermostat</span></span>
-        </div>
-        <div class="card-desc">
-          <span data-lang="de">Korrekturwert −5 bis +5 °C in 0,5 °C-Schritten · Ist-Wert: aktuelle Vorlauftemperatur. Positiv = wärmer, negativ = kühler.</span>
-          <span data-lang="en">Correction value −5 to +5 °C in 0.5 °C steps · Actual value: current flow temperature. Positive = warmer, negative = cooler.</span>
-        </div>
+        <div class="card-header"><span class="card-tag tag-write"><span data-lang="de">Schreiben</span><span data-lang="en">Write</span></span><span class="card-name"><span data-lang="de">Heizungs Betriebsart</span><span data-lang="en">Heating Mode</span></span></div>
+        <div class="card-desc"><span data-lang="de">Automatik · Zuheizer · Party · Ferien · Aus</span><span data-lang="en">Automatic · Auxiliary Heating · Party · Holidays · Off</span></div>
       </div>
     </div>
   </div>
@@ -249,62 +189,52 @@
       </div>
 
       <div class="func-card">
-        <div class="func-head">
-          <span class="func-head-icon">🔥</span>
-          <span class="func-head-title"><span data-lang="de">Brauchwasser Schnellladung (Zuheizung)</span><span data-lang="en">Hot Water Boost (Auxiliary Heating)</span></span>
-        </div>
+        <div class="func-head"><span class="func-head-icon">🔥</span><span class="func-head-title"><span data-lang="de">Brauchwasser Schnellladung (Zuheizung)</span><span data-lang="en">Hot Water Boost (Auxiliary Heating)</span></span></div>
         <div class="func-body">
-          <p>
-            <span data-lang="de">Startet eine sofortige Warmwasserbereitung mit dem zweiten Wärmeerzeuger (Zuheizer-Modus), unabhängig vom Zeitschaltprogramm.</span>
-            <span data-lang="en">Starts immediate hot water heating using the second heat source (Auxiliary mode), regardless of the time schedule.</span>
-          </p>
+          <p><span data-lang="de">Sofortige Warmwasserbereitung mit dem zweiten Wärmeerzeuger, unabhängig vom Zeitschaltprogramm.</span><span data-lang="en">Immediate hot water heating using the second heat source, regardless of the time schedule.</span></p>
           <ul class="func-steps">
             <li><span class="step-num">1</span><span data-lang="de">Setzt Brauchwasser-Betriebsart auf <strong>Zuheizer</strong></span><span data-lang="en">Sets hot water mode to <strong>Auxiliary Heating</strong></span></li>
-            <li><span class="step-num">2</span><span data-lang="de">Schaltet ab wenn <strong>Zieltemperatur erreicht</strong></span><span data-lang="en">Stops when <strong>target temperature is reached</strong></span></li>
-            <li><span class="step-num">3</span><span data-lang="de">Schaltet nach konfigurierter <strong>Maximaldauer</strong> ab (Standard 60 Min.)</span><span data-lang="en">Stops after configured <strong>maximum duration</strong> (default 60 min)</span></li>
-            <li><span class="step-num">4</span><span data-lang="de">Setzt Betriebsart zurück auf <strong>Automatik</strong></span><span data-lang="en">Resets mode to <strong>Automatic</strong></span></li>
+            <li><span class="step-num">2</span><span data-lang="de">Stoppt automatisch bei <strong>Zieltemperatur</strong> oder <strong>Zeitlimit</strong></span><span data-lang="en">Auto-stops at <strong>target temperature</strong> or <strong>time limit</strong></span></li>
+            <li><span class="step-num">3</span><span data-lang="de">Setzt Betriebsart zurück auf <strong>Automatik</strong></span><span data-lang="en">Resets mode to <strong>Automatic</strong></span></li>
           </ul>
         </div>
       </div>
 
       <div class="func-card">
-        <div class="func-head">
-          <span class="func-head-icon">🔥</span>
-          <span class="func-head-title"><span data-lang="de">Brauchwasser Schnellladung (Party)</span><span data-lang="en">Hot Water Boost (Party)</span></span>
-        </div>
+        <div class="func-head"><span class="func-head-icon">🔥</span><span class="func-head-title"><span data-lang="de">Brauchwasser Schnellladung (Party)</span><span data-lang="en">Hot Water Boost (Party)</span></span></div>
         <div class="func-body">
-          <p>
-            <span data-lang="de">Gleiche Funktion wie Zuheizung — verwendet jedoch den <strong>Party-Modus</strong> am Controller.</span>
-            <span data-lang="en">Same function as Auxiliary Heating — uses <strong>Party mode</strong> on the controller instead.</span>
-          </p>
+          <p><span data-lang="de">Gleiche Funktion wie Zuheizung — verwendet <strong>Party-Modus</strong> am Controller.</span><span data-lang="en">Same function as Auxiliary — uses <strong>Party mode</strong> on the controller.</span></p>
           <ul class="func-steps">
             <li><span class="step-num">1</span><span data-lang="de">Setzt Brauchwasser-Betriebsart auf <strong>Party</strong></span><span data-lang="en">Sets hot water mode to <strong>Party</strong></span></li>
-            <li><span class="step-num">2</span><span data-lang="de">Automatische Abschaltung bei <strong>Zieltemperatur</strong> oder <strong>Zeitlimit</strong></span><span data-lang="en">Auto-stops at <strong>target temperature</strong> or <strong>time limit</strong></span></li>
-            <li><span class="step-num">3</span><span data-lang="de">Rückkehr auf <strong>Automatik</strong></span><span data-lang="en">Returns to <strong>Automatic</strong></span></li>
+            <li><span class="step-num">2</span><span data-lang="de">Stoppt automatisch bei <strong>Zieltemperatur</strong> oder <strong>Zeitlimit</strong></span><span data-lang="en">Auto-stops at <strong>target temperature</strong> or <strong>time limit</strong></span></li>
+            <li><span class="step-num">3</span><span data-lang="de">Setzt Betriebsart zurück auf <strong>Automatik</strong></span><span data-lang="en">Resets mode to <strong>Automatic</strong></span></li>
           </ul>
         </div>
       </div>
 
       <div class="func-card">
-        <div class="func-head">
-          <span class="func-head-icon">🦠</span>
-          <span class="func-head-title"><span data-lang="de">Thermische Desinfektion</span><span data-lang="en">Thermal Disinfection</span></span>
-        </div>
+        <div class="func-head"><span class="func-head-icon">🦠</span><span class="func-head-title"><span data-lang="de">Thermische Desinfektion</span><span data-lang="en">Thermal Disinfection</span></span></div>
         <div class="func-body">
-          <p>
-            <span data-lang="de">Aktiviert den Dauerbetrieb für den Legionellenschutz direkt am Luxtronik-Controller (Parameter 27).</span>
-            <span data-lang="en">Enables continuous disinfection mode for legionella protection directly on the Luxtronik controller (parameter 27).</span>
-          </p>
+          <p><span data-lang="de">Aktiviert den Dauerbetrieb für den Legionellenschutz am Controller (Parameter 27).</span><span data-lang="en">Enables continuous disinfection mode for legionella protection on the controller (parameter 27).</span></p>
           <ul class="func-steps">
-            <li><span class="step-num">1</span><span data-lang="de">Aktiviert <strong>Dauerbetrieb</strong> am Controller</span><span data-lang="en">Enables <strong>continuous mode</strong> on the controller</span></li>
-            <li><span class="step-num">2</span><span data-lang="de">Schaltet ab wenn Warmwasser <strong>≥ Zieltemperatur</strong> (einstellbar, Standard 65 °C)</span><span data-lang="en">Stops when hot water reaches <strong>≥ target temperature</strong> (configurable, default 65 °C)</span></li>
-            <li><span class="step-num">3</span><span data-lang="de">Manuelles Beenden jederzeit möglich</span><span data-lang="en">Can be stopped manually at any time</span></li>
+            <li><span class="step-num">1</span><span data-lang="de">Aktiviert <strong>Dauerbetrieb</strong> — nach jeder Warmwasserbereitung folgt Desinfektion</span><span data-lang="en">Enables <strong>continuous mode</strong> — disinfection follows each hot water cycle</span></li>
+            <li><span class="step-num">2</span><span data-lang="de">Stoppt automatisch bei <strong>≥ Zieltemperatur</strong> (einstellbar, Standard 65 °C)</span><span data-lang="en">Auto-stops at <strong>≥ target temperature</strong> (configurable, default 65 °C)</span></li>
+            <li><span class="step-num">3</span><span data-lang="de">Löst Flow-Trigger <strong>„Thermische Desinfektion beendet"</strong> aus</span><span data-lang="en">Fires flow trigger <strong>"Thermal Disinfection ended"</strong></span></li>
           </ul>
-          <div class="warnbox">
-            <strong><span data-lang="de">Hinweis:</span><span data-lang="en">Note:</span></strong>
-            <span data-lang="de"> Erfordert einen zweiten Wärmeerzeuger (ZWE) der für die Warmwasserbereitung freigeschaltet ist.</span>
-            <span data-lang="en"> Requires a second heat source (ZWE) enabled for hot water heating.</span>
-          </div>
+          <div class="warnbox"><strong><span data-lang="de">Hinweis:</span><span data-lang="en">Note:</span></strong> <span data-lang="de">Erfordert einen zweiten Wärmeerzeuger (ZWE) für die Warmwasserbereitung.</span><span data-lang="en">Requires a second heat source (ZWE) for hot water heating.</span></div>
+        </div>
+      </div>
+
+      <div class="func-card">
+        <div class="func-head"><span class="func-head-icon">🔒</span><span class="func-head-title"><span data-lang="de">Verbindungs-Watchdog</span><span data-lang="en">Connection Watchdog</span></span></div>
+        <div class="func-body">
+          <p><span data-lang="de">Überwacht die Verbindung zum Controller und reagiert automatisch wenn keine Antwort kommt.</span><span data-lang="en">Monitors the connection to the controller and reacts automatically when no response is received.</span></p>
+          <ul class="func-steps">
+            <li><span class="step-num">1</span><span data-lang="de"><strong>Poll-Timeout (30s):</strong> Keine Antwort → Gerät sofort als nicht erreichbar markiert</span><span data-lang="en"><strong>Poll timeout (30s):</strong> No response → device immediately marked unavailable</span></li>
+            <li><span class="step-num">2</span><span data-lang="de"><strong>Watchdog-Timer:</strong> Prüft jede Minute ob letzter Poll zu lange zurückliegt (3× Intervall)</span><span data-lang="en"><strong>Watchdog timer:</strong> Checks every minute if last poll was too long ago (3× interval)</span></li>
+            <li><span class="step-num">3</span><span data-lang="de"><strong>Letzte Abfrage:</strong> Capability zeigt Uhrzeit der letzten erfolgreichen Verbindung</span><span data-lang="en"><strong>Last poll:</strong> Capability shows time of last successful connection</span></li>
+            <li><span class="step-num">4</span><span data-lang="de">Gerät wird automatisch wieder erreichbar wenn Controller antwortet</span><span data-lang="en">Device automatically becomes available again when controller responds</span></li>
+          </ul>
         </div>
       </div>
     </div>
@@ -313,72 +243,51 @@
   <!-- ══ FLOWS ══ -->
   <div id="tab-flows" class="tab-content">
     <div class="section">
-      <div class="section-header">
-        <div class="section-icon">🔁</div>
-        <div class="section-title"><span data-lang="de">Flow-Auslöser (Wenn)</span><span data-lang="en">Flow Triggers (When)</span></div>
-      </div>
+      <div class="section-header"><div class="section-icon">🔵</div><div class="section-title"><span data-lang="de">Auslöser (Wenn)</span><span data-lang="en">Triggers (When)</span></div></div>
       <div class="flow-grid">
-        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div>
-          <div class="flow-name"><span data-lang="de">Heizungs-Betriebsart geändert</span><span data-lang="en">Heating mode changed</span></div>
-          <div class="flow-desc"><span data-lang="de">Token: neue Betriebsart als Text</span><span data-lang="en">Token: new mode as text</span></div>
-        </div></div>
-        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div>
-          <div class="flow-name"><span data-lang="de">Brauchwasser-Betriebsart geändert</span><span data-lang="en">Hot water mode changed</span></div>
-          <div class="flow-desc"><span data-lang="de">Token: neue Betriebsart als Text</span><span data-lang="en">Token: new mode as text</span></div>
-        </div></div>
-        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div>
-          <div class="flow-name"><span data-lang="de">Wärmepumpen-Status geändert</span><span data-lang="en">Heat pump state changed</span></div>
-          <div class="flow-desc"><span data-lang="de">Token: neuer Status als Text (z.B. „heating", „hotwater")</span><span data-lang="en">Token: new state as text (e.g. "heating", "hotwater")</span></div>
-        </div></div>
-        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div>
-          <div class="flow-name"><span data-lang="de">Fehler aufgetreten</span><span data-lang="en">Error occurred</span></div>
-          <div class="flow-desc"><span data-lang="de">Token: Fehlermeldung als Text</span><span data-lang="en">Token: error message as text</span></div>
-        </div></div>
-        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div>
-          <div class="flow-name"><span data-lang="de">Schnellladung (Zuheizung) beendet</span><span data-lang="en">Hot Water Boost (Auxiliary) ended</span></div>
-          <div class="flow-desc"><span data-lang="de">Ausgelöst bei automatischer Abschaltung</span><span data-lang="en">Triggered on automatic stop</span></div>
-        </div></div>
-        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div>
-          <div class="flow-name"><span data-lang="de">Schnellladung (Party) beendet</span><span data-lang="en">Hot Water Boost (Party) ended</span></div>
-          <div class="flow-desc"><span data-lang="de">Ausgelöst bei automatischer Abschaltung</span><span data-lang="en">Triggered on automatic stop</span></div>
-        </div></div>
+        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Heizungs-Betriebsart geändert</span><span data-lang="en">Heating mode changed</span></div><div class="flow-desc"><span data-lang="de">Token: neue Betriebsart</span><span data-lang="en">Token: new mode</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Brauchwasser-Betriebsart geändert</span><span data-lang="en">Hot water mode changed</span></div><div class="flow-desc"><span data-lang="de">Token: neue Betriebsart</span><span data-lang="en">Token: new mode</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Wärmepumpen-Status geändert</span><span data-lang="en">Heat pump state changed</span></div><div class="flow-desc"><span data-lang="de">Token: neuer Status</span><span data-lang="en">Token: new state</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Fehler aufgetreten</span><span data-lang="en">Error occurred</span></div><div class="flow-desc"><span data-lang="de">Token: Fehlermeldung</span><span data-lang="en">Token: error message</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Fehler quittiert</span><span data-lang="en">Error cleared</span></div><div class="flow-desc"><span data-lang="de">Wenn Fehler verschwindet</span><span data-lang="en">When error disappears</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Schnellladung (Zuheizung) beendet</span><span data-lang="en">Hot Water Boost (Auxiliary) ended</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Schnellladung (Party) beendet</span><span data-lang="en">Hot Water Boost (Party) ended</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Thermische Desinfektion beendet</span><span data-lang="en">Thermal Disinfection ended</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Gerät nicht erreichbar</span><span data-lang="en">Device became unavailable</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Gerät wieder erreichbar</span><span data-lang="en">Device became available again</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Aussentemperatur fiel unter … °C</span><span data-lang="en">Outdoor temperature dropped below … °C</span></div><div class="flow-desc"><span data-lang="de">Konfigurierbarer Schwellwert</span><span data-lang="en">Configurable threshold</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Aussentemperatur stieg über … °C</span><span data-lang="en">Outdoor temperature rose above … °C</span></div><div class="flow-desc"><span data-lang="de">Konfigurierbarer Schwellwert</span><span data-lang="en">Configurable threshold</span></div></div></div>
       </div>
     </div>
 
     <div class="section">
-      <div class="section-header">
-        <div class="section-icon">🎯</div>
-        <div class="section-title"><span data-lang="de">Flow-Aktionen (Dann)</span><span data-lang="en">Flow Actions (Then)</span></div>
-      </div>
+      <div class="section-header"><div class="section-icon">🟣</div><div class="section-title"><span data-lang="de">Bedingungen (Und)</span><span data-lang="en">Conditions (And)</span></div></div>
       <div class="flow-grid">
-        <div class="flow-item"><div class="flow-dot dot-action"></div><div>
-          <div class="flow-name"><span data-lang="de">Heizungs-Betriebsart setzen</span><span data-lang="en">Set heating mode</span></div>
-          <div class="flow-desc"><span data-lang="de">Automatik · Zuheizer · Party · Ferien · Aus</span><span data-lang="en">Automatic · Auxiliary · Party · Holidays · Off</span></div>
-        </div></div>
-        <div class="flow-item"><div class="flow-dot dot-action"></div><div>
-          <div class="flow-name"><span data-lang="de">Brauchwasser-Betriebsart setzen</span><span data-lang="en">Set hot water mode</span></div>
-          <div class="flow-desc"><span data-lang="de">Automatik · Zuheizer · Party · Ferien · Aus</span><span data-lang="en">Automatic · Auxiliary · Party · Holidays · Off</span></div>
-        </div></div>
-        <div class="flow-item"><div class="flow-dot dot-action"></div><div>
-          <div class="flow-name"><span data-lang="de">Heizungs-Temperaturkorrektur setzen</span><span data-lang="en">Set heating temperature correction</span></div>
-          <div class="flow-desc"><span data-lang="de">Zahl: −5 bis +5 °C</span><span data-lang="en">Number: −5 to +5 °C</span></div>
-        </div></div>
-        <div class="flow-item"><div class="flow-dot dot-action"></div><div>
-          <div class="flow-name"><span data-lang="de">Brauchwasser Soll-Temperatur setzen</span><span data-lang="en">Set hot water target temperature</span></div>
-          <div class="flow-desc"><span data-lang="de">Zahl: 30 bis 65 °C</span><span data-lang="en">Number: 30 to 65 °C</span></div>
-        </div></div>
-        <div class="flow-item"><div class="flow-dot dot-action"></div><div>
-          <div class="flow-name"><span data-lang="de">Schnellladung (Zuheizung) starten / stoppen</span><span data-lang="en">Start / Stop Hot Water Boost (Auxiliary)</span></div>
-          <div class="flow-desc"><span data-lang="de">Start mit Dauer (5–480 Min.), Stopp sofort</span><span data-lang="en">Start with duration (5–480 min), stop immediately</span></div>
-        </div></div>
-        <div class="flow-item"><div class="flow-dot dot-action"></div><div>
-          <div class="flow-name"><span data-lang="de">Schnellladung (Party) starten / stoppen</span><span data-lang="en">Start / Stop Hot Water Boost (Party)</span></div>
-          <div class="flow-desc"><span data-lang="de">Start mit Dauer (5–480 Min.), Stopp sofort</span><span data-lang="en">Start with duration (5–480 min), stop immediately</span></div>
-        </div></div>
-        <div class="flow-item"><div class="flow-dot dot-action"></div><div>
-          <div class="flow-name"><span data-lang="de">Thermische Desinfektion aktivieren / deaktivieren</span><span data-lang="en">Enable / Disable Thermal Disinfection</span></div>
-          <div class="flow-desc"><span data-lang="de">Dauerbetrieb am Controller ein- oder ausschalten</span><span data-lang="en">Enable or disable continuous mode on the controller</span></div>
-        </div></div>
+        <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Heizungs-Betriebsart ist …</span><span data-lang="en">Heating mode is …</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Brauchwasser-Betriebsart ist …</span><span data-lang="en">Hot water mode is …</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Wärmepumpen-Status ist …</span><span data-lang="en">Heat pump state is …</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Heizung Status ist … (Freitext)</span><span data-lang="en">Heating status is … (free text)</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Warmwasser Status ist …</span><span data-lang="en">Hot water status is …</span></div><div class="flow-desc"><span data-lang="de">Sperrzeit / Aufheizen / Temp. OK / Aus</span><span data-lang="en">Blocked / Heating / Temp. OK / Off</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Warmwassertemperatur ist über / unter … °C</span><span data-lang="en">Hot water temperature is above / below … °C</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Aussentemperatur ist über / unter … °C</span><span data-lang="en">Outdoor temperature is above / below … °C</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Thermische Desinfektion ist aktiv</span><span data-lang="en">Thermal disinfection is active</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Schnellladung (Zuheizung) ist aktiv</span><span data-lang="en">Hot Water Boost (Auxiliary) is active</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Schnellladung (Party) ist aktiv</span><span data-lang="en">Hot Water Boost (Party) is active</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Gerät ist erreichbar</span><span data-lang="en">Device is available</span></div></div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header"><div class="section-icon">🟢</div><div class="section-title"><span data-lang="de">Aktionen (Dann)</span><span data-lang="en">Actions (Then)</span></div></div>
+      <div class="flow-grid">
+        <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Heizungs-Betriebsart setzen</span><span data-lang="en">Set heating mode</span></div><div class="flow-desc"><span data-lang="de">Automatik · Zuheizer · Party · Ferien · Aus</span><span data-lang="en">Automatic · Auxiliary · Party · Holidays · Off</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Brauchwasser-Betriebsart setzen</span><span data-lang="en">Set hot water mode</span></div><div class="flow-desc"><span data-lang="de">Automatik · Zuheizer · Party · Ferien · Aus</span><span data-lang="en">Automatic · Auxiliary · Party · Holidays · Off</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Heizungs-Temperaturkorrektur setzen</span><span data-lang="en">Set heating temperature correction</span></div><div class="flow-desc">−5 … +5 °C</div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Brauchwasser Soll-Temperatur setzen</span><span data-lang="en">Set hot water target temperature</span></div><div class="flow-desc">30 … 65 °C</div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Brauchwasser Soll-Temperatur anpassen (relativ)</span><span data-lang="en">Adjust hot water target temperature (relative)</span></div><div class="flow-desc"><span data-lang="de">Offset ±20 °C — addiert zum aktuellen Wert</span><span data-lang="en">Offset ±20 °C — added to current value</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Schnellladung (Zuheizung) starten / stoppen</span><span data-lang="en">Start / Stop Hot Water Boost (Auxiliary)</span></div><div class="flow-desc"><span data-lang="de">Start mit Dauer 5–480 Min.</span><span data-lang="en">Start with duration 5–480 min</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Schnellladung (Party) starten / stoppen</span><span data-lang="en">Start / Stop Hot Water Boost (Party)</span></div><div class="flow-desc"><span data-lang="de">Start mit Dauer 5–480 Min.</span><span data-lang="en">Start with duration 5–480 min</span></div></div></div>
+        <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Thermische Desinfektion aktivieren / deaktivieren</span><span data-lang="en">Enable / Disable Thermal Disinfection</span></div></div></div>
       </div>
     </div>
   </div>
@@ -386,76 +295,36 @@
   <!-- ══ EINSTELLUNGEN ══ -->
   <div id="tab-settings" class="tab-content">
     <div class="section">
-      <div class="section-header">
-        <div class="section-icon">⚙️</div>
-        <div class="section-title"><span data-lang="de">Geräteeinstellungen</span><span data-lang="en">Device Settings</span></div>
-      </div>
+      <div class="section-header"><div class="section-icon">⚙️</div><div class="section-title"><span data-lang="de">Geräteeinstellungen</span><span data-lang="en">Device Settings</span></div></div>
       <div class="table-wrap">
         <table class="settings-table">
           <thead>
-            <tr>
-              <th><span data-lang="de">Einstellung</span><span data-lang="en">Setting</span></th>
-              <th><span data-lang="de">Standard</span><span data-lang="en">Default</span></th>
-              <th><span data-lang="de">Beschreibung</span><span data-lang="en">Description</span></th>
-            </tr>
+            <tr><th><span data-lang="de">Einstellung</span><span data-lang="en">Setting</span></th><th><span data-lang="de">Standard</span><span data-lang="en">Default</span></th><th><span data-lang="de">Beschreibung</span><span data-lang="en">Description</span></th></tr>
           </thead>
           <tbody>
-            <tr>
-              <td class="key"><span data-lang="de">IP-Adresse</span><span data-lang="en">IP Address</span></td>
-              <td class="default">—</td>
-              <td><span data-lang="de">IP-Adresse des Luxtronik-Controllers im lokalen Netzwerk</span><span data-lang="en">IP address of the Luxtronik controller on the local network</span></td>
-            </tr>
-            <tr>
-              <td class="key">Port</td>
-              <td class="default">8889</td>
-              <td><span data-lang="de">TCP-Port des Controllers (Standard: 8889)</span><span data-lang="en">TCP port of the controller (default: 8889)</span></td>
-            </tr>
-            <tr>
-              <td class="key"><span data-lang="de">Abfrageintervall</span><span data-lang="en">Poll Interval</span></td>
-              <td class="default">60 s</td>
-              <td><span data-lang="de">Wie oft Werte vom Controller gelesen werden</span><span data-lang="en">How often values are read from the controller</span></td>
-            </tr>
-            <tr>
-              <td class="key"><span data-lang="de">Schnellladung Dauer</span><span data-lang="en">Boost Duration</span></td>
-              <td class="default">60 <span data-lang="de">Min.</span><span data-lang="en">min</span></td>
-              <td><span data-lang="de">Maximale Laufzeit der Schnellladung (gilt für Zuheizung und Party)</span><span data-lang="en">Maximum duration of the hot water boost (applies to both Auxiliary and Party)</span></td>
-            </tr>
-            <tr>
-              <td class="key"><span data-lang="de">Desinfektion Zieltemp.</span><span data-lang="en">Disinfection Target Temp.</span></td>
-              <td class="default">65 °C</td>
-              <td><span data-lang="de">Abschalttemperatur der thermischen Desinfektion (60–70 °C)</span><span data-lang="en">Shutoff temperature for thermal disinfection (60–70 °C)</span></td>
-            </tr>
+            <tr><td class="key"><span data-lang="de">IP-Adresse</span><span data-lang="en">IP Address</span></td><td class="default">—</td><td><span data-lang="de">IP-Adresse des Luxtronik-Controllers</span><span data-lang="en">IP address of the Luxtronik controller</span></td></tr>
+            <tr><td class="key">Port</td><td class="default">8889</td><td><span data-lang="de">TCP-Port des Controllers</span><span data-lang="en">TCP port of the controller</span></td></tr>
+            <tr><td class="key"><span data-lang="de">Abfrageintervall</span><span data-lang="en">Poll Interval</span></td><td class="default">60 s</td><td><span data-lang="de">Wie oft Werte vom Controller gelesen werden (min. 10 s)</span><span data-lang="en">How often values are read from the controller (min. 10 s)</span></td></tr>
+            <tr><td class="key"><span data-lang="de">Schnellladung Dauer</span><span data-lang="en">Boost Duration</span></td><td class="default">60 <span data-lang="de">Min.</span><span data-lang="en">min</span></td><td><span data-lang="de">Maximale Laufzeit beider Schnellladungs-Modi (Zuheizung und Party)</span><span data-lang="en">Maximum duration for both boost modes (Auxiliary and Party)</span></td></tr>
+            <tr><td class="key"><span data-lang="de">Desinfektion Zieltemp.</span><span data-lang="en">Disinfection Target Temp.</span></td><td class="default">65 °C</td><td><span data-lang="de">Abschalttemperatur der thermischen Desinfektion (60–70 °C)</span><span data-lang="en">Shutoff temperature for thermal disinfection (60–70 °C)</span></td></tr>
           </tbody>
         </table>
       </div>
-      <div class="infobox">
-        <strong><span data-lang="de">Statische IP empfohlen:</span><span data-lang="en">Static IP recommended:</span></strong>
-        <span data-lang="de"> Richte im Router eine DHCP-Reservierung für den Luxtronik-Controller ein, damit sich die IP-Adresse nicht ändert.</span>
-        <span data-lang="en"> Set up a DHCP reservation for the Luxtronik controller in your router to prevent the IP address from changing.</span>
-      </div>
+      <div class="infobox"><strong><span data-lang="de">Statische IP empfohlen:</span><span data-lang="en">Static IP recommended:</span></strong> <span data-lang="de">Richte im Router eine DHCP-Reservierung für den Luxtronik-Controller ein.</span><span data-lang="en">Set up a DHCP reservation for the Luxtronik controller in your router.</span></div>
     </div>
 
     <div class="section">
-      <div class="section-header">
-        <div class="section-icon">🔌</div>
-        <div class="section-title"><span data-lang="de">Kompatibilität</span><span data-lang="en">Compatibility</span></div>
-      </div>
+      <div class="section-header"><div class="section-icon">🔌</div><div class="section-title"><span data-lang="de">Kompatibilität</span><span data-lang="en">Compatibility</span></div></div>
       <div class="card">
         <div class="card-desc">
-          <span data-lang="de">Kompatibel mit <strong>Luxtronik 2.0 / 2.1</strong> Controllern, eingebaut in Wärmepumpen von:</span>
-          <span data-lang="en">Compatible with <strong>Luxtronik 2.0 / 2.1</strong> controllers, built into heat pumps from:</span>
-          <br><br>
+          <span data-lang="de">Kompatibel mit <strong>Luxtronik 2.0 / 2.1</strong> Controllern in Wärmepumpen von:</span>
+          <span data-lang="en">Compatible with <strong>Luxtronik 2.0 / 2.1</strong> controllers in heat pumps from:</span><br><br>
           Alpha Innotec · Siemens Novelan · Roth · Elco · Buderus · Nibe · Wolf Heiztechnik · CTA Aeroheat
         </div>
       </div>
-      <div class="warnbox">
-        <strong><span data-lang="de">Achtung:</span><span data-lang="en">Warning:</span></strong>
-        <span data-lang="de"> Falsche Einstellungen können die Wärmepumpe in einen Fehlerzustand versetzen. Änderungen nur vornehmen, wenn die Funktion bekannt ist.</span>
-        <span data-lang="en"> Incorrect settings may put the heat pump into an error state. Only make changes if you know what the setting does.</span>
-      </div>
+      <div class="warnbox"><strong><span data-lang="de">Achtung:</span><span data-lang="en">Warning:</span></strong> <span data-lang="de">Falsche Einstellungen können die Wärmepumpe in einen Fehlerzustand versetzen. Änderungen nur vornehmen wenn die Funktion bekannt ist.</span><span data-lang="en">Incorrect settings may put the heat pump into an error state. Only make changes if you know what the setting does.</span></div>
     </div>
   </div>
-
 </div>
 
 <div class="footer">
@@ -463,17 +332,13 @@
 </div>
 
 <script>
-  function onHomeyReady(Homey) {
-    Homey.ready();
-  }
-
+  function onHomeyReady(Homey) { Homey.ready(); }
   function setLang(lang) {
     document.body.className = 'lang-' + lang;
     document.querySelectorAll('.lang-btn').forEach(function(btn) {
       btn.classList.toggle('active', btn.textContent.trim().toLowerCase() === lang);
     });
   }
-
   function showTab(name, btn) {
     document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.remove('active'); });
     document.querySelectorAll('.tab').forEach(function(el) { el.classList.remove('active'); });
@@ -481,6 +346,5 @@
     btn.classList.add('active');
   }
 </script>
-
 </body>
 </html>

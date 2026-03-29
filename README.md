@@ -2,7 +2,7 @@
 
 **App ID:** `com.luxtronik.heatpump`  
 **SDK:** Homey SDK 3  
-**Kompatibel mit:** Homey Pro (Early 2023), Homey Pro (2019), Homey Bridge
+**Kompatibel mit:** Homey Pro (Early 2023), Homey Pro (2019), Homey Bridge (Firmware >= 11.0.0)
 
 ---
 
@@ -27,9 +27,11 @@ Diese App kommuniziert mit dem **Luxtronik 2.0 / 2.1** Controller, der in Wärme
 
 ### Lesbare Werte (Sensoren)
 
-| Fähigkeit                                          | Beschreibung                              |
+| Capability                                         | Beschreibung                              |
 |----------------------------------------------------|-------------------------------------------|
-| Wärmepumpen-Status                                 | Heizen / Warmwasser / Abtauen / …         |
+| Wärmepumpen-Status                                 | Heizen / Warmwasser / Abtauen / Standby / EVU-Sperre / … |
+| Heizung Status                                     | Detaillierter Heizungsstatus vom Controller (Extended State String) |
+| Warmwasser Status                                  | Sperrzeit / Aufheizen / Temp. OK / Aus    |
 | Aussentemperatur                                   | Aktuell + gleitender 24h-Mittelwert       |
 | Vorlauftemperatur                                  | Heizkreis Vorlauf                         |
 | Rücklauftemperatur                                 | Heizkreis Rücklauf + Sollwert             |
@@ -43,44 +45,57 @@ Diese App kommuniziert mit dem **Luxtronik 2.0 / 2.1** Controller, der in Wärme
 | Energie Heizung / Warmwasser / Gesamt              | kWh                                       |
 | Betriebsstunden Verdichter / Heizung / Warmwasser  | Stunden                                   |
 | Fehleralarm                                        | Fehler aktiv: Ja / Nein                   |
+| Letzte Abfrage                                     | Uhrzeit des letzten erfolgreichen Polls (lokale Zeit) |
 | Firmware-Version                                   | Softwarestand des Controllers             |
 
-### Steuerbare Werte (Aktoren)
+### Steuerbare Werte
 
-| Fähigkeit                         | Wertebereich / Optionen                                   |
-|-----------------------------------|-----------------------------------------------------------|
-| **Heizungs-Betriebsart**          | Automatik · Zuheizer · Party · Ferien · Aus               |
-| **Brauchwasser-Betriebsart**      | Automatik · Zuheizer · Party · Ferien · Aus               |
-| **Heizungs-Temperaturkorrektur**  | −5 °C bis +5 °C in 0,5 °C-Schritten                       |
-| **Brauchwasser Soll-Temperatur**  | 30 °C bis 65 °C in 0,5 °C-Schritten                       |
-| **Brauchwasser Schnelladung**     | Toggle – Zuheizer-Modus, automatische Abschaltung         |
-| **Thermische Desinfektion**       | Toggle – Dauerbetrieb, automatische Abschaltung bei 60 °C |
+| Capability                         | Wertebereich / Optionen                                      |
+|------------------------------------|--------------------------------------------------------------|
+| **Warmwasser Thermostat**          | Soll: 30–65 °C · Ist: aktuelle Warmwassertemperatur         |
+| **Heizungs Thermostat**            | Korrektur: −5 bis +5 °C · Ist: aktuelle Vorlauftemperatur   |
+| **Heizungs-Betriebsart**           | Automatik · Zuheizer · Party · Ferien · Aus                  |
+| **Brauchwasser-Betriebsart**       | Automatik · Zuheizer · Party · Ferien · Aus                  |
+| **Schnellladung (Zuheizung)**      | Toggle – Zuheizer-Modus, automatische Abschaltung            |
+| **Schnellladung (Party)**          | Toggle – Party-Modus, automatische Abschaltung               |
+| **Thermische Desinfektion**        | Toggle – Dauerbetrieb, auto. Abschaltung bei Zieltemperatur  |
 
 ---
 
-## Brauchwasser Schnelladung
+## Brauchwasser Schnellladung
 
-Der Toggle **Brauchwasser Schnelladung** ermöglicht eine sofortige Warmwasserbereitung ausserhalb des regulären Zeitschaltprogramms:
+Zwei Modi stehen zur Verfügung:
 
-- **Starten:** Setzt die Brauchwasser-Betriebsart auf „Zuheizer"
-- **Automatische Abschaltung** sobald die aktuelle Warmwassertemperatur die eingestellte Soll-Temperatur erreicht
-- **Zeitliche Begrenzung** nach der konfigurierten Maximaldauer (Standard 60 Minuten, einstellbar in den Geräteeinstellungen)
-- **Manuelles Beenden:** jederzeit über Toggle oder Flow-Karte möglich
-- Nach dem Beenden wird die Betriebsart automatisch auf „Automatik" zurückgestellt
-- Der Flow-Trigger **„Brauchwasser Schnelladung beendet"** wird bei automatischer und manueller Abschaltung ausgelöst
+**Schnellladung (Zuheizung):** Setzt die Brauchwasser-Betriebsart auf „Zuheizer"  
+**Schnellladung (Party):** Setzt die Brauchwasser-Betriebsart auf „Party"
+
+Beide Varianten:
+- Schalten automatisch ab wenn die Warmwassertemperatur die Soll-Temperatur erreicht
+- Schalten nach der konfigurierten Maximaldauer ab (Standard: 60 Min., einstellbar in den Geräteeinstellungen)
+- Setzen die Betriebsart danach zurück auf „Automatik"
+- Lösen den Flow-Trigger „Schnellladung beendet" bei automatischer Abschaltung aus
 
 ---
 
 ## Thermische Desinfektion
 
-Der Toggle **Thermische Desinfektion** aktiviert den Dauerbetrieb für den Legionellenschutz direkt am Luxtronik-Controller (Parameter 27):
+Aktiviert den Dauerbetrieb (Parameter 27) für den Legionellenschutz:
 
-- **Starten:** Aktiviert den Dauerbetrieb — nach jeder Warmwasserbereitung folgt automatisch eine thermische Desinfektion
-- **Automatische Abschaltung** sobald die Warmwassertemperatur einmalig ≥ 60 °C erreicht
-- **Manuelles Beenden:** jederzeit über Toggle möglich
-- Der aktuelle Zustand (aktiv / inaktiv) wird direkt vom Controller gelesen und bei jedem Polling aktualisiert
+- Nach jeder Warmwasserbereitung folgt automatisch eine thermische Desinfektion
+- Schaltet automatisch ab wenn die Warmwassertemperatur ≥ Zieltemperatur (konfigurierbar, Standard: 65 °C)
+- Manuelles Beenden jederzeit möglich
+- Löst den Flow-Trigger „Thermische Desinfektion beendet" aus
 
-> **Hinweis:** Die Funktion setzt einen angeschlossenen zweiten Wärmeerzeuger (ZWE) voraus. Im Luxtronik-Menü erscheint die Thermische Desinfektion nur, wenn ein ZWE für die Warmwasserbereitung freigeschaltet ist.
+> **Hinweis:** Setzt einen angeschlossenen zweiten Wärmeerzeuger (ZWE) voraus.
+
+---
+
+## Verbindungs-Watchdog
+
+- **Poll-Timeout (30s):** Keine Antwort innerhalb von 30 Sekunden → Gerät sofort als unavailable markiert
+- **Watchdog-Timer:** Prüft jede Minute ob der letzte erfolgreiche Poll zu lange zurückliegt (Schwellwert: 3× Polling-Intervall)
+- **Letzte Abfrage:** Capability zeigt die Uhrzeit des letzten erfolgreichen Polls in lokaler Zeit
+- Gerät wird automatisch wieder als available markiert sobald der Controller antwortet
 
 ---
 
@@ -95,18 +110,19 @@ Der Toggle **Thermische Desinfektion** aktiviert den Dauerbetrieb für den Legio
 ### Einrichtung in Homey
 
 1. App aus dem Homey App Store installieren
-2. Gerät hinzufügen: **Geräte → + → Luxtronik Wärmepumpe**
+2. Gerät hinzufügen: **Geräte → + → Luxtronik Wärmepumpen Manager**
 3. IP-Adresse und Port (Standard: 8889) eingeben
 4. Verbindungstest – bei Erfolg wird das Gerät angelegt
 
 ### Geräteeinstellungen
 
-| Einstellung                     | Standard | Beschreibung                                       |
-|---------------------------------|----------|----------------------------------------------------|
-| IP-Adresse                      | –        | IP des Luxtronik-Controllers                       |
-| Port                            | 8889     | TCP-Port des Controllers                           |
-| Abfrageintervall (Sekunden)     | 60       | Wie oft die Wärmepumpe abgefragt wird (min. 10 s) |
-| Schnelladung Dauer (Minuten)    | 60       | Maximale Laufzeit der Brauchwasser-Schnelladung    |
+| Einstellung                         | Standard | Beschreibung                                          |
+|-------------------------------------|----------|-------------------------------------------------------|
+| IP-Adresse                          | –        | IP des Luxtronik-Controllers                          |
+| Port                                | 8889     | TCP-Port des Controllers                              |
+| Abfrageintervall (Sekunden)         | 60       | Wie oft die Wärmepumpe abgefragt wird (min. 10 s)    |
+| Schnellladung Dauer (Minuten)       | 60       | Maximale Laufzeit beider Schnellladungs-Modi          |
+| Desinfektion Zieltemperatur (°C)    | 65       | Abschalttemperatur der thermischen Desinfektion (60–70 °C) |
 
 ---
 
@@ -114,32 +130,54 @@ Der Toggle **Thermische Desinfektion** aktiviert den Dauerbetrieb für den Legio
 
 ### Auslöser (Triggers)
 
-| Karte                              | Token    | Beschreibung                         |
-|------------------------------------|----------|--------------------------------------|
-| Heizungs-Betriebsart geändert      | `mode`   | Neue Betriebsart als Text            |
-| Brauchwasser-Betriebsart geändert  | `mode`   | Neue Betriebsart als Text            |
-| Wärmepumpen-Status geändert        | `state`  | Neuer Status als Text                |
-| Fehler aufgetreten                 | `error`  | Fehlermeldung als Text               |
-| Brauchwasser Schnelladung beendet  | –        | Ausgelöst wenn Schnelladung endet    |
+| Karte                                      | Token      | Beschreibung                                  |
+|--------------------------------------------|------------|-----------------------------------------------|
+| Heizungs-Betriebsart geändert              | `mode`     | Neue Betriebsart als Text                     |
+| Brauchwasser-Betriebsart geändert          | `mode`     | Neue Betriebsart als Text                     |
+| Wärmepumpen-Status geändert                | `state`    | Neuer Status als Text                         |
+| Fehler aufgetreten                         | `error`    | Fehlermeldung als Text                        |
+| Fehler quittiert                           | –          | Wenn Fehler wieder verschwindet               |
+| Schnellladung (Zuheizung) beendet          | –          | Bei automatischer Abschaltung                 |
+| Schnellladung (Party) beendet              | –          | Bei automatischer Abschaltung                 |
+| Thermische Desinfektion beendet            | –          | Bei automatischer Abschaltung                 |
+| Gerät nicht erreichbar                     | –          | Wenn Watchdog anschlägt                       |
+| Gerät wieder erreichbar                    | –          | Wenn Verbindung wiederhergestellt             |
+| Aussentemperatur fiel unter … °C           | Schwellwert| Schwellwert-Vergleich mit aktuellem Wert      |
+| Aussentemperatur stieg über … °C           | Schwellwert| Schwellwert-Vergleich mit aktuellem Wert      |
 
 ### Bedingungen (Conditions)
 
-| Karte                              | Parameter |
-|------------------------------------|-----------|
-| Heizungs-Betriebsart ist …         | Dropdown  |
-| Brauchwasser-Betriebsart ist …     | Dropdown  |
-| Wärmepumpen-Status ist …           | Dropdown  |
+| Karte                                      | Parameter              |
+|--------------------------------------------|------------------------|
+| Heizungs-Betriebsart ist …                 | Dropdown               |
+| Brauchwasser-Betriebsart ist …             | Dropdown               |
+| Wärmepumpen-Status ist …                   | Dropdown               |
+| Heizung Status ist …                       | Freitext               |
+| Warmwasser Status ist …                    | Dropdown (4 Werte)     |
+| Warmwassertemperatur ist über … °C         | Zahl                   |
+| Warmwassertemperatur ist unter … °C        | Zahl                   |
+| Aussentemperatur ist über … °C             | Zahl                   |
+| Aussentemperatur ist unter … °C            | Zahl                   |
+| Thermische Desinfektion ist aktiv          | –                      |
+| Schnellladung (Zuheizung) ist aktiv        | –                      |
+| Schnellladung (Party) ist aktiv            | –                      |
+| Gerät ist erreichbar                       | –                      |
 
 ### Aktionen (Actions)
 
-| Karte                                    | Parameter                      |
-|------------------------------------------|--------------------------------|
-| Heizungs-Betriebsart setzen              | Dropdown (Automatik … Aus)     |
-| Brauchwasser-Betriebsart setzen          | Dropdown (Automatik … Aus)     |
-| Heizungs-Temperaturkorrektur setzen      | Zahl: −5 … +5 °C               |
-| Brauchwasser Soll-Temperatur setzen      | Zahl: 30 … 65 °C               |
-| Brauchwasser Schnelladung starten        | Dauer in Minuten (5 – 480)     |
-| Brauchwasser Schnelladung stoppen        | –                              |
+| Karte                                              | Parameter                      |
+|----------------------------------------------------|--------------------------------|
+| Heizungs-Betriebsart setzen                        | Dropdown (Automatik … Aus)     |
+| Brauchwasser-Betriebsart setzen                    | Dropdown (Automatik … Aus)     |
+| Heizungs-Temperaturkorrektur setzen                | Zahl: −5 … +5 °C               |
+| Brauchwasser Soll-Temperatur setzen                | Zahl: 30 … 65 °C               |
+| Brauchwasser Soll-Temperatur anpassen (relativ)    | Offset: −20 … +20 °C           |
+| Schnellladung (Zuheizung) starten                  | Dauer in Minuten (5–480)       |
+| Schnellladung (Zuheizung) stoppen                  | –                              |
+| Schnellladung (Party) starten                      | Dauer in Minuten (5–480)       |
+| Schnellladung (Party) stoppen                      | –                              |
+| Thermische Desinfektion aktivieren                 | –                              |
+| Thermische Desinfektion deaktivieren               | –                              |
 
 ---
 
@@ -173,11 +211,11 @@ Der Toggle **Thermische Desinfektion** aktiviert den Dauerbetrieb für den Legio
 
 ## Hinweise & Warnungen
 
-> ⚠️ **Vorsicht:** Falsche Einstellungen können die Wärmepumpe in einen Fehlerzustand versetzen. Änderungen nur vornehmen, wenn die Funktion des Parameters bekannt ist. Konsultiere das [Luxtronik 2.0/2.1 Fachhandwerker-Handbuch](https://www.alpha-innotec.com).
+> ⚠️ **Vorsicht:** Falsche Einstellungen können die Wärmepumpe in einen Fehlerzustand versetzen. Änderungen nur vornehmen, wenn die Funktion des Parameters bekannt ist.
 
-- Die Temperaturkorrektur (`heating_temperature_correction`) verschiebt die Heizkurve um den eingestellten Wert. Positive Werte → wärmer, negative Werte → kühler.
+- Die Thermostat-Korrektur (`target_temperature.heating`) verschiebt die Heizkurve um den eingestellten Wert. Positive Werte → wärmer, negative Werte → kühler.
 - Alle Schreiboperationen werden sofort an den Controller gesendet.
-- Der Abfrageintervall kann in den Geräteeinstellungen angepasst werden (Standard: 60 s, Minimum: 10 s).
+- Der Write-Schutz verhindert dass Polling-Zyklen manuell gesetzte Werte sofort überschreiben (120s Schutzfenster).
 
 ---
 
@@ -201,16 +239,13 @@ MIT License – siehe [LICENSE](LICENSE)
 
 ## 🤖 KI-Entwicklung
 
-Diese App wurde vollständig mit Hilfe von **Claude (Anthropic AI)** entwickelt. Sämtlicher Code, die Konfiguration sowie die Dokumentation wurden durch KI generiert und iterativ verfeinert — ohne manuelle Programmierung.
+Diese App wurde vollständig mit Hilfe von **Claude (Anthropic AI)** entwickelt.
 
 ---
 
 ## 🙏 Danksagungen
 
-Basiert auf der Arbeit von:
 - [RobinFlikkema/homey-luxtronik](https://github.com/RobinFlikkema/homey-luxtronik)
 - [coolchip/luxtronik2](https://github.com/coolchip/luxtronik2) (npm-Paket)
 - [BenPru/luxtronik](https://github.com/BenPru/luxtronik) (Home Assistant Integration)
 - [Bouni/luxtronik](https://github.com/Bouni/luxtronik)
-
-Besonderer Dank gilt **Robin Flikkema** für die ursprüngliche [Luxtronik Homey App](https://github.com/RobinFlikkema/homey-luxtronik), die als Grundlage und Inspiration für dieses Projekt gedient hat.

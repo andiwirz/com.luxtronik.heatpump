@@ -38,6 +38,7 @@
     "measure_hours_heating",
     "measure_hours_hotwater",
     "alarm_generic",
+    "last_poll",
     "firmware_version"
   ],
   "capabilitiesOptions": {

@@ -2,20 +2,24 @@ Luxtronik Wärmepumpen Manager verbindet deine Luxtronik-basierte Wärmepumpe (z
 
 Funktionen
 
-- Alle von Luxtronik bereitgestellten Werte auslesen (Temperaturen, Betriebsstunden, Energiewerte, Volumenstrom, Betriebszustand und vieles mehr)
-- Schreibzugriff auf Betriebsmodi und Sollwerte: Heizungsmodus umschalten, Warmwassermodus umschalten, Solltemperaturen setzen.
-- Heizung-Sollwertkorrektur: Korrektur der Heizungs-Solltemperatur im Bereich von -5 °C bis +5 °C
-- Flow-Integration: Alle Messwerte und Steuerfunktionen stehen als Auslöser, Bedingungen und Aktionen in Homey Flows zur Verfügung.
-- Stabile Verbindung: Unterstützung für lokale IP-Verbindungen zur Wärmepumpe über das luxtronik2 NPM-Paket.
+- Alle Werte des Luxtronik-Controllers auslesen: Temperaturen, Betriebsstunden, Energiewerte, Volumenstrom, Betriebszustände und mehr
+- Thermostat-Widgets für Warmwasser und Heizung: Sollwerte setzen und Ist-Werte direkt auf der Gerätekachel anzeigen
+- Brauchwasser Schnellladung (Zuheizung): sofortige Warmwasserbereitung über den zweiten Wärmeerzeuger mit automatischer Abschaltung bei Zieltemperatur oder Zeitlimit
+- Brauchwasser Schnellladung (Party): gleiche Funktion im Party-Modus
+- Thermische Desinfektion: Dauerbetrieb für den Legionellenschutz direkt am Controller (Parameter 27), automatische Abschaltung bei konfigurierbarer Zieltemperatur (Standard 65 °C)
+- Heizung und Warmwasser Statussensoren: detaillierte Statusmeldungen direkt vom Controller
+- Verbindungs-Watchdog: überwacht die Abfragen und markiert das Gerät als nicht verfügbar wenn der Controller nicht mehr antwortet; zeigt Zeitpunkt der letzten erfolgreichen Abfrage
+- Umfangreiche Flow-Integration: 12 Auslöser, 13 Bedingungen und 11 Aktionen in Homey Flows
 
 Kompatibilität
 
-Luxtronik Wärmepumpen Manager ist mit vielen Luxtronik-basierten Systemen und Wärmepumpenherstellern kompatibel, darunter häufig eingesetzte Modelle wie Alpha-Innotec, CTA Aeroheat, Siemens Novelan, Roth ThermoAura, Elco Aquatop, Buderus Logamatic, Nibe AP-AW10 und Wolf Heiztechnik BWL/BWS. Die App nutzt die standardisierten Werte der Luxtronik-Schnittstelle und funktioniert daher in verschiedenen Anlagenkonfigurationen.
+Luxtronik Wärmepumpen Manager ist mit vielen Luxtronik-basierten Systemen und Herstellern kompatibel, darunter Alpha-Innotec, CTA Aeroheat, Siemens Novelan, Roth ThermoAura, Elco Aquatop, Buderus Logamatic, Nibe AP-AW10 und Wolf Heiztechnik BWL/BWS. Die App nutzt die standardisierten Werte der Luxtronik-Schnittstelle und funktioniert in verschiedenen Anlagenkonfigurationen.
 
 Voraussetzungen
 
-- Lokaler Zugriff auf den Luxtronik-Regler (feste IP-Adresse oder DHCP-Reservierung empfohlen).
-- Der Standardport der Luxtronik-Schnittstelle (8889) muss erreichbar sein.
+- Lokaler Zugriff auf den Luxtronik-Regler (feste IP-Adresse oder DHCP-Reservierung empfohlen)
+- Der Standardport der Luxtronik-Schnittstelle (8889) muss erreichbar sein
+- Homey Pro mit Firmware >= 11.0.0
 
 Kurzanleitung zur Installation
 

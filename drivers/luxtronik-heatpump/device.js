@@ -84,7 +84,7 @@ class LuxtronikHeatpumpDevice extends Device {
       }
     }
     // ── Neue Capabilities hinzufügen falls noch nicht vorhanden ─────────────────
-    const NEW_CAPABILITIES = ['hotwater_boost', 'firmware_version', 'thermal_disinfection_continuous', 'hotwater_boost_party', 'target_temperature', 'measure_temperature', 'heating_state_string', 'hotwater_state_string', 'target_temperature.heating', 'measure_temperature.heating'];
+    const NEW_CAPABILITIES = ['hotwater_boost', 'firmware_version', 'thermal_disinfection_continuous', 'hotwater_boost_party', 'target_temperature', 'measure_temperature', 'heating_state_string', 'hotwater_state_string', 'target_temperature.heating', 'measure_temperature.heating', 'last_poll'];
     for (const cap of NEW_CAPABILITIES) {
       if (!this.hasCapability(cap)) {
         this.log(`Füge neue Capability hinzu: ${cap}`);
@@ -103,7 +103,7 @@ class LuxtronikHeatpumpDevice extends Device {
     }
 
     // ── Capability-Reihenfolge erzwingen (ohne neu pairen) ───────────────────
-    const DESIRED_ORDER = ['heatpump_state', 'heating_state_string', 'hotwater_state_string', 'warmwater_operation_mode', 'heating_operation_mode', 'target_temperature.heating', 'measure_temperature.heating', 'hotwater_boost_party', 'hotwater_boost', 'thermal_disinfection_continuous', 'measure_temp_outdoor', 'measure_temp_hotwater', 'measure_temp_hotwater_target', 'measure_temp_outdoor_avg', 'measure_temp_flow', 'measure_temp_return', 'measure_temp_return_target', 'measure_temp_hotgas', 'measure_temp_source_in', 'measure_temp_source_out', 'measure_temp_suction_air', 'measure_temp_room', 'measure_temp_room_target', 'measure_volume_flow', 'meter_energy_heating', 'meter_energy_hotwater', 'meter_energy_total', 'measure_hours_compressor', 'measure_hours_heating', 'measure_hours_hotwater', 'alarm_generic', 'firmware_version'];
+    const DESIRED_ORDER = ['heatpump_state', 'heating_state_string', 'hotwater_state_string', 'warmwater_operation_mode', 'heating_operation_mode', 'target_temperature.heating', 'measure_temperature.heating', 'hotwater_boost_party', 'hotwater_boost', 'thermal_disinfection_continuous', 'measure_temp_outdoor', 'measure_temp_hotwater', 'measure_temp_hotwater_target', 'measure_temp_outdoor_avg', 'measure_temp_flow', 'measure_temp_return', 'measure_temp_return_target', 'measure_temp_hotgas', 'measure_temp_source_in', 'measure_temp_source_out', 'measure_temp_suction_air', 'measure_temp_room', 'measure_temp_room_target', 'measure_volume_flow', 'meter_energy_heating', 'meter_energy_hotwater', 'meter_energy_total', 'measure_hours_compressor', 'measure_hours_heating', 'measure_hours_hotwater', 'alarm_generic', 'last_poll', 'firmware_version'];
     const currentCaps = this.getCapabilities();
     const needsReorder = currentCaps.some((cap, i) => cap !== DESIRED_ORDER[i]);
     if (needsReorder) {
@@ -139,6 +139,9 @@ class LuxtronikHeatpumpDevice extends Device {
     // Schnelladungs-Timer
     this._boostTimer      = null;
     this._boostPartyTimer = null;
+    this._lastSuccessfulPoll = null;
+    this._watchdogTimer      = null;
+    this._pollTimeout        = null;
 
     // Flow-Trigger
     this._triggerHeatingModeChanged  = this.homey.flow.getDeviceTriggerCard('heating_operation_mode_changed');
@@ -146,7 +149,15 @@ class LuxtronikHeatpumpDevice extends Device {
     this._triggerStateChanged         = this.homey.flow.getDeviceTriggerCard('heatpump_state_changed');
     this._triggerErrorOccurred        = this.homey.flow.getDeviceTriggerCard('error_occurred');
     this._triggerBoostEnded           = this.homey.flow.getDeviceTriggerCard('hotwater_boost_ended');
-    this._triggerBoostPartyEnded      = this.homey.flow.getDeviceTriggerCard('hotwater_boost_party_ended');
+    this._triggerBoostPartyEnded          = this.homey.flow.getDeviceTriggerCard('hotwater_boost_party_ended');
+    this._triggerDeviceUnavailable        = this.homey.flow.getDeviceTriggerCard('device_unavailable');
+    this._triggerDeviceAvailable          = this.homey.flow.getDeviceTriggerCard('device_available');
+    this._triggerThermalDisinfEnded       = this.homey.flow.getDeviceTriggerCard('thermal_disinfection_ended');
+    this._triggerErrorCleared             = this.homey.flow.getDeviceTriggerCard('error_cleared');
+    this._triggerOutdoorTempDroppedBelow  = this.homey.flow.getDeviceTriggerCard('outdoor_temp_dropped_below')
+      .registerRunListener((args, state) => state.temperature <= args.temperature);
+    this._triggerOutdoorTempRoseAbove     = this.homey.flow.getDeviceTriggerCard('outdoor_temp_rose_above')
+      .registerRunListener((args, state) => state.temperature >= args.temperature);
 
     // Flow-Bedingungen
     this.homey.flow.getConditionCard('heating_operation_mode_is')
@@ -177,6 +188,35 @@ class LuxtronikHeatpumpDevice extends Device {
       .registerRunListener(() => this.getCapabilityValue('hotwater_boost') === true);
 
     this.homey.flow.getConditionCard('hotwater_boost_party_is_active')
+
+    this.homey.flow.getConditionCard('device_is_available')
+      .registerRunListener(() => this.getAvailable());
+
+    this.homey.flow.getConditionCard('heating_state_is')
+      .registerRunListener((args) => {
+        const current = this.getCapabilityValue('heating_state_string') || '';
+        return current.toLowerCase().includes(args.state.toLowerCase());
+      });
+
+    this.homey.flow.getConditionCard('hotwater_state_is')
+      .registerRunListener((args) => {
+        const current = this.getCapabilityValue('hotwater_state_string') || '';
+        return current === args.state;
+      });
+
+    this.homey.flow.getConditionCard('outdoor_temp_above')
+      .registerRunListener((args) => {
+        const temp = this.getCapabilityValue('measure_temp_outdoor');
+        return temp !== null && temp > args.temperature;
+      });
+
+    this.homey.flow.getConditionCard('outdoor_temp_below')
+      .registerRunListener((args) => {
+        const temp = this.getCapabilityValue('measure_temp_outdoor');
+        return temp !== null && temp < args.temperature;
+      });
+
+    this.homey.flow.getConditionCard('hotwater_boost_party_is_active')
       .registerRunListener(() => this.getCapabilityValue('hotwater_boost_party') === true);
 
     // Flow-Aktionen
@@ -203,6 +243,12 @@ class LuxtronikHeatpumpDevice extends Device {
 
     this.homey.flow.getActionCard('stop_hotwater_boost_party')
       .registerRunListener(async () => this._stopHotwaterBoostParty());
+
+    this.homey.flow.getActionCard('set_warmwater_target_temperature_relative')
+      .registerRunListener(async (args) => {
+        const current = this.getCapabilityValue('target_temperature') ?? this.getCapabilityValue('warmwater_target_temperature') ?? 50;
+        await this._setWarmwaterTargetTemperature(current + parseFloat(args.offset));
+      });
 
     this.homey.flow.getActionCard('enable_thermal_disinfection')
       .registerRunListener(async () => this._setThermalDisinfectionContinuous(true));
@@ -248,6 +294,8 @@ class LuxtronikHeatpumpDevice extends Device {
     this._stopPolling();
     if (this._boostTimer)      { clearTimeout(this._boostTimer);      this._boostTimer      = null; }
     if (this._boostPartyTimer) { clearTimeout(this._boostPartyTimer); this._boostPartyTimer = null; }
+    if (this._watchdogTimer)   { clearInterval(this._watchdogTimer);  this._watchdogTimer   = null; }
+    if (this._pollTimeout)     { clearTimeout(this._pollTimeout);     this._pollTimeout     = null; }
   }
 
   async onSettings({ newSettings }) {
@@ -274,6 +322,24 @@ class LuxtronikHeatpumpDevice extends Device {
 
   // ─── Polling ───────────────────────────────────────────────────────────────
 
+  _startWatchdog() {
+    if (this._watchdogTimer) { clearInterval(this._watchdogTimer); this._watchdogTimer = null; }
+    // Watchdog prüft alle 60s ob ein erfolgreicher Poll stattgefunden hat
+    // Schwellwert: 3x Polling-Intervall
+    this._watchdogTimer = setInterval(() => {
+      if (!this._lastSuccessfulPoll) return;
+      const elapsed = Date.now() - this._lastSuccessfulPoll.getTime();
+      const threshold = this._pollInterval * 3;
+      if (elapsed > threshold) {
+        const minutes = Math.round(elapsed / 60000);
+        this.error(`Watchdog: Kein erfolgreicher Poll seit ${minutes} Minuten`);
+        this.setUnavailable(
+          (this.homey.__('errors.watchdog') || `Keine Verbindung seit ${minutes} Min.`)
+        ).catch(() => {});
+      }
+    }, 60000);
+  }
+
   _startPolling() {
     this._stopPolling();
     this._timer = setInterval(() => this._doPoll(), this._pollInterval);
@@ -286,15 +352,37 @@ class LuxtronikHeatpumpDevice extends Device {
   async _doPoll() {
     if (!this._pump) { this._connectPump(); if (!this._pump) return; }
 
+    // Poll-Timeout: wenn keine Antwort nach 30s → Fehler
+    if (this._pollTimeout) { clearTimeout(this._pollTimeout); }
+    this._pollTimeout = setTimeout(() => {
+      this._pollTimeout = null;
+      this.error('Poll-Timeout: Keine Antwort von der Wärmepumpe nach 30s');
+      this.setUnavailable(this.homey.__('errors.timeout') || 'Keine Antwort (Timeout)').catch(() => {});
+    }, 30000);
+
     return new Promise((resolve) => {
       this._pump.read((err, data) => {
         if (err) {
           this.error('Poll-Fehler:', err.message || err);
-          this.setUnavailable(err.message || 'Verbindungsfehler').catch(() => {});
+          const wasAvail = this.getAvailable();
+      this.setUnavailable(err.message || 'Verbindungsfehler').catch(() => {});
+      if (wasAvail) {
+        this._triggerDeviceUnavailable.trigger(this, {}).catch(() => {});
+      }
           resolve();
           return;
         }
+        const wasUnavail = !this.getAvailable();
         this.setAvailable().catch(() => {});
+        if (wasUnavail) {
+          this._triggerDeviceAvailable.trigger(this, {}).catch(() => {});
+        }
+        // Watchdog: Zeitstempel aktualisieren und Timeout zurücksetzen
+        this._lastSuccessfulPoll = new Date();
+        if (this._pollTimeout) { clearTimeout(this._pollTimeout); this._pollTimeout = null; }
+        const tz = this.homey.clock.getTimezone();
+        const timeStr = this._lastSuccessfulPoll.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: tz, hour12: false });
+        this._setIfValid('last_poll', timeStr).catch(() => {});
         this._processData(data).then(resolve).catch((e) => {
           this.error('Fehler bei Datenverarbeitung:', e.message);
           resolve();
@@ -322,7 +410,19 @@ class LuxtronikHeatpumpDevice extends Device {
     }
 
     // ── Temperaturen (data.values) ───────────────────────────────────────────
-    await this._setIfValid('measure_temp_outdoor',      this._n(v.temperature_outside));
+    const outdoorTemp = this._n(v.temperature_outside);
+    if (outdoorTemp !== null && this._lastOutdoorTemp !== null) {
+      if (this._lastOutdoorTemp >= 0 && outdoorTemp < 0 ||
+          this._lastOutdoorTemp > outdoorTemp) {
+        await this._triggerOutdoorTempDroppedBelow.trigger(this, {}, { temperature: outdoorTemp }).catch(() => {});
+      }
+      if (this._lastOutdoorTemp <= 0 && outdoorTemp > 0 ||
+          this._lastOutdoorTemp < outdoorTemp) {
+        await this._triggerOutdoorTempRoseAbove.trigger(this, {}, { temperature: outdoorTemp }).catch(() => {});
+      }
+    }
+    if (outdoorTemp !== null) this._lastOutdoorTemp = outdoorTemp;
+    await this._setIfValid('measure_temp_outdoor',      outdoorTemp);
     await this._setIfValid('measure_temp_outdoor_avg',  this._n(v.temperature_outside_avg));
     await this._setIfValid('measure_temp_flow',         this._n(v.temperature_supply));
     await this._setIfValid('measure_temp_return',       this._n(v.temperature_return));
@@ -363,6 +463,7 @@ class LuxtronikHeatpumpDevice extends Device {
       if (currentTemp !== null && currentTemp >= tdiTarget) {
         this.log(`Thermische Desinfektion: ${tdiTarget}°C erreicht (${currentTemp}°C) — deaktiviere Dauerbetrieb`);
         await this._setThermalDisinfectionContinuous(false).catch((e) => this.error('TDI auto-off fehlgeschlagen:', e.message));
+        await this._triggerThermalDisinfEnded.trigger(this, {}).catch(() => {});
       }
     }
 
@@ -435,6 +536,9 @@ class LuxtronikHeatpumpDevice extends Device {
         ? v.errors.map((e) => (typeof e === 'object' ? JSON.stringify(e) : String(e))).join(', ')
         : 'Fehler (state1=4)';
       await this._triggerErrorOccurred.trigger(this, { error: msg }).catch(() => {});
+    }
+    if (!hasError && this._lastErrorState === true) {
+      await this._triggerErrorCleared.trigger(this, {}).catch(() => {});
     }
     this._lastErrorState = hasError;
 
