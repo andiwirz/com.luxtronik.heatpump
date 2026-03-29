@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.luxtronik.heatpump",
-  "version": "2.0.13",
+  "version": "2.0.14",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "name": {
@@ -866,10 +866,10 @@
         "hotwater_state_string",
         "warmwater_operation_mode",
         "heating_operation_mode",
-        "warmwater_target_temperature",
         "target_temperature",
         "measure_temperature",
-        "heating_temperature_correction",
+        "measure_temperature.heating",
+        "target_temperature.heating",
         "hotwater_boost_party",
         "hotwater_boost",
         "thermal_disinfection_continuous",
@@ -1025,6 +1025,21 @@
             "en": "Hot Water Temperature",
             "de": "Warmwassertemperatur"
           }
+        },
+        "target_temperature.heating": {
+          "title": {
+            "en": "Heating Correction",
+            "de": "Heizung Korrektur"
+          },
+          "min": -5,
+          "max": 5,
+          "step": 0.5
+        },
+        "measure_temperature.heating": {
+          "title": {
+            "en": "Flow Temperature",
+            "de": "Vorlauftemperatur"
+          }
         }
       },
       "images": {
@@ -1140,7 +1155,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": false,
-      "icon": "/assets/capabilities/firmware.svg"
+      "icon": "/assets/capabilities/firmware_version.svg"
     },
     "heating_operation_mode": {
       "type": "enum",
@@ -1337,7 +1352,7 @@
       "setable": true,
       "uiComponent": "toggle",
       "insights": false,
-      "icon": "/assets/capabilities/hotwater_boost.svg",
+      "icon": "/assets/capabilities/hotwater_boost_party.svg",
       "titleTrue": {
         "en": "Party boost active",
         "de": "Party Schnellladung aktiv"
@@ -1709,7 +1724,7 @@
       "setable": true,
       "uiComponent": "toggle",
       "insights": false,
-      "icon": "/assets/capabilities/hotwater_boost.svg",
+      "icon": "/assets/capabilities/thermal_disinfection_continuous.svg",
       "titleTrue": {
         "en": "Thermal disinfection active",
         "de": "Thermische Desinfektion aktiv"

@@ -40,5 +40,8 @@
   "2.0.13": {
     "en": "New: Heating Status and Hot Water Status sensors. New: In-app help page. Improved: Thermostat widget for hot water temperature. Improved: Thermal Disinfection target temperature now configurable in device settings (default 65 °C). Changed: Device class set to heater, minimum compatibility raised to >=11.0.0. Fixed: Capability order and labels.",
     "de": "Neu: Heizung Status und Warmwasser Status als Sensoren. Neu: Hilfeseite in den App-Einstellungen. Verbessert: Thermostat-Widget für Warmwasser-Temperatur. Verbessert: Zieltemperatur der Thermischen Desinfektion nun in den Geräteeinstellungen konfigurierbar (Standard 65 °C). Geändert: Device Class auf heater, Mindestkompatibilität auf >=11.0.0 erhöht. Behoben: Capability-Reihenfolge und Bezeichnungen."
+  },
+  "2.0.14": {
+    "en": "Changed some icons and fully moved from sliders to thermostats"
   }
 }
