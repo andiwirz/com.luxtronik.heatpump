@@ -8,7 +8,7 @@
   "setable": true,
   "uiComponent": "toggle",
   "insights": false,
-  "icon": "/assets/capabilities/hotwater_boost.svg",
+  "icon": "/assets/capabilities/hotwater_boost_party.svg",
   "titleTrue": {
     "en": "Party boost active",
     "de": "Party Schnellladung aktiv"

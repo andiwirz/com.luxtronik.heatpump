@@ -10,10 +10,10 @@
     "hotwater_state_string",
     "warmwater_operation_mode",
     "heating_operation_mode",
-    "warmwater_target_temperature",
     "target_temperature",
     "measure_temperature",
-    "heating_temperature_correction",
+    "measure_temperature.heating",
+    "target_temperature.heating",
     "hotwater_boost_party",
     "hotwater_boost",
     "thermal_disinfection_continuous",
@@ -168,6 +168,21 @@
       "title": {
         "en": "Hot Water Temperature",
         "de": "Warmwassertemperatur"
+      }
+    },
+    "target_temperature.heating": {
+      "title": {
+        "en": "Heating Correction",
+        "de": "Heizung Korrektur"
+      },
+      "min": -5,
+      "max": 5,
+      "step": 0.5
+    },
+    "measure_temperature.heating": {
+      "title": {
+        "en": "Flow Temperature",
+        "de": "Vorlauftemperatur"
       }
     }
   },

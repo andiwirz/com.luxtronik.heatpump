@@ -8,7 +8,7 @@
   "setable": true,
   "uiComponent": "toggle",
   "insights": false,
-  "icon": "/assets/capabilities/hotwater_boost.svg",
+  "icon": "/assets/capabilities/thermal_disinfection_continuous.svg",
   "titleTrue": {
     "en": "Thermal disinfection active",
     "de": "Thermische Desinfektion aktiv"

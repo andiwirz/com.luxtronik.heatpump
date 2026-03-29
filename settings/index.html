@@ -7,362 +7,107 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg:        #0d1117;
-      --surface:   #161b22;
-      --surface2:  #1c2330;
-      --border:    #2d3748;
-      --accent:    #e8622a;
-      --accent2:   #f4a261;
-      --text:      #e6edf3;
-      --muted:     #8b949e;
-      --green:     #3fb950;
-      --blue:      #58a6ff;
-      --radius:    12px;
+      --bg: #0d1117; --surface: #161b22; --surface2: #1c2330; --border: #2d3748;
+      --accent: #e8622a; --accent2: #f4a261; --text: #e6edf3; --muted: #8b949e;
+      --green: #3fb950; --blue: #58a6ff; --radius: 12px;
     }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 15px;
-      line-height: 1.65;
-      min-height: 100vh;
-      padding: 0 0 60px;
-    }
-
-    /* ── Header ── */
-    .hero {
-      background: linear-gradient(135deg, #1a0a05 0%, #0d1117 50%, #05101a 100%);
-      border-bottom: 1px solid var(--border);
-      padding: 40px 24px 32px;
-      position: relative;
-      overflow: hidden;
-    }
-    .hero::before {
-      content: '';
-      position: absolute;
-      top: -60px; right: -60px;
-      width: 280px; height: 280px;
-      background: radial-gradient(circle, rgba(232,98,42,.18) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .hero-inner {
-      max-width: 720px;
-      margin: 0 auto;
-      position: relative;
-    }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(232,98,42,.15);
-      border: 1px solid rgba(232,98,42,.3);
-      color: var(--accent2);
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      padding: 4px 10px;
-      border-radius: 20px;
-      margin-bottom: 16px;
-    }
-    .hero h1 {
-      font-family: 'DM Serif Display', serif;
-      font-size: clamp(28px, 5vw, 40px);
-      line-height: 1.15;
-      color: var(--text);
-      margin-bottom: 12px;
-    }
-    .hero h1 span { color: var(--accent); }
-    .hero p {
-      color: var(--muted);
-      font-size: 14px;
-      max-width: 520px;
-    }
-
-    /* ── Layout ── */
-    .container {
-      max-width: 720px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
-
-    /* ── Section ── */
-    .section {
-      margin-top: 36px;
-    }
-    .section-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 16px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid var(--border);
-    }
-    .section-icon {
-      width: 32px; height: 32px;
-      background: rgba(232,98,42,.15);
-      border: 1px solid rgba(232,98,42,.25);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      flex-shrink: 0;
-    }
-    .section-title {
-      font-family: 'DM Serif Display', serif;
-      font-size: 20px;
-      color: var(--text);
-    }
-
-    /* ── Cards ── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px 18px;
-      margin-bottom: 10px;
-      transition: border-color .2s;
-    }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.65; min-height: 100vh; padding: 0 0 60px; }
+    .hero { background: linear-gradient(135deg, #1a0a05 0%, #0d1117 50%, #05101a 100%); border-bottom: 1px solid var(--border); padding: 40px 24px 32px; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: -60px; right: -60px; width: 280px; height: 280px; background: radial-gradient(circle, rgba(232,98,42,.18) 0%, transparent 70%); pointer-events: none; }
+    .hero-inner { max-width: 720px; margin: 0 auto; position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+    .hero-text { flex: 1; }
+    .badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(232,98,42,.15); border: 1px solid rgba(232,98,42,.3); color: var(--accent2); font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; margin-bottom: 16px; }
+    .hero h1 { font-family: 'DM Serif Display', serif; font-size: clamp(28px, 5vw, 40px); line-height: 1.15; color: var(--text); margin-bottom: 12px; }
+    .hero h1 span.accent { color: var(--accent); }
+    .hero p { color: var(--muted); font-size: 14px; max-width: 520px; }
+    .lang-toggle { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 3px; flex-shrink: 0; margin-top: 4px; }
+    .lang-btn { padding: 5px 10px; border-radius: 5px; font-size: 12px; font-weight: 700; cursor: pointer; color: var(--muted); border: none; background: transparent; transition: all .2s; letter-spacing: .05em; }
+    .lang-btn.active { background: rgba(232,98,42,.2); color: var(--accent2); }
+    .lang-btn:hover:not(.active) { background: rgba(255,255,255,.05); color: var(--text); }
+    [data-lang] { display: none; }
+    body.lang-de [data-lang="de"] { display: inline; }
+    body.lang-en [data-lang="en"] { display: inline; }
+    .container { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+    .section { margin-top: 36px; }
+    .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+    .section-icon { width: 32px; height: 32px; background: rgba(232,98,42,.15); border: 1px solid rgba(232,98,42,.25); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .section-title { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text); }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 10px; transition: border-color .2s; }
     .card:hover { border-color: rgba(232,98,42,.4); }
-    .card-header {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      margin-bottom: 6px;
-    }
-    .card-tag {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: .07em;
-      text-transform: uppercase;
-      padding: 2px 7px;
-      border-radius: 4px;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
+    .card-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 6px; }
+    .card-tag { font-size: 10px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; }
     .tag-read  { background: rgba(88,166,255,.12); color: var(--blue); }
     .tag-write { background: rgba(63,185,80,.12);  color: var(--green); }
-    .tag-flow  { background: rgba(232,98,42,.12);  color: var(--accent2); }
-    .card-name {
-      font-weight: 600;
-      font-size: 14px;
-      color: var(--text);
-    }
-    .card-desc {
-      color: var(--muted);
-      font-size: 13px;
-      margin-left: 0;
-    }
-
-    /* ── Flow cards ── */
-    .flow-grid {
-      display: grid;
-      gap: 10px;
-    }
-    .flow-item {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      transition: border-color .2s;
-    }
+    .card-name { font-weight: 600; font-size: 14px; color: var(--text); }
+    .card-desc { color: var(--muted); font-size: 13px; }
+    .flow-grid { display: grid; gap: 10px; }
+    .flow-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; transition: border-color .2s; }
     .flow-item:hover { border-color: rgba(232,98,42,.4); }
-    .flow-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      margin-top: 6px;
-      flex-shrink: 0;
-    }
+    .flow-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
     .dot-trigger { background: var(--blue); box-shadow: 0 0 6px rgba(88,166,255,.5); }
     .dot-action  { background: var(--green); box-shadow: 0 0 6px rgba(63,185,80,.5); }
     .flow-name { font-weight: 600; font-size: 13px; color: var(--text); }
     .flow-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
-
-    /* ── Special cards: functions ── */
-    .func-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      margin-bottom: 12px;
-    }
-    .func-head {
-      background: var(--surface2);
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      border-bottom: 1px solid var(--border);
-    }
+    .func-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 12px; }
+    .func-head { background: var(--surface2); padding: 14px 18px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
     .func-head-icon { font-size: 20px; }
     .func-head-title { font-weight: 600; font-size: 15px; }
     .func-body { padding: 14px 18px; }
     .func-body p { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
-    .func-steps {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .func-steps li {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      font-size: 13px;
-      color: var(--text);
-    }
-    .step-num {
-      width: 20px; height: 20px;
-      background: rgba(232,98,42,.2);
-      border: 1px solid rgba(232,98,42,.3);
-      border-radius: 50%;
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--accent);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
-
-    /* ── Settings table ── */
-    .settings-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-    .settings-table th {
-      text-align: left;
-      padding: 8px 12px;
-      background: var(--surface2);
-      color: var(--muted);
-      font-weight: 600;
-      font-size: 11px;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      border-bottom: 1px solid var(--border);
-    }
-    .settings-table td {
-      padding: 10px 12px;
-      border-bottom: 1px solid rgba(45,55,72,.5);
-      vertical-align: top;
-    }
+    .func-steps { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .func-steps li { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--text); }
+    .step-num { width: 20px; height: 20px; background: rgba(232,98,42,.2); border: 1px solid rgba(232,98,42,.3); border-radius: 50%; font-size: 10px; font-weight: 700; color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+    .settings-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .settings-table th { text-align: left; padding: 8px 12px; background: var(--surface2); color: var(--muted); font-weight: 600; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+    .settings-table td { padding: 10px 12px; border-bottom: 1px solid rgba(45,55,72,.5); vertical-align: top; }
     .settings-table tr:last-child td { border-bottom: none; }
     .settings-table tr:hover td { background: rgba(255,255,255,.02); }
-    .settings-table .key {
-      font-family: 'DM Mono', monospace;
-      font-size: 12px;
-      color: var(--accent2);
-      white-space: nowrap;
-    }
-    .settings-table .default {
-      color: var(--muted);
-      font-size: 12px;
-    }
-    .table-wrap {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
-
-    /* ── Info box ── */
-    .infobox {
-      background: rgba(88,166,255,.07);
-      border: 1px solid rgba(88,166,255,.2);
-      border-left: 3px solid var(--blue);
-      border-radius: 8px;
-      padding: 12px 16px;
-      font-size: 13px;
-      color: var(--muted);
-      margin-top: 12px;
-    }
+    .settings-table .key { font-size: 12px; color: var(--accent2); white-space: nowrap; }
+    .settings-table .default { color: var(--muted); font-size: 12px; }
+    .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .infobox { background: rgba(88,166,255,.07); border: 1px solid rgba(88,166,255,.2); border-left: 3px solid var(--blue); border-radius: 8px; padding: 12px 16px; font-size: 13px; color: var(--muted); margin-top: 12px; }
     .infobox strong { color: var(--text); }
-
-    /* ── Warning box ── */
-    .warnbox {
-      background: rgba(232,98,42,.07);
-      border: 1px solid rgba(232,98,42,.2);
-      border-left: 3px solid var(--accent);
-      border-radius: 8px;
-      padding: 12px 16px;
-      font-size: 13px;
-      color: var(--muted);
-      margin-top: 12px;
-    }
+    .warnbox { background: rgba(232,98,42,.07); border: 1px solid rgba(232,98,42,.2); border-left: 3px solid var(--accent); border-radius: 8px; padding: 12px 16px; font-size: 13px; color: var(--muted); margin-top: 12px; }
     .warnbox strong { color: var(--accent2); }
-
-    /* ── Footer ── */
-    .footer {
-      margin-top: 48px;
-      padding: 24px;
-      border-top: 1px solid var(--border);
-      text-align: center;
-      color: var(--muted);
-      font-size: 12px;
-    }
+    .footer { margin-top: 48px; padding: 24px; border-top: 1px solid var(--border); text-align: center; color: var(--muted); font-size: 12px; }
     .footer a { color: var(--accent2); text-decoration: none; }
     .footer a:hover { text-decoration: underline; }
-
-    /* ── Nav tabs ── */
-    .tabs {
-      display: flex;
-      gap: 4px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 4px;
-      margin: 24px 0 0;
-      overflow-x: auto;
-    }
-    .tab {
-      flex-shrink: 0;
-      padding: 7px 14px;
-      border-radius: 7px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      color: var(--muted);
-      border: none;
-      background: transparent;
-      transition: all .2s;
-    }
-    .tab.active {
-      background: rgba(232,98,42,.2);
-      color: var(--accent2);
-    }
-    .tab:hover:not(.active) {
-      background: rgba(255,255,255,.05);
-      color: var(--text);
-    }
+    .tabs { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px; margin: 24px 0 0; overflow-x: auto; }
+    .tab { flex-shrink: 0; padding: 7px 14px; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--muted); border: none; background: transparent; transition: all .2s; }
+    .tab.active { background: rgba(232,98,42,.2); color: var(--accent2); }
+    .tab:hover:not(.active) { background: rgba(255,255,255,.05); color: var(--text); }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
   </style>
 </head>
-<body>
+<body class="lang-de">
 
 <div class="hero">
   <div class="hero-inner">
-    <div class="badge">🔥 Luxtronik Heat Pump Manager</div>
-    <h1>App <span>Hilfe</span> &amp; Dokumentation</h1>
-    <p>Alle Funktionen, Einstellungen und Flow-Karten auf einen Blick erklärt.</p>
+    <div class="hero-text">
+      <div class="badge">🔥 Luxtronik Heat Pump Manager</div>
+      <h1><span class="accent"><span data-lang="de">Hilfe</span><span data-lang="en">Help</span></span> &amp; <span data-lang="de">Dokumentation</span><span data-lang="en">Documentation</span></h1>
+      <p>
+        <span data-lang="de">Alle Funktionen, Einstellungen und Flow-Karten auf einen Blick erklärt.</span>
+        <span data-lang="en">All features, settings and flow cards explained at a glance.</span>
+      </p>
+    </div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('de')">DE</button>
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
+    </div>
   </div>
 </div>
 
 <div class="container">
 
   <div class="tabs">
-    <button class="tab active" onclick="showTab('sensors')">📡 Sensoren</button>
-    <button class="tab" onclick="showTab('controls')">🎛️ Steuerung</button>
-    <button class="tab" onclick="showTab('functions')">⚡ Funktionen</button>
-    <button class="tab" onclick="showTab('flows')">🔁 Flows</button>
-    <button class="tab" onclick="showTab('settings')">⚙️ Einstellungen</button>
+    <button class="tab active" onclick="showTab('sensors', this)">📡 <span data-lang="de">Sensoren</span><span data-lang="en">Sensors</span></button>
+    <button class="tab" onclick="showTab('controls', this)">🎛️ <span data-lang="de">Steuerung</span><span data-lang="en">Controls</span></button>
+    <button class="tab" onclick="showTab('functions', this)">⚡ <span data-lang="de">Funktionen</span><span data-lang="en">Functions</span></button>
+    <button class="tab" onclick="showTab('flows', this)">🔁 Flows</button>
+    <button class="tab" onclick="showTab('settings', this)">⚙️ <span data-lang="de">Einstellungen</span><span data-lang="en">Settings</span></button>
   </div>
 
   <!-- ══ SENSOREN ══ -->
@@ -370,55 +115,73 @@
     <div class="section">
       <div class="section-header">
         <div class="section-icon">📡</div>
-        <div class="section-title">Lesbare Werte</div>
+        <div class="section-title"><span data-lang="de">Lesbare Werte</span><span data-lang="en">Readable Values</span></div>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <span class="card-tag tag-read">Lesen</span>
-          <span class="card-name">Wärmepumpen Status</span>
+          <span class="card-tag tag-read"><span data-lang="de">Lesen</span><span data-lang="en">Read</span></span>
+          <span class="card-name"><span data-lang="de">Wärmepumpen Status</span><span data-lang="en">Heat Pump State</span></span>
         </div>
-        <div class="card-desc">Aktueller Betriebszustand: Heizen · Warmwasser · Abtauen · Standby · EVU-Sperre · Kühlen · Extern · Aus</div>
+        <div class="card-desc">
+          <span data-lang="de">Aktueller Betriebszustand: Heizen · Warmwasser · Abtauen · Standby · EVU-Sperre · Kühlen · Extern · Aus</span>
+          <span data-lang="en">Current operating state: Heating · Hot Water · Defrost · Standby · EVU Lock · Cooling · External · Off</span>
+        </div>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <span class="card-tag tag-read">Lesen</span>
-          <span class="card-name">Heizung Status</span>
+          <span class="card-tag tag-read"><span data-lang="de">Lesen</span><span data-lang="en">Read</span></span>
+          <span class="card-name"><span data-lang="de">Heizung Status</span><span data-lang="en">Heating Status</span></span>
         </div>
-        <div class="card-desc">Detaillierter Heizungsstatus vom Controller, z.B. „Heizbetrieb", „Abtauen (Kreisumkehr)", „Estrich Programm Stufe 2 – 35°C"</div>
+        <div class="card-desc">
+          <span data-lang="de">Detaillierter Heizungsstatus vom Controller, z.B. „Heizbetrieb", „Abtauen (Kreisumkehr)", „Estrich Programm Stufe 2 – 35°C"</span>
+          <span data-lang="en">Detailed heating status from the controller, e.g. "Heating", "Defrost (reverse cycle)", "Screed Program Level 2 – 35°C"</span>
+        </div>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <span class="card-tag tag-read">Lesen</span>
-          <span class="card-name">Warmwasser Status</span>
+          <span class="card-tag tag-read"><span data-lang="de">Lesen</span><span data-lang="en">Read</span></span>
+          <span class="card-name"><span data-lang="de">Warmwasser Status</span><span data-lang="en">Hot Water Status</span></span>
         </div>
-        <div class="card-desc">Status der Warmwasserbereitung: Sperrzeit · Aufheizen · Temp. OK · Aus</div>
+        <div class="card-desc">
+          <span data-lang="de">Status der Warmwasserbereitung: Sperrzeit · Aufheizen · Temp. OK · Aus</span>
+          <span data-lang="en">Hot water status: Blocked · Heating · Temp. OK · Off</span>
+        </div>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <span class="card-tag tag-read">Lesen</span>
-          <span class="card-name">Temperaturen</span>
+          <span class="card-tag tag-read"><span data-lang="de">Lesen</span><span data-lang="en">Read</span></span>
+          <span class="card-name"><span data-lang="de">Temperaturen</span><span data-lang="en">Temperatures</span></span>
         </div>
-        <div class="card-desc">Aussentemperatur · 24h-Mittelwert · Vorlauf · Rücklauf · Rücklauf Soll · Heissgas · Warmwasser Ist · Warmwasser Soll · Wärmequelle Ein/Aus · Ansaugluft (nur Luft-WP) · Raumtemperatur Ist/Soll (nur mit RBE)</div>
+        <div class="card-desc">
+          <span data-lang="de">Aussentemperatur · 24h-Mittelwert · Vorlauf · Rücklauf · Rücklauf Soll · Heissgas · Warmwasser Ist/Soll · Wärmequelle Ein/Aus · Ansaugluft (nur Luft-WP) · Raumtemperatur Ist/Soll (nur mit RBE)</span>
+          <span data-lang="en">Outdoor temp · 24h average · Flow · Return · Return target · Hot gas · Hot water actual/target · Heat source in/out · Suction air (air-source only) · Room temp actual/target (RBE only)</span>
+        </div>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <span class="card-tag tag-read">Lesen</span>
-          <span class="card-name">Energie &amp; Betriebsstunden</span>
+          <span class="card-tag tag-read"><span data-lang="de">Lesen</span><span data-lang="en">Read</span></span>
+          <span class="card-name"><span data-lang="de">Energie &amp; Betriebsstunden</span><span data-lang="en">Energy &amp; Operating Hours</span></span>
         </div>
-        <div class="card-desc">Wärmeenergie Heizung / Warmwasser / Gesamt (kWh) · Betriebsstunden Verdichter / Heizung / Warmwasser</div>
+        <div class="card-desc">
+          <span data-lang="de">Wärmeenergie Heizung / Warmwasser / Gesamt (kWh) · Betriebsstunden Verdichter / Heizung / Warmwasser</span>
+          <span data-lang="en">Thermal energy Heating / Hot Water / Total (kWh) · Operating hours Compressor / Heating / Hot Water</span>
+        </div>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <span class="card-tag tag-read">Lesen</span>
-          <span class="card-name">Volumenstrom · Fehleralarm · Firmware</span>
+          <span class="card-tag tag-read"><span data-lang="de">Lesen</span><span data-lang="en">Read</span></span>
+          <span class="card-name"><span data-lang="de">Volumenstrom · Fehleralarm · Firmware</span><span data-lang="en">Volume Flow · Error Alarm · Firmware</span></span>
         </div>
-        <div class="card-desc">Durchfluss der Wärmequelle in l/h · Aktiver Fehler Ja/Nein · Softwarestand des Controllers</div>
+        <div class="card-desc">
+          <span data-lang="de">Durchfluss der Wärmequelle in l/h · Aktiver Fehler Ja/Nein · Softwarestand des Controllers</span>
+          <span data-lang="en">Heat source flow rate in l/h · Active error Yes/No · Controller firmware version</span>
+        </div>
       </div>
     </div>
   </div>
@@ -428,39 +191,51 @@
     <div class="section">
       <div class="section-header">
         <div class="section-icon">🎛️</div>
-        <div class="section-title">Steuerbare Werte</div>
+        <div class="section-title"><span data-lang="de">Steuerbare Werte</span><span data-lang="en">Controllable Values</span></div>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <span class="card-tag tag-write">Schreiben</span>
-          <span class="card-name">Brauchwasser Betriebsart</span>
+          <span class="card-tag tag-write"><span data-lang="de">Schreiben</span><span data-lang="en">Write</span></span>
+          <span class="card-name"><span data-lang="de">Brauchwasser Betriebsart</span><span data-lang="en">Hot Water Mode</span></span>
         </div>
-        <div class="card-desc">Automatik · Zuheizer · Party · Ferien · Aus</div>
+        <div class="card-desc">
+          <span data-lang="de">Automatik · Zuheizer · Party · Ferien · Aus</span>
+          <span data-lang="en">Automatic · Auxiliary Heating · Party · Holidays · Off</span>
+        </div>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <span class="card-tag tag-write">Schreiben</span>
-          <span class="card-name">Heizungs Betriebsart</span>
+          <span class="card-tag tag-write"><span data-lang="de">Schreiben</span><span data-lang="en">Write</span></span>
+          <span class="card-name"><span data-lang="de">Heizungs Betriebsart</span><span data-lang="en">Heating Mode</span></span>
         </div>
-        <div class="card-desc">Automatik · Zuheizer · Party · Ferien · Aus</div>
+        <div class="card-desc">
+          <span data-lang="de">Automatik · Zuheizer · Party · Ferien · Aus</span>
+          <span data-lang="en">Automatic · Auxiliary Heating · Party · Holidays · Off</span>
+        </div>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <span class="card-tag tag-write">Schreiben</span>
-          <span class="card-name">Brauchwasser Soll-Temperatur</span>
+          <span class="card-tag tag-write"><span data-lang="de">Schreiben</span><span data-lang="en">Write</span></span>
+          <span class="card-name"><span data-lang="de">Warmwasser Thermostat</span><span data-lang="en">Hot Water Thermostat</span></span>
         </div>
-        <div class="card-desc">30 °C bis 65 °C in 0,5 °C-Schritten — direkt am Controller gesetzt</div>
+        <div class="card-desc">
+          <span data-lang="de">Soll-Temperatur 30–65 °C in 0,5 °C-Schritten · Ist-Wert: aktuelle Warmwassertemperatur</span>
+          <span data-lang="en">Target temperature 30–65 °C in 0.5 °C steps · Actual value: current hot water temperature</span>
+        </div>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <span class="card-tag tag-write">Schreiben</span>
-          <span class="card-name">Heizungs-Temperaturkorrektur</span>
+          <span class="card-tag tag-write"><span data-lang="de">Schreiben</span><span data-lang="en">Write</span></span>
+          <span class="card-name"><span data-lang="de">Heizungs Thermostat</span><span data-lang="en">Heating Thermostat</span></span>
         </div>
-        <div class="card-desc">−5 °C bis +5 °C in 0,5 °C-Schritten — verschiebt die Heizkurve. Positiv = wärmer, negativ = kühler.</div>
+        <div class="card-desc">
+          <span data-lang="de">Korrekturwert −5 bis +5 °C in 0,5 °C-Schritten · Ist-Wert: aktuelle Vorlauftemperatur. Positiv = wärmer, negativ = kühler.</span>
+          <span data-lang="en">Correction value −5 to +5 °C in 0.5 °C steps · Actual value: current flow temperature. Positive = warmer, negative = cooler.</span>
+        </div>
       </div>
     </div>
   </div>
@@ -470,36 +245,42 @@
     <div class="section">
       <div class="section-header">
         <div class="section-icon">⚡</div>
-        <div class="section-title">Spezialfunktionen</div>
+        <div class="section-title"><span data-lang="de">Spezialfunktionen</span><span data-lang="en">Special Functions</span></div>
       </div>
 
       <div class="func-card">
         <div class="func-head">
-          <span class="func-head-icon">🚿</span>
-          <span class="func-head-title">Brauchwasser Schnellladung (Zuheizung)</span>
+          <span class="func-head-icon">🔥</span>
+          <span class="func-head-title"><span data-lang="de">Brauchwasser Schnellladung (Zuheizung)</span><span data-lang="en">Hot Water Boost (Auxiliary Heating)</span></span>
         </div>
         <div class="func-body">
-          <p>Startet eine sofortige Warmwasserbereitung mit dem zweiten Wärmeerzeuger (Zuheizer-Modus), unabhängig vom Zeitschaltprogramm.</p>
+          <p>
+            <span data-lang="de">Startet eine sofortige Warmwasserbereitung mit dem zweiten Wärmeerzeuger (Zuheizer-Modus), unabhängig vom Zeitschaltprogramm.</span>
+            <span data-lang="en">Starts immediate hot water heating using the second heat source (Auxiliary mode), regardless of the time schedule.</span>
+          </p>
           <ul class="func-steps">
-            <li><span class="step-num">1</span>Setzt Brauchwasser-Betriebsart auf <strong>Zuheizer</strong></li>
-            <li><span class="step-num">2</span>Schaltet automatisch ab wenn die <strong>Soll-Temperatur erreicht</strong> ist</li>
-            <li><span class="step-num">3</span>Schaltet nach der konfigurierten <strong>Maximaldauer</strong> ab (Standard 60 Min.)</li>
-            <li><span class="step-num">4</span>Setzt Betriebsart zurück auf <strong>Automatik</strong></li>
+            <li><span class="step-num">1</span><span data-lang="de">Setzt Brauchwasser-Betriebsart auf <strong>Zuheizer</strong></span><span data-lang="en">Sets hot water mode to <strong>Auxiliary Heating</strong></span></li>
+            <li><span class="step-num">2</span><span data-lang="de">Schaltet ab wenn <strong>Zieltemperatur erreicht</strong></span><span data-lang="en">Stops when <strong>target temperature is reached</strong></span></li>
+            <li><span class="step-num">3</span><span data-lang="de">Schaltet nach konfigurierter <strong>Maximaldauer</strong> ab (Standard 60 Min.)</span><span data-lang="en">Stops after configured <strong>maximum duration</strong> (default 60 min)</span></li>
+            <li><span class="step-num">4</span><span data-lang="de">Setzt Betriebsart zurück auf <strong>Automatik</strong></span><span data-lang="en">Resets mode to <strong>Automatic</strong></span></li>
           </ul>
         </div>
       </div>
 
       <div class="func-card">
         <div class="func-head">
-          <span class="func-head-icon">🎉</span>
-          <span class="func-head-title">Brauchwasser Schnellladung (Party)</span>
+          <span class="func-head-icon">🔥</span>
+          <span class="func-head-title"><span data-lang="de">Brauchwasser Schnellladung (Party)</span><span data-lang="en">Hot Water Boost (Party)</span></span>
         </div>
         <div class="func-body">
-          <p>Gleiche Funktion wie Zuheizung — verwendet jedoch den <strong>Party-Modus</strong> am Controller.</p>
+          <p>
+            <span data-lang="de">Gleiche Funktion wie Zuheizung — verwendet jedoch den <strong>Party-Modus</strong> am Controller.</span>
+            <span data-lang="en">Same function as Auxiliary Heating — uses <strong>Party mode</strong> on the controller instead.</span>
+          </p>
           <ul class="func-steps">
-            <li><span class="step-num">1</span>Setzt Brauchwasser-Betriebsart auf <strong>Party</strong></li>
-            <li><span class="step-num">2</span>Automatische Abschaltung bei <strong>Zieltemperatur</strong> oder <strong>Zeitlimit</strong></li>
-            <li><span class="step-num">3</span>Rückkehr auf <strong>Automatik</strong></li>
+            <li><span class="step-num">1</span><span data-lang="de">Setzt Brauchwasser-Betriebsart auf <strong>Party</strong></span><span data-lang="en">Sets hot water mode to <strong>Party</strong></span></li>
+            <li><span class="step-num">2</span><span data-lang="de">Automatische Abschaltung bei <strong>Zieltemperatur</strong> oder <strong>Zeitlimit</strong></span><span data-lang="en">Auto-stops at <strong>target temperature</strong> or <strong>time limit</strong></span></li>
+            <li><span class="step-num">3</span><span data-lang="de">Rückkehr auf <strong>Automatik</strong></span><span data-lang="en">Returns to <strong>Automatic</strong></span></li>
           </ul>
         </div>
       </div>
@@ -507,16 +288,23 @@
       <div class="func-card">
         <div class="func-head">
           <span class="func-head-icon">🦠</span>
-          <span class="func-head-title">Thermische Desinfektion</span>
+          <span class="func-head-title"><span data-lang="de">Thermische Desinfektion</span><span data-lang="en">Thermal Disinfection</span></span>
         </div>
         <div class="func-body">
-          <p>Aktiviert den Dauerbetrieb für den Legionellenschutz direkt am Luxtronik-Controller (Parameter 27). Nach jeder Warmwasserbereitung folgt automatisch eine Desinfektion.</p>
+          <p>
+            <span data-lang="de">Aktiviert den Dauerbetrieb für den Legionellenschutz direkt am Luxtronik-Controller (Parameter 27).</span>
+            <span data-lang="en">Enables continuous disinfection mode for legionella protection directly on the Luxtronik controller (parameter 27).</span>
+          </p>
           <ul class="func-steps">
-            <li><span class="step-num">1</span>Aktiviert <strong>Dauerbetrieb</strong> am Controller</li>
-            <li><span class="step-num">2</span>Schaltet automatisch ab wenn Warmwasser <strong>≥ Zieltemperatur</strong> (einstellbar, Standard 65 °C)</li>
-            <li><span class="step-num">3</span>Manuelles Beenden jederzeit möglich</li>
+            <li><span class="step-num">1</span><span data-lang="de">Aktiviert <strong>Dauerbetrieb</strong> am Controller</span><span data-lang="en">Enables <strong>continuous mode</strong> on the controller</span></li>
+            <li><span class="step-num">2</span><span data-lang="de">Schaltet ab wenn Warmwasser <strong>≥ Zieltemperatur</strong> (einstellbar, Standard 65 °C)</span><span data-lang="en">Stops when hot water reaches <strong>≥ target temperature</strong> (configurable, default 65 °C)</span></li>
+            <li><span class="step-num">3</span><span data-lang="de">Manuelles Beenden jederzeit möglich</span><span data-lang="en">Can be stopped manually at any time</span></li>
           </ul>
-          <div class="warnbox"><strong>Hinweis:</strong> Erfordert einen zweiten Wärmeerzeuger (ZWE) der für die Warmwasserbereitung freigeschaltet ist.</div>
+          <div class="warnbox">
+            <strong><span data-lang="de">Hinweis:</span><span data-lang="en">Note:</span></strong>
+            <span data-lang="de"> Erfordert einen zweiten Wärmeerzeuger (ZWE) der für die Warmwasserbereitung freigeschaltet ist.</span>
+            <span data-lang="en"> Requires a second heat source (ZWE) enabled for hot water heating.</span>
+          </div>
         </div>
       </div>
     </div>
@@ -527,109 +315,70 @@
     <div class="section">
       <div class="section-header">
         <div class="section-icon">🔁</div>
-        <div class="section-title">Flow-Auslöser (Wenn)</div>
+        <div class="section-title"><span data-lang="de">Flow-Auslöser (Wenn)</span><span data-lang="en">Flow Triggers (When)</span></div>
       </div>
       <div class="flow-grid">
-        <div class="flow-item">
-          <div class="flow-dot dot-trigger"></div>
-          <div>
-            <div class="flow-name">Heizungs-Betriebsart geändert</div>
-            <div class="flow-desc">Token: neue Betriebsart als Text</div>
-          </div>
-        </div>
-        <div class="flow-item">
-          <div class="flow-dot dot-trigger"></div>
-          <div>
-            <div class="flow-name">Brauchwasser-Betriebsart geändert</div>
-            <div class="flow-desc">Token: neue Betriebsart als Text</div>
-          </div>
-        </div>
-        <div class="flow-item">
-          <div class="flow-dot dot-trigger"></div>
-          <div>
-            <div class="flow-name">Wärmepumpen-Status geändert</div>
-            <div class="flow-desc">Token: neuer Status als Text (z.B. „heating", „hotwater")</div>
-          </div>
-        </div>
-        <div class="flow-item">
-          <div class="flow-dot dot-trigger"></div>
-          <div>
-            <div class="flow-name">Fehler aufgetreten</div>
-            <div class="flow-desc">Token: Fehlermeldung als Text</div>
-          </div>
-        </div>
-        <div class="flow-item">
-          <div class="flow-dot dot-trigger"></div>
-          <div>
-            <div class="flow-name">Schnellladung (Zuheizung) beendet</div>
-            <div class="flow-desc">Ausgelöst bei automatischer oder manueller Abschaltung</div>
-          </div>
-        </div>
-        <div class="flow-item">
-          <div class="flow-dot dot-trigger"></div>
-          <div>
-            <div class="flow-name">Schnellladung (Party) beendet</div>
-            <div class="flow-desc">Ausgelöst bei automatischer oder manueller Abschaltung</div>
-          </div>
-        </div>
+        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div>
+          <div class="flow-name"><span data-lang="de">Heizungs-Betriebsart geändert</span><span data-lang="en">Heating mode changed</span></div>
+          <div class="flow-desc"><span data-lang="de">Token: neue Betriebsart als Text</span><span data-lang="en">Token: new mode as text</span></div>
+        </div></div>
+        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div>
+          <div class="flow-name"><span data-lang="de">Brauchwasser-Betriebsart geändert</span><span data-lang="en">Hot water mode changed</span></div>
+          <div class="flow-desc"><span data-lang="de">Token: neue Betriebsart als Text</span><span data-lang="en">Token: new mode as text</span></div>
+        </div></div>
+        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div>
+          <div class="flow-name"><span data-lang="de">Wärmepumpen-Status geändert</span><span data-lang="en">Heat pump state changed</span></div>
+          <div class="flow-desc"><span data-lang="de">Token: neuer Status als Text (z.B. „heating", „hotwater")</span><span data-lang="en">Token: new state as text (e.g. "heating", "hotwater")</span></div>
+        </div></div>
+        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div>
+          <div class="flow-name"><span data-lang="de">Fehler aufgetreten</span><span data-lang="en">Error occurred</span></div>
+          <div class="flow-desc"><span data-lang="de">Token: Fehlermeldung als Text</span><span data-lang="en">Token: error message as text</span></div>
+        </div></div>
+        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div>
+          <div class="flow-name"><span data-lang="de">Schnellladung (Zuheizung) beendet</span><span data-lang="en">Hot Water Boost (Auxiliary) ended</span></div>
+          <div class="flow-desc"><span data-lang="de">Ausgelöst bei automatischer Abschaltung</span><span data-lang="en">Triggered on automatic stop</span></div>
+        </div></div>
+        <div class="flow-item"><div class="flow-dot dot-trigger"></div><div>
+          <div class="flow-name"><span data-lang="de">Schnellladung (Party) beendet</span><span data-lang="en">Hot Water Boost (Party) ended</span></div>
+          <div class="flow-desc"><span data-lang="de">Ausgelöst bei automatischer Abschaltung</span><span data-lang="en">Triggered on automatic stop</span></div>
+        </div></div>
       </div>
     </div>
 
     <div class="section">
       <div class="section-header">
         <div class="section-icon">🎯</div>
-        <div class="section-title">Flow-Aktionen (Dann)</div>
+        <div class="section-title"><span data-lang="de">Flow-Aktionen (Dann)</span><span data-lang="en">Flow Actions (Then)</span></div>
       </div>
       <div class="flow-grid">
-        <div class="flow-item">
-          <div class="flow-dot dot-action"></div>
-          <div>
-            <div class="flow-name">Heizungs-Betriebsart setzen</div>
-            <div class="flow-desc">Dropdown: Automatik · Zuheizer · Party · Ferien · Aus</div>
-          </div>
-        </div>
-        <div class="flow-item">
-          <div class="flow-dot dot-action"></div>
-          <div>
-            <div class="flow-name">Brauchwasser-Betriebsart setzen</div>
-            <div class="flow-desc">Dropdown: Automatik · Zuheizer · Party · Ferien · Aus</div>
-          </div>
-        </div>
-        <div class="flow-item">
-          <div class="flow-dot dot-action"></div>
-          <div>
-            <div class="flow-name">Heizungs-Temperaturkorrektur setzen</div>
-            <div class="flow-desc">Zahl: −5 bis +5 °C</div>
-          </div>
-        </div>
-        <div class="flow-item">
-          <div class="flow-dot dot-action"></div>
-          <div>
-            <div class="flow-name">Brauchwasser Soll-Temperatur setzen</div>
-            <div class="flow-desc">Zahl: 30 bis 65 °C</div>
-          </div>
-        </div>
-        <div class="flow-item">
-          <div class="flow-dot dot-action"></div>
-          <div>
-            <div class="flow-name">Schnellladung (Zuheizung) starten / stoppen</div>
-            <div class="flow-desc">Start mit Dauer (5–480 Min.), Stopp sofort</div>
-          </div>
-        </div>
-        <div class="flow-item">
-          <div class="flow-dot dot-action"></div>
-          <div>
-            <div class="flow-name">Schnellladung (Party) starten / stoppen</div>
-            <div class="flow-desc">Start mit Dauer (5–480 Min.), Stopp sofort</div>
-          </div>
-        </div>
-        <div class="flow-item">
-          <div class="flow-dot dot-action"></div>
-          <div>
-            <div class="flow-name">Thermische Desinfektion aktivieren / deaktivieren</div>
-            <div class="flow-desc">Dauerbetrieb am Controller ein- oder ausschalten</div>
-          </div>
-        </div>
+        <div class="flow-item"><div class="flow-dot dot-action"></div><div>
+          <div class="flow-name"><span data-lang="de">Heizungs-Betriebsart setzen</span><span data-lang="en">Set heating mode</span></div>
+          <div class="flow-desc"><span data-lang="de">Automatik · Zuheizer · Party · Ferien · Aus</span><span data-lang="en">Automatic · Auxiliary · Party · Holidays · Off</span></div>
+        </div></div>
+        <div class="flow-item"><div class="flow-dot dot-action"></div><div>
+          <div class="flow-name"><span data-lang="de">Brauchwasser-Betriebsart setzen</span><span data-lang="en">Set hot water mode</span></div>
+          <div class="flow-desc"><span data-lang="de">Automatik · Zuheizer · Party · Ferien · Aus</span><span data-lang="en">Automatic · Auxiliary · Party · Holidays · Off</span></div>
+        </div></div>
+        <div class="flow-item"><div class="flow-dot dot-action"></div><div>
+          <div class="flow-name"><span data-lang="de">Heizungs-Temperaturkorrektur setzen</span><span data-lang="en">Set heating temperature correction</span></div>
+          <div class="flow-desc"><span data-lang="de">Zahl: −5 bis +5 °C</span><span data-lang="en">Number: −5 to +5 °C</span></div>
+        </div></div>
+        <div class="flow-item"><div class="flow-dot dot-action"></div><div>
+          <div class="flow-name"><span data-lang="de">Brauchwasser Soll-Temperatur setzen</span><span data-lang="en">Set hot water target temperature</span></div>
+          <div class="flow-desc"><span data-lang="de">Zahl: 30 bis 65 °C</span><span data-lang="en">Number: 30 to 65 °C</span></div>
+        </div></div>
+        <div class="flow-item"><div class="flow-dot dot-action"></div><div>
+          <div class="flow-name"><span data-lang="de">Schnellladung (Zuheizung) starten / stoppen</span><span data-lang="en">Start / Stop Hot Water Boost (Auxiliary)</span></div>
+          <div class="flow-desc"><span data-lang="de">Start mit Dauer (5–480 Min.), Stopp sofort</span><span data-lang="en">Start with duration (5–480 min), stop immediately</span></div>
+        </div></div>
+        <div class="flow-item"><div class="flow-dot dot-action"></div><div>
+          <div class="flow-name"><span data-lang="de">Schnellladung (Party) starten / stoppen</span><span data-lang="en">Start / Stop Hot Water Boost (Party)</span></div>
+          <div class="flow-desc"><span data-lang="de">Start mit Dauer (5–480 Min.), Stopp sofort</span><span data-lang="en">Start with duration (5–480 min), stop immediately</span></div>
+        </div></div>
+        <div class="flow-item"><div class="flow-dot dot-action"></div><div>
+          <div class="flow-name"><span data-lang="de">Thermische Desinfektion aktivieren / deaktivieren</span><span data-lang="en">Enable / Disable Thermal Disinfection</span></div>
+          <div class="flow-desc"><span data-lang="de">Dauerbetrieb am Controller ein- oder ausschalten</span><span data-lang="en">Enable or disable continuous mode on the controller</span></div>
+        </div></div>
       </div>
     </div>
   </div>
@@ -639,66 +388,70 @@
     <div class="section">
       <div class="section-header">
         <div class="section-icon">⚙️</div>
-        <div class="section-title">Geräteeinstellungen</div>
+        <div class="section-title"><span data-lang="de">Geräteeinstellungen</span><span data-lang="en">Device Settings</span></div>
       </div>
-
       <div class="table-wrap">
         <table class="settings-table">
           <thead>
             <tr>
-              <th>Einstellung</th>
-              <th>Standard</th>
-              <th>Beschreibung</th>
+              <th><span data-lang="de">Einstellung</span><span data-lang="en">Setting</span></th>
+              <th><span data-lang="de">Standard</span><span data-lang="en">Default</span></th>
+              <th><span data-lang="de">Beschreibung</span><span data-lang="en">Description</span></th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td class="key">IP-Adresse</td>
+              <td class="key"><span data-lang="de">IP-Adresse</span><span data-lang="en">IP Address</span></td>
               <td class="default">—</td>
-              <td>IP-Adresse des Luxtronik-Controllers im lokalen Netzwerk</td>
+              <td><span data-lang="de">IP-Adresse des Luxtronik-Controllers im lokalen Netzwerk</span><span data-lang="en">IP address of the Luxtronik controller on the local network</span></td>
             </tr>
             <tr>
               <td class="key">Port</td>
               <td class="default">8889</td>
-              <td>TCP-Port des Controllers (Standard: 8889)</td>
+              <td><span data-lang="de">TCP-Port des Controllers (Standard: 8889)</span><span data-lang="en">TCP port of the controller (default: 8889)</span></td>
             </tr>
             <tr>
-              <td class="key">Abfrageintervall</td>
+              <td class="key"><span data-lang="de">Abfrageintervall</span><span data-lang="en">Poll Interval</span></td>
               <td class="default">60 s</td>
-              <td>Wie oft Werte vom Controller gelesen werden (Minimum: 10 s)</td>
+              <td><span data-lang="de">Wie oft Werte vom Controller gelesen werden</span><span data-lang="en">How often values are read from the controller</span></td>
             </tr>
             <tr>
-              <td class="key">Schnellladung Dauer</td>
-              <td class="default">60 Min.</td>
-              <td>Maximale Laufzeit der Schnellladung (gilt für Zuheizung und Party)</td>
+              <td class="key"><span data-lang="de">Schnellladung Dauer</span><span data-lang="en">Boost Duration</span></td>
+              <td class="default">60 <span data-lang="de">Min.</span><span data-lang="en">min</span></td>
+              <td><span data-lang="de">Maximale Laufzeit der Schnellladung (gilt für Zuheizung und Party)</span><span data-lang="en">Maximum duration of the hot water boost (applies to both Auxiliary and Party)</span></td>
             </tr>
             <tr>
-              <td class="key">Desinfektion Zieltemp.</td>
+              <td class="key"><span data-lang="de">Desinfektion Zieltemp.</span><span data-lang="en">Disinfection Target Temp.</span></td>
               <td class="default">65 °C</td>
-              <td>Warmwassertemperatur bei der die thermische Desinfektion automatisch abschaltet (60–70 °C)</td>
+              <td><span data-lang="de">Abschalttemperatur der thermischen Desinfektion (60–70 °C)</span><span data-lang="en">Shutoff temperature for thermal disinfection (60–70 °C)</span></td>
             </tr>
           </tbody>
         </table>
       </div>
-
       <div class="infobox">
-        <strong>Statische IP empfohlen:</strong> Richte im Router eine DHCP-Reservierung für deinen Luxtronik-Controller ein, damit sich die IP-Adresse nicht ändert.
+        <strong><span data-lang="de">Statische IP empfohlen:</span><span data-lang="en">Static IP recommended:</span></strong>
+        <span data-lang="de"> Richte im Router eine DHCP-Reservierung für den Luxtronik-Controller ein, damit sich die IP-Adresse nicht ändert.</span>
+        <span data-lang="en"> Set up a DHCP reservation for the Luxtronik controller in your router to prevent the IP address from changing.</span>
       </div>
     </div>
 
     <div class="section">
       <div class="section-header">
         <div class="section-icon">🔌</div>
-        <div class="section-title">Kompatibilität</div>
+        <div class="section-title"><span data-lang="de">Kompatibilität</span><span data-lang="en">Compatibility</span></div>
       </div>
       <div class="card">
         <div class="card-desc">
-          Kompatibel mit <strong>Luxtronik 2.0 / 2.1</strong> Controllern, eingebaut in Wärmepumpen von:<br><br>
+          <span data-lang="de">Kompatibel mit <strong>Luxtronik 2.0 / 2.1</strong> Controllern, eingebaut in Wärmepumpen von:</span>
+          <span data-lang="en">Compatible with <strong>Luxtronik 2.0 / 2.1</strong> controllers, built into heat pumps from:</span>
+          <br><br>
           Alpha Innotec · Siemens Novelan · Roth · Elco · Buderus · Nibe · Wolf Heiztechnik · CTA Aeroheat
         </div>
       </div>
       <div class="warnbox">
-        <strong>Achtung:</strong> Falsche Einstellungen können die Wärmepumpe in einen Fehlerzustand versetzen. Änderungen nur vornehmen, wenn die Funktion bekannt ist.
+        <strong><span data-lang="de">Achtung:</span><span data-lang="en">Warning:</span></strong>
+        <span data-lang="de"> Falsche Einstellungen können die Wärmepumpe in einen Fehlerzustand versetzen. Änderungen nur vornehmen, wenn die Funktion bekannt ist.</span>
+        <span data-lang="en"> Incorrect settings may put the heat pump into an error state. Only make changes if you know what the setting does.</span>
       </div>
     </div>
   </div>
@@ -706,7 +459,7 @@
 </div>
 
 <div class="footer">
-  <p>Luxtronik Heat Pump Manager · <a href="https://paypal.me/AndiWirz" target="_blank">☕ Unterstützen</a> · <a href="https://github.com/andiwirz/com.luxtronik.heatpump" target="_blank">GitHub</a></p>
+  <p>Luxtronik Heat Pump Manager · <a href="https://paypal.me/AndiWirz" target="_blank">☕ <span data-lang="de">Unterstützen</span><span data-lang="en">Support</span></a> · <a href="https://github.com/andiwirz/com.luxtronik.heatpump" target="_blank">GitHub</a></p>
 </div>
 
 <script>
@@ -714,11 +467,18 @@
     Homey.ready();
   }
 
-  function showTab(name) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  function setLang(lang) {
+    document.body.className = 'lang-' + lang;
+    document.querySelectorAll('.lang-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.textContent.trim().toLowerCase() === lang);
+    });
+  }
+
+  function showTab(name, btn) {
+    document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.remove('active'); });
+    document.querySelectorAll('.tab').forEach(function(el) { el.classList.remove('active'); });
     document.getElementById('tab-' + name).classList.add('active');
-    event.target.classList.add('active');
+    btn.classList.add('active');
   }
 </script>
 

@@ -8,5 +8,5 @@
   "setable": false,
   "uiComponent": "sensor",
   "insights": false,
-  "icon": "/assets/capabilities/firmware.svg"
+  "icon": "/assets/capabilities/firmware_version.svg"
 }
