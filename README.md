@@ -221,7 +221,7 @@ Aktiviert den Dauerbetrieb (Parameter 27) für den Legionellenschutz:
 
 ## Technischer Hintergrund
 
-Die App kommuniziert über TCP (Port 8889 oder 8888) direkt mit dem Luxtronik-Controller.  
+Die App kommuniziert über TCP (Port 8889) direkt mit dem Luxtronik-Controller.  
 Als Protokoll-Bibliothek wird [`luxtronik2`](https://www.npmjs.com/package/luxtronik2) verwendet.
 
 Parameter-Referenz:

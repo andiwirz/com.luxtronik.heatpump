@@ -18,10 +18,9 @@
     "hotwater_boost",
     "thermal_disinfection_continuous",
     "measure_temp_outdoor",
-    "measure_temp_hotwater",
     "measure_temp_hotwater_target",
+    "measure_temp_hotwater",
     "measure_temp_outdoor_avg",
-    "measure_temp_flow",
     "measure_temp_return",
     "measure_temp_return_target",
     "measure_temp_hotgas",
@@ -54,12 +53,6 @@
         "de": "Mittlere Aussentemperatur"
       }
     },
-    "measure_temp_flow": {
-      "title": {
-        "en": "Flow Temperature",
-        "de": "Vorlauftemperatur"
-      }
-    },
     "measure_temp_return": {
       "title": {
         "en": "Return Temperature",
@@ -76,12 +69,6 @@
       "title": {
         "en": "Hot Gas Temperature",
         "de": "Heissgastemperatur"
-      }
-    },
-    "measure_temp_hotwater": {
-      "title": {
-        "en": "Hot Water Temperature",
-        "de": "Warmwassertemperatur"
       }
     },
     "measure_temp_hotwater_target": {
@@ -163,13 +150,17 @@
       "title": {
         "en": "Hot Water Target",
         "de": "Warmwasser Soll"
-      }
+      },
+      "preventInsights": true,
+      "preventTag": true
     },
     "measure_temperature": {
       "title": {
         "en": "Hot Water Temperature",
         "de": "Warmwassertemperatur"
-      }
+      },
+      "preventInsights": true,
+      "preventTag": true
     },
     "target_temperature.heating": {
       "title": {
@@ -178,13 +169,21 @@
       },
       "min": -5,
       "max": 5,
-      "step": 0.5
+      "step": 0.5,
+      "preventInsights": true,
+      "preventTag": true
     },
     "measure_temperature.heating": {
       "title": {
         "en": "Flow Temperature",
         "de": "Vorlauftemperatur"
-      }
+      },
+      "preventInsights": true,
+      "preventTag": true
+    },
+    "heating_temperature_correction": {
+      "preventInsights": true,
+      "preventTag": true
     }
   },
   "images": {

@@ -93,7 +93,7 @@ class LuxtronikHeatpumpDevice extends Device {
       }
     }
     // ── Cleanup: unerwünschte Capabilities entfernen ────────────────────────────
-    const REMOVE_CAPABILITIES = ['thermal_disinfection', 'warmwater_target_temperature', 'heating_temperature_correction'];
+    const REMOVE_CAPABILITIES = ['thermal_disinfection', 'warmwater_target_temperature', 'heating_temperature_correction', 'measure_temp_flow'];
     for (const cap of REMOVE_CAPABILITIES) {
       if (this.hasCapability(cap)) {
         this.log(`Entferne Capability: ${cap}`);
@@ -103,7 +103,7 @@ class LuxtronikHeatpumpDevice extends Device {
     }
 
     // ── Capability-Reihenfolge erzwingen (ohne neu pairen) ───────────────────
-    const DESIRED_ORDER = ['heatpump_state', 'heating_state_string', 'hotwater_state_string', 'warmwater_operation_mode', 'heating_operation_mode', 'target_temperature.heating', 'measure_temperature.heating', 'hotwater_boost_party', 'hotwater_boost', 'thermal_disinfection_continuous', 'measure_temp_outdoor', 'measure_temp_hotwater', 'measure_temp_hotwater_target', 'measure_temp_outdoor_avg', 'measure_temp_flow', 'measure_temp_return', 'measure_temp_return_target', 'measure_temp_hotgas', 'measure_temp_source_in', 'measure_temp_source_out', 'measure_temp_suction_air', 'measure_temp_room', 'measure_temp_room_target', 'measure_volume_flow', 'meter_energy_heating', 'meter_energy_hotwater', 'meter_energy_total', 'measure_hours_compressor', 'measure_hours_heating', 'measure_hours_hotwater', 'alarm_generic', 'last_poll', 'firmware_version'];
+    const DESIRED_ORDER = ['heatpump_state', 'heating_state_string', 'hotwater_state_string', 'warmwater_operation_mode', 'heating_operation_mode', 'target_temperature.heating', 'measure_temperature.heating', 'hotwater_boost_party', 'hotwater_boost', 'thermal_disinfection_continuous', 'measure_temp_outdoor', 'measure_temp_hotwater_target', 'measure_temp_hotwater', 'measure_temp_outdoor_avg', 'measure_temp_return', 'measure_temp_return_target', 'measure_temp_hotgas', 'measure_temp_source_in', 'measure_temp_source_out', 'measure_temp_suction_air', 'measure_temp_room', 'measure_temp_room_target', 'measure_volume_flow', 'meter_energy_heating', 'meter_energy_hotwater', 'meter_energy_total', 'measure_hours_compressor', 'measure_hours_heating', 'measure_hours_hotwater', 'alarm_generic', 'last_poll', 'firmware_version'];
     const currentCaps = this.getCapabilities();
     const needsReorder = currentCaps.some((cap, i) => cap !== DESIRED_ORDER[i]);
     if (needsReorder) {
@@ -429,7 +429,7 @@ class LuxtronikHeatpumpDevice extends Device {
     await this._setIfValid('measure_temp_return_target',this._n(v.temperature_target_return));
     await this._setIfValid('measure_temp_hotgas',       this._n(v.temperature_hot_gas));
     await this._setIfValid('measure_temp_hotwater',     this._n(v.temperature_hot_water));
-    // Mirror → built-in measure_temperature (Thermostat-Widget Ist-Wert)
+    // Mirror → built-in measure_temperature (Thermostat-Widget Ist-Wert, kein Insights-Duplikat)
     await this._setIfValid('measure_temperature', this._n(v.temperature_hot_water));
     // Thermische Desinfektion Dauerbetrieb: Wert aus Controller lesen
     if (p.thermal_desinfection_continuous_operation !== undefined) {
