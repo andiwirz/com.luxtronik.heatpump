@@ -329,7 +329,8 @@ class LuxtronikHeatpumpDevice extends Device {
     this._watchdogTimer = setInterval(() => {
       if (!this._lastSuccessfulPoll) return;
       const elapsed = Date.now() - this._lastSuccessfulPoll.getTime();
-      const threshold = this._pollInterval * 3;
+      const watchdogFactor = Number(this.getSetting('watchdog_threshold')) || 3;
+      const threshold = this._pollInterval * watchdogFactor;
       if (elapsed > threshold) {
         const minutes = Math.round(elapsed / 60000);
         this.error(`Watchdog: Kein erfolgreicher Poll seit ${minutes} Minuten`);
@@ -354,11 +355,12 @@ class LuxtronikHeatpumpDevice extends Device {
 
     // Poll-Timeout: wenn keine Antwort nach 30s → Fehler
     if (this._pollTimeout) { clearTimeout(this._pollTimeout); }
+    const timeoutSec = Number((await this.getSettings()).watchdog_timeout) || 30;
     this._pollTimeout = setTimeout(() => {
       this._pollTimeout = null;
-      this.error('Poll-Timeout: Keine Antwort von der Wärmepumpe nach 30s');
-      this.setUnavailable(this.homey.__('errors.timeout') || 'Keine Antwort (Timeout)').catch(() => {});
-    }, 30000);
+      this.error(`Poll-Timeout: Keine Antwort von der Wärmepumpe nach ${timeoutSec}s`);
+      this.setUnavailable(this.homey.__('errors.timeout') || `Keine Antwort (Timeout nach ${timeoutSec}s)`).catch(() => {});
+    }, timeoutSec * 1000);
 
     return new Promise((resolve) => {
       this._pump.read((err, data) => {
