@@ -102,25 +102,6 @@ class LuxtronikHeatpumpDevice extends Device {
       }
     }
 
-    // ── Capability-Reihenfolge erzwingen (ohne neu pairen) ───────────────────
-    const DESIRED_ORDER = ['heatpump_state', 'heating_state_string', 'hotwater_state_string', 'warmwater_operation_mode', 'heating_operation_mode', 'target_temperature.heating', 'measure_temperature.heating', 'hotwater_boost_party', 'hotwater_boost', 'thermal_disinfection_continuous', 'measure_temp_outdoor', 'measure_temp_hotwater_target', 'measure_temp_hotwater', 'measure_temp_outdoor_avg', 'measure_temp_return', 'measure_temp_return_target', 'measure_temp_hotgas', 'measure_temp_source_in', 'measure_temp_source_out', 'measure_temp_suction_air', 'measure_temp_room', 'measure_temp_room_target', 'measure_volume_flow', 'meter_energy_heating', 'meter_energy_hotwater', 'meter_energy_total', 'measure_hours_compressor', 'measure_hours_heating', 'measure_hours_hotwater', 'alarm_generic', 'last_poll', 'firmware_version'];
-    const currentCaps = this.getCapabilities();
-    const needsReorder = currentCaps.some((cap, i) => cap !== DESIRED_ORDER[i]);
-    if (needsReorder) {
-      this.log('Capability-Reihenfolge wird aktualisiert...');
-      for (const cap of DESIRED_ORDER) {
-        if (this.hasCapability(cap)) {
-          await this.removeCapability(cap);
-        }
-      }
-      for (const cap of DESIRED_ORDER) {
-        if (!this.hasCapability(cap)) {
-          await this.addCapability(cap);
-        }
-      }
-      this.log('Capability-Reihenfolge aktualisiert ✓');
-    }
-    // ── Ende Capability-Reihenfolge ──────────────────────────────────────────
 
     // ── Ende Migration ────────────────────────────────────────────────────────
 
@@ -168,18 +149,6 @@ class LuxtronikHeatpumpDevice extends Device {
 
     this.homey.flow.getConditionCard('heatpump_state_is')
       .registerRunListener((args) => this.getCapabilityValue('heatpump_state') === args.state);
-
-    this.homey.flow.getConditionCard('hotwater_temperature_above')
-      .registerRunListener((args) => {
-        const temp = this.getCapabilityValue('measure_temp_hotwater');
-        return temp !== null && temp > args.temperature;
-      });
-
-    this.homey.flow.getConditionCard('hotwater_temperature_below')
-      .registerRunListener((args) => {
-        const temp = this.getCapabilityValue('measure_temp_hotwater');
-        return temp !== null && temp < args.temperature;
-      });
 
     this.homey.flow.getConditionCard('thermal_disinfection_is_active')
       .registerRunListener(() => this.getCapabilityValue('thermal_disinfection_continuous') === true);
@@ -326,6 +295,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (this._watchdogTimer) { clearInterval(this._watchdogTimer); this._watchdogTimer = null; }
     // Watchdog prüft alle 60s ob ein erfolgreicher Poll stattgefunden hat
     // Schwellwert: 3x Polling-Intervall
+    const checkIntervalSec = Number(this.getSetting('watchdog_check_interval')) || 60;
     this._watchdogTimer = setInterval(() => {
       if (!this._lastSuccessfulPoll) return;
       const elapsed = Date.now() - this._lastSuccessfulPoll.getTime();
@@ -338,7 +308,7 @@ class LuxtronikHeatpumpDevice extends Device {
           (this.homey.__('errors.watchdog') || `Keine Verbindung seit ${minutes} Min.`)
         ).catch(() => {});
       }
-    }, 60000);
+    }, checkIntervalSec * 1000);
   }
 
   _startPolling() {

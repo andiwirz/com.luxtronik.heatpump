@@ -111,37 +111,43 @@
       "title": {
         "en": "Energy Heating",
         "de": "Energie Heizung"
-      }
+      },
+      "preventTag": true
     },
     "meter_energy_hotwater": {
       "title": {
         "en": "Energy Hot Water",
         "de": "Energie Brauchwasser"
-      }
+      },
+      "preventTag": true
     },
     "meter_energy_total": {
       "title": {
         "en": "Energy Total",
         "de": "Energie Gesamt"
-      }
+      },
+      "preventTag": true
     },
     "measure_hours_compressor": {
       "title": {
         "en": "Compressor Operating Hours",
         "de": "Betriebsstunden Verdichter"
-      }
+      },
+      "preventTag": true
     },
     "measure_hours_heating": {
       "title": {
         "en": "Heating Operating Hours",
         "de": "Betriebsstunden Heizung"
-      }
+      },
+      "preventTag": true
     },
     "measure_hours_hotwater": {
       "title": {
         "en": "Hot Water Operating Hours",
         "de": "Betriebsstunden Brauchwasser"
-      }
+      },
+      "preventTag": true
     },
     "target_temperature": {
       "min": 30,
@@ -183,6 +189,12 @@
     },
     "heating_temperature_correction": {
       "preventInsights": true,
+      "preventTag": true
+    },
+    "measure_temp_hotwater": {
+      "preventTag": true
+    },
+    "measure_temp_flow": {
       "preventTag": true
     }
   },
@@ -298,6 +310,21 @@
           "hint": {
             "en": "Number of missed poll intervals before the watchdog marks the device unavailable (default: 3).",
             "de": "Anzahl verpasster Abfrageintervalle bevor der Watchdog das Gerät als nicht erreichbar markiert (Standard: 3)."
+          }
+        },
+        {
+          "id": "watchdog_check_interval",
+          "type": "number",
+          "label": {
+            "en": "Watchdog Check Interval (seconds)",
+            "de": "Watchdog-Prüfintervall (Sekunden)"
+          },
+          "value": 60,
+          "min": 10,
+          "max": 300,
+          "hint": {
+            "en": "How often the watchdog checks if a successful poll has occurred. Should be <= poll interval × watchdog threshold (default: 60 s).",
+            "de": "Wie oft der Watchdog prüft ob eine erfolgreiche Abfrage stattgefunden hat. Sollte <= Abfrageintervall × Watchdog-Schwellwert sein (Standard: 60 s)."
           }
         }
       ]
