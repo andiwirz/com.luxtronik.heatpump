@@ -58,5 +58,8 @@
   "2.0.15": {
     "en": "New: Custom icons for Heating Status, Hot Water Status and Heat Pump State. New: Connection watchdog — poll timeout (30s) and watchdog timer mark device unavailable when controller stops responding. New: 'Last Poll' capability shows time of last successful connection in local time (24h format). New: 6 flow triggers (device unavailable/available, thermal disinfection ended, error cleared, outdoor temperature thresholds). New: 5 flow conditions (device available, heating/hot water status, outdoor temperature above/below). New: Flow action to adjust hot water target temperature by relative offset. Updated README, in-app help page and changelog.",
     "de": "Neu: Eigene Icons für Heizung Status, Warmwasser Status und Wärmepumpen Status. Neu: Verbindungs-Watchdog — Poll-Timeout (30s) und Watchdog-Timer markieren Gerät als nicht erreichbar wenn Controller nicht antwortet. Neu: Capability 'Letzte Abfrage' zeigt Zeitpunkt der letzten erfolgreichen Verbindung in lokaler Zeit (24h-Format). Neu: 6 Flow-Auslöser (Gerät nicht erreichbar/wieder erreichbar, Thermische Desinfektion beendet, Fehler quittiert, Aussentemperatur-Schwellwerte). Neu: 5 Flow-Bedingungen (Gerät erreichbar, Heizung-/Warmwasser-Status, Aussentemperatur über/unter). Neu: Flow-Aktion für relative Anpassung der Brauchwasser-Solltemperatur. README, Hilfeseite und Changelog aktualisiert."
+  },
+  "2.0.16": {
+    "en": "fix insights"
   }
 }
