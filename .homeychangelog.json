@@ -60,6 +60,9 @@
     "de": "Neu: Eigene Icons für Heizung Status, Warmwasser Status und Wärmepumpen Status. Neu: Verbindungs-Watchdog — Poll-Timeout (30s) und Watchdog-Timer markieren Gerät als nicht erreichbar wenn Controller nicht antwortet. Neu: Capability 'Letzte Abfrage' zeigt Zeitpunkt der letzten erfolgreichen Verbindung in lokaler Zeit (24h-Format). Neu: 6 Flow-Auslöser (Gerät nicht erreichbar/wieder erreichbar, Thermische Desinfektion beendet, Fehler quittiert, Aussentemperatur-Schwellwerte). Neu: 5 Flow-Bedingungen (Gerät erreichbar, Heizung-/Warmwasser-Status, Aussentemperatur über/unter). Neu: Flow-Aktion für relative Anpassung der Brauchwasser-Solltemperatur. README, Hilfeseite und Changelog aktualisiert."
   },
   "2.0.16": {
-    "en": "fix insights"
+    "en": "add homeyCommunityTopicId"
+  },
+  "2.0.17": {
+    "en": "add homeyCommunityTopicId"
   }
 }
