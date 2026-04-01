@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.luxtronik.heatpump",
-  "version": "2.0.18",
+  "version": "2.0.19",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "name": {
@@ -1078,39 +1078,6 @@
             "type": "device",
             "name": "device",
             "filter": "driver_id=luxtronik-heatpump"
-          }
-        ]
-      },
-      {
-        "id": "set_warmwater_target_temperature_relative",
-        "title": {
-          "en": "Adjust hot water target temperature",
-          "de": "Brauchwasser Soll-Temperatur anpassen"
-        },
-        "titleFormatted": {
-          "en": "Adjust hot water target temperature by [[offset]] °C",
-          "de": "Brauchwasser Soll-Temperatur um [[offset]] °C anpassen"
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=luxtronik-heatpump"
-          },
-          {
-            "name": "offset",
-            "type": "number",
-            "title": {
-              "en": "Offset (°C)",
-              "de": "Anpassung (°C)"
-            },
-            "placeholder": {
-              "en": "e.g. -5 or +5",
-              "de": "z.B. -5 oder +5"
-            },
-            "min": -20,
-            "max": 20,
-            "step": 0.5
           }
         ]
       }
