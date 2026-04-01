@@ -213,11 +213,6 @@ class LuxtronikHeatpumpDevice extends Device {
     this.homey.flow.getActionCard('stop_hotwater_boost_party')
       .registerRunListener(async () => this._stopHotwaterBoostParty());
 
-    this.homey.flow.getActionCard('set_warmwater_target_temperature_relative')
-      .registerRunListener(async (args) => {
-        const current = this.getCapabilityValue('target_temperature') ?? this.getCapabilityValue('warmwater_target_temperature') ?? 50;
-        await this._setWarmwaterTargetTemperature(current + parseFloat(args.offset));
-      });
 
     this.homey.flow.getActionCard('enable_thermal_disinfection')
       .registerRunListener(async () => this._setThermalDisinfectionContinuous(true));
