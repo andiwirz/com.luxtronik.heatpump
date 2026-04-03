@@ -70,5 +70,8 @@
   },
   "2.0.19": {
     "en": "remove flow set_warmwater_target_temperature_relative"
+  },
+  "2.0.20": {
+    "en": "fix pairing issue"
   }
 }
