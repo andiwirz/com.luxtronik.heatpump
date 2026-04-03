@@ -187,7 +187,7 @@
               'Bitte IP-Adresse und Port prüfen und sicherstellen, ' +
               'dass die Wärmepumpe eingeschaltet und im Netzwerk erreichbar ist.'
             );
-            return;
+            return Promise.reject(null);
           }
           setStatus('Gerät wird hinzugefügt…');
           // Create the device directly – no list_devices step needed
@@ -200,6 +200,7 @@
           });
         })
         .catch(function(err) {
+          if (err === null) return; // connection failed, error already shown
           setLoading(false);
           showError('Fehler: ' + (err && err.message ? err.message : String(err)));
         });
