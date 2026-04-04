@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find /c/Users/andi/OneDrive/Documents/GitHub/com.luxtronik.heatpump -type f \\\\\\(-name *.json -o -name *.js \\\\\\) -path */locales/*)"
+      "Bash(find /c/Users/andi/OneDrive/Documents/GitHub/com.luxtronik.heatpump -type f \\\\\\(-name *.json -o -name *.js \\\\\\) -path */locales/*)",
+      "Bash(python /tmp/parse_svg.py)",
+      "Bash(python:*)",
+      "mcp__Claude_Preview__preview_start"
     ]
   }
 }
