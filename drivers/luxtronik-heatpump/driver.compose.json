@@ -154,16 +154,16 @@
       "max": 65,
       "step": 0.5,
       "title": {
-        "en": "Hot Water Target",
-        "de": "Warmwasser Soll"
+        "en": "Hot Water Setpoint",
+        "de": "Warmwasser Sollwert"
       },
       "preventInsights": true,
       "preventTag": true
     },
     "measure_temperature": {
       "title": {
-        "en": "Hot Water Temperature",
-        "de": "Warmwassertemperatur"
+        "en": "Hot Water Actual",
+        "de": "Warmwasser Istwert"
       },
       "preventInsights": true,
       "preventTag": true

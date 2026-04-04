@@ -34,6 +34,79 @@ const HEATPUMP_STATE_MAP = {
   19: 'hotwater',       // Warmwasser Nachheizung
 };
 
+// English labels for heatpump_state3 (Extended State / Heating Status)
+// Source: luxtronik2/types.js → extendetStateMessages (German), translated here
+const HEATING_STATE_LABELS_EN = {
+  0:  'Heating',
+  1:  'No Request',
+  2:  'Grid Startup Delay',
+  3:  'Switching Cycle Time',
+  4:  'Utility Lock',
+  5:  'Hot Water',
+  6:  'Screed Program',         // may carry a dynamic suffix, see translateHeatingState()
+  7:  'Defrost',                // may carry a sub-type suffix, see translateHeatingState()
+  8:  'Pump Pre-run',
+  9:  'Thermal Disinfection',
+  10: 'Cooling',
+  12: 'Pool / Photovoltaic',
+  13: 'External Heating',
+  14: 'External Hot Water',
+  16: 'Flow Monitoring',
+  17: 'Electric Auxiliary Heating',
+  19: 'DHW Reheating',
+};
+
+// English labels for opStateHotWaterString (Hot Water Status)
+// Source: luxtronik2/utils.js → createHotWaterStateString() (German), translated here
+const HOTWATER_STATE_LABELS_EN = {
+  'Sperrzeit': 'Lock Period',
+  'Aufheizen': 'Heating Up',
+  'Temp. OK':  'Temp. OK',
+  'Aus':       'Off',
+};
+
+/**
+ * Translates the German extended-state string returned by luxtronik2 to English.
+ * Uses the numeric state3 code for the base label and handles the two dynamic
+ * cases (Screed Program and Defrost sub-types) by inspecting the raw string.
+ *
+ * @param {number} state3  - Raw numeric code (v.heatpump_state3)
+ * @param {string} rawStr  - German string from v.heatpump_extendet_state_string
+ * @returns {string}
+ */
+function translateHeatingState(state3, rawStr) {
+  const base = HEATING_STATE_LABELS_EN[state3];
+  if (base === undefined) return rawStr; // unknown code – show raw value as fallback
+
+  // state3 === 6: Screed Program – library appends ' Stufe X - Y °C'
+  // Keep the numeric suffix but translate the fixed prefix.
+  if (state3 === 6) {
+    const suffix = String(rawStr).replace('Estrich Programm', '').trim();
+    return suffix
+      ? `${base} ${suffix.replace('Stufe', 'Level')}`
+      : base;
+  }
+
+  // state3 === 7: Defrost – library appends a sub-type string to 'Abtauen'
+  // Possible raw values: 'Abtauen', 'AbtauenAbtauen (Kreisumkehr)', 'AbtauenLuftabtauen'
+  if (state3 === 7) {
+    const raw = String(rawStr);
+    if (raw.includes('Kreisumkehr')) return 'Defrost (Reverse Cycle)';
+    if (raw.includes('Luftabtauen')) return 'Air Defrost';
+  }
+
+  return base;
+}
+
+// Capability-Titel die beim dynamischen addCapability() explizit gesetzt werden müssen,
+// weil Homey den Titel beim ersten Hinzufügen speichert und spätere app.json-Änderungen
+// nicht automatisch auf bereits vorhandene Capabilities anwendet.
+const CAPABILITY_TITLE_FIXES = {
+  'measure_temp_suction_air': { title: { en: 'Suction Air Temperature', de: 'Ansaugluft Temperatur' } },
+  'measure_temp_room':        { title: { en: 'Room Temperature',        de: 'Raumtemperatur' } },
+  'measure_temp_room_target': { title: { en: 'Room Target Temperature', de: 'Raumtemperatur Soll' } },
+};
+
 // heatpump_state1 = Grob-Status (0=läuft, 1=steht, 4=Fehler)
 // Nur für Fehlerkennung verwendet
 const HEATPUMP_STATE1_ERROR = 4;
@@ -102,6 +175,16 @@ class LuxtronikHeatpumpDevice extends Device {
       }
     }
 
+
+    // ── Capability-Titel korrigieren (wurden beim ersten addCapability() in der alten
+    //    App-Version ggf. auf Deutsch gespeichert; setCapabilityOptions() überschreibt
+    //    den in Homey gespeicherten Titel für bereits vorhandene Capabilities) ─────────
+    for (const [cap, options] of Object.entries(CAPABILITY_TITLE_FIXES)) {
+      if (this.hasCapability(cap)) {
+        try { await this.setCapabilityOptions(cap, options); }
+        catch (e) { this.error(`setCapabilityOptions ${cap} fehlgeschlagen:`, e.message); }
+      }
+    }
 
     // ── Ende Migration ────────────────────────────────────────────────────────
 
@@ -489,13 +572,19 @@ class LuxtronikHeatpumpDevice extends Device {
     // → nur state1 === 4 ist zuverlässig für einen aktiven Fehler
     const hasError = (v.heatpump_state1 === 4);
     await this._setIfValid('alarm_generic', hasError);
-    // Heizung Status (Extended State String)
+    // Heating Status (Extended State String) – translated to English
     if (v.heatpump_extendet_state_string !== undefined) {
-      await this._setIfValid('heating_state_string', String(v.heatpump_extendet_state_string));
+      const heatingLabel = translateHeatingState(
+        v.heatpump_state3,
+        v.heatpump_extendet_state_string,
+      );
+      await this._setIfValid('heating_state_string', heatingLabel);
     }
-    // Warmwasser Status
+    // Hot Water Status – translated to English
     if (v.opStateHotWaterString !== undefined) {
-      await this._setIfValid('hotwater_state_string', String(v.opStateHotWaterString));
+      const rawHW = String(v.opStateHotWaterString);
+      const hotwaterLabel = HOTWATER_STATE_LABELS_EN[rawHW] ?? rawHW;
+      await this._setIfValid('hotwater_state_string', hotwaterLabel);
     }
     if (hasError && !this._lastErrorState) {
       // Fehlermeldung aus dem Protokoll holen
@@ -537,14 +626,12 @@ class LuxtronikHeatpumpDevice extends Device {
 
     // Heizungs-Temperaturkorrektur: p.heating_temperature (lesen), schreiben mit 'heating_target_temperature'
     const heatingCorr = this._n(p.heating_temperature);
-    await this._setIfValid('heating_temperature_correction', heatingCorr);
     // Mirror → target_temperature.heating (Thermostat-Widget Heizung Soll)
     await this._setIfValid('target_temperature.heating', heatingCorr);
 
     // Brauchwasser-Solltemperatur: p.warmwater_temperature oder p.temperature_hot_water_target
     const wwTarget = p.warmwater_temperature ?? p.temperature_hot_water_target;
-    await this._setIfValid('warmwater_target_temperature', this._n(wwTarget));
-    // Mirror → built-in target_temperature (Thermostat-Widget, mit Write-Schutz)
+    // Mirror → built-in target_temperature (Thermostat-Widget Hot Water Setpoint)
     await this._setIfValid('target_temperature', this._n(wwTarget));
   }
 
@@ -579,9 +666,7 @@ class LuxtronikHeatpumpDevice extends Device {
     const clamped = Math.min(65, Math.max(30, value));
     this.log(`Setze Brauchwasser Soll-Temperatur: ${clamped} °C`);
     // Sofort UI-Wert setzen, dann Write-Schutz, dann senden
-    await this.setCapabilityValue('warmwater_target_temperature', clamped).catch(() => {});
     await this.setCapabilityValue('target_temperature', clamped).catch(() => {});
-    this._setWriteProtect('warmwater_target_temperature', 120000);
     this._setWriteProtect('target_temperature', 120000);
     await this._write('warmwater_target_temperature', clamped);
     this.log(`Brauchwasser Soll-Temperatur erfolgreich gesendet: ${clamped} °C`);
@@ -704,6 +789,13 @@ class LuxtronikHeatpumpDevice extends Device {
         this.log(`Aktiviere Capability (Wert vorhanden): ${capability}`);
         try { await this.addCapability(capability); }
         catch (e) { this.error(`addCapability ${capability} fehlgeschlagen:`, e.message); return; }
+        // Titel nach addCapability() explizit setzen – Homey speichert den Titel beim ersten
+        // Hinzufügen; ohne diesen Aufruf könnte ein veralteter/falscher Titel gespeichert werden.
+        const titleFix = CAPABILITY_TITLE_FIXES[capability];
+        if (titleFix) {
+          try { await this.setCapabilityOptions(capability, titleFix); }
+          catch (e) { this.error(`setCapabilityOptions ${capability} fehlgeschlagen:`, e.message); }
+        }
       }
       await this._setIfValid(capability, value);
     } else {

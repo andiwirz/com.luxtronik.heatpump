@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/andi/OneDrive/Documents/GitHub/com.luxtronik.heatpump -type f \\\\\\(-name *.json -o -name *.js \\\\\\) -path */locales/*)"
+    ]
+  }
+}
