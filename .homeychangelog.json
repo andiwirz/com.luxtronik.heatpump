@@ -79,5 +79,8 @@
   },
   "2.0.22": {
     "en": "new device icon"
+  },
+  "2.0.23": {
+    "en": "add cooling capabilities and fix translation of status capabilities"
   }
 }
