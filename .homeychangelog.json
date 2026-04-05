@@ -82,5 +82,8 @@
   },
   "2.0.23": {
     "en": "add cooling capabilities and fix translation of status capabilities"
+  },
+  "2.0.24": {
+    "en": "another translation fix"
   }
 }
