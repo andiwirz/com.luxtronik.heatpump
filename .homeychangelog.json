@@ -85,5 +85,8 @@
   },
   "2.0.24": {
     "en": "another translation fix"
+  },
+  "2.0.25": {
+    "en": "new function: Power sensor (estimated value)"
   }
 }
