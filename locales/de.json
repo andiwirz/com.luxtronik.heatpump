@@ -63,6 +63,11 @@
       }
     }
   },
+
+  "cooling": {
+    "enabled": "Kühlung freigegeben",
+    "disabled": "Kühlung gesperrt"
+  },
   "flow": {
     "triggers": {
       "heating_operation_mode_changed": "Heizungs-Betriebsart geändert",

@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Cooling Hours",
+    "de": "Betriebsstunden Kühlung"
+  },
+  "units": {
+    "en": "h",
+    "de": "h"
+  },
+  "decimals": 1,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true,
+  "icon": "/assets/capabilities/round-hours-icon.svg"
+}

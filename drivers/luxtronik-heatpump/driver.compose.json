@@ -36,6 +36,8 @@
     "measure_hours_compressor",
     "measure_hours_heating",
     "measure_hours_hotwater",
+    "cooling_enabled",
+    "measure_hours_cooling",
     "alarm_generic",
     "last_poll",
     "firmware_version"
@@ -146,6 +148,20 @@
       "title": {
         "en": "Hot Water Operating Hours",
         "de": "Betriebsstunden Brauchwasser"
+      },
+      "preventTag": true
+    },
+    "cooling_enabled": {
+      "title": {
+        "en": "Cooling Enabled",
+        "de": "Kühlung freigegeben"
+      },
+      "preventTag": true
+    },
+    "measure_hours_cooling": {
+      "title": {
+        "en": "Cooling Operating Hours",
+        "de": "Betriebsstunden Kühlung"
       },
       "preventTag": true
     },

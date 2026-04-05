@@ -1,0 +1,19 @@
+{
+  "type": "boolean",
+  "title": {
+    "en": "Cooling Enabled",
+    "de": "Kühlung freigegeben"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": false,
+  "titleTrue": {
+    "en": "Cooling enabled",
+    "de": "Kühlung freigegeben"
+  },
+  "titleFalse": {
+    "en": "Cooling disabled",
+    "de": "Kühlung gesperrt"
+  }
+}

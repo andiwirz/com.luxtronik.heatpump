@@ -4,7 +4,14 @@
       "Bash(find /c/Users/andi/OneDrive/Documents/GitHub/com.luxtronik.heatpump -type f \\\\\\(-name *.json -o -name *.js \\\\\\) -path */locales/*)",
       "Bash(python /tmp/parse_svg.py)",
       "Bash(python:*)",
-      "mcp__Claude_Preview__preview_start"
+      "mcp__Claude_Preview__preview_start",
+      "Bash(homey app:*)",
+      "WebSearch",
+      "Bash(find C:/Users/andi/OneDrive/Documents/GitHub/com.luxtronik.heatpump/node_modules/ -name *.js -path */homey-apps-sdk*)",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//c/Users/andi/OneDrive/Documents/GitHub/com.luxtronik.heatpump/**)",
+      "Bash(done)"
     ]
   }
 }

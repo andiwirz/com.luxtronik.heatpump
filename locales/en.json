@@ -63,6 +63,11 @@
       }
     }
   },
+
+  "cooling": {
+    "enabled": "Cooling enabled",
+    "disabled": "Cooling disabled"
+  },
   "flow": {
     "triggers": {
       "heating_operation_mode_changed": "Heating mode changed",

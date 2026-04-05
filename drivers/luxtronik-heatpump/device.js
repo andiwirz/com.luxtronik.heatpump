@@ -34,69 +34,41 @@ const HEATPUMP_STATE_MAP = {
   19: 'hotwater',       // Warmwasser Nachheizung
 };
 
-// English labels for heatpump_state3 (Extended State / Heating Status)
-// Source: luxtronik2/types.js → extendetStateMessages (German), translated here
-const HEATING_STATE_LABELS_EN = {
-  0:  'Heating',
-  1:  'No Request',
-  2:  'Grid Startup Delay',
-  3:  'Switching Cycle Time',
-  4:  'Utility Lock',
-  5:  'Hot Water',
-  6:  'Screed Program',         // may carry a dynamic suffix, see translateHeatingState()
-  7:  'Defrost',                // may carry a sub-type suffix, see translateHeatingState()
-  8:  'Pump Pre-run',
-  9:  'Thermal Disinfection',
-  10: 'Cooling',
-  12: 'Pool / Photovoltaic',
-  13: 'External Heating',
-  14: 'External Hot Water',
-  16: 'Flow Monitoring',
-  17: 'Electric Auxiliary Heating',
-  19: 'DHW Reheating',
+
+// Mapping: Originalstring der luxtronik2-Library → { en, de }
+// Quelle: luxtronik2/types.js → extendetStateMessages + createExtendedStateString()
+// Hinweis: state3=7 (Abtauen) konkateniert die Library ohne Leerzeichen (Bug im npm)
+const HEATING_STATE_MAP = {
+  'Heizbetrieb':                   { en: 'Heating',                    de: 'Heizbetrieb' },
+  'Keine Anforderung':              { en: 'No Request',                 de: 'Keine Anforderung' },
+  'Netz Einschaltverzoegerung':     { en: 'Grid Startup Delay',         de: 'Netz Einschaltverzögerung' },
+  'Schaltspielzeit':                { en: 'Switching Cycle Time',       de: 'Schaltspielzeit' },
+  'EVU Sperrzeit':                  { en: 'EVU Lock',                   de: 'EVU Sperrzeit' },
+  'Brauchwasser':                   { en: 'Hot Water',                  de: 'Brauchwasser' },
+  // Estrich Programm: dynamischer Suffix "Stufe X - Y °C" → Sonderbehandlung im Poll
+  'Pumpenvorlauf':                  { en: 'Pump Pre-run',               de: 'Pumpenvorlauf' },
+  'Thermische Desinfektion':        { en: 'Thermal Disinfection',       de: 'Thermische Desinfektion' },
+  'Kuehlbetrieb':                   { en: 'Cooling',                    de: 'Kühlbetrieb' },
+  'Schwimmbad/Photovoltaik':        { en: 'Pool / Photovoltaic',        de: 'Schwimmbad / Photovoltaik' },
+  'Heizen Ext.':                    { en: 'External Heating',           de: 'Heizen Ext.' },
+  'Brauchwasser Ext.':              { en: 'External Hot Water',         de: 'Brauchwasser Ext.' },
+  'Durchflussueberwachung':         { en: 'Flow Monitoring',            de: 'Durchflussüberwachung' },
+  'Elektrische Zusatzheizung':      { en: 'Electric Auxiliary Heating', de: 'Elektrische Zusatzheizung' },
+  'Warmw. Nachheizung':             { en: 'DHW Reheating',              de: 'Warmwasser Nachheizung' },
+  // state3=7: Library konkateniert Basisstring + Subtyp ohne Leerzeichen
+  'AbtauenAbtauen (Kreisumkehr)':  { en: 'Defrost (Reverse Cycle)',    de: 'Abtauen (Kreisumkehr)' },
+  'AbtauenLuftabtauen':            { en: 'Air Defrost',                de: 'Luftabtauen' },
+  'AbtauenAbtauen':                { en: 'Defrost',                    de: 'Abtauen' },
 };
 
-// English labels for opStateHotWaterString (Hot Water Status)
-// Source: luxtronik2/utils.js → createHotWaterStateString() (German), translated here
-const HOTWATER_STATE_LABELS_EN = {
-  'Sperrzeit': 'Lock Period',
-  'Aufheizen': 'Heating Up',
-  'Temp. OK':  'Temp. OK',
-  'Aus':       'Off',
+// Mapping: Originalstring der luxtronik2-Library → { en, de }
+// Quelle: luxtronik2/utils.js → createHotWaterStateString()
+const HOTWATER_STATE_MAP = {
+  'Sperrzeit': { en: 'Lock Period',    de: 'Sperrzeit' },
+  'Aufheizen': { en: 'Heating Up',     de: 'Aufheizen' },
+  'Temp. OK':  { en: 'Temperature OK', de: 'Temperatur OK' },
+  'Aus':       { en: 'Off',            de: 'Aus' },
 };
-
-/**
- * Translates the German extended-state string returned by luxtronik2 to English.
- * Uses the numeric state3 code for the base label and handles the two dynamic
- * cases (Screed Program and Defrost sub-types) by inspecting the raw string.
- *
- * @param {number} state3  - Raw numeric code (v.heatpump_state3)
- * @param {string} rawStr  - German string from v.heatpump_extendet_state_string
- * @returns {string}
- */
-function translateHeatingState(state3, rawStr) {
-  const base = HEATING_STATE_LABELS_EN[state3];
-  if (base === undefined) return rawStr; // unknown code – show raw value as fallback
-
-  // state3 === 6: Screed Program – library appends ' Stufe X - Y °C'
-  // Keep the numeric suffix but translate the fixed prefix.
-  if (state3 === 6) {
-    const suffix = String(rawStr).replace('Estrich Programm', '').trim();
-    return suffix
-      ? `${base} ${suffix.replace('Stufe', 'Level')}`
-      : base;
-  }
-
-  // state3 === 7: Defrost – library appends a sub-type string to 'Abtauen'
-  // Possible raw values: 'Abtauen', 'AbtauenAbtauen (Kreisumkehr)', 'AbtauenLuftabtauen'
-  if (state3 === 7) {
-    const raw = String(rawStr);
-    if (raw.includes('Kreisumkehr')) return 'Defrost (Reverse Cycle)';
-    if (raw.includes('Luftabtauen')) return 'Air Defrost';
-  }
-
-  return base;
-}
 
 // Capability-Titel die beim dynamischen addCapability() explizit gesetzt werden müssen,
 // weil Homey den Titel beim ersten Hinzufügen speichert und spätere app.json-Änderungen
@@ -105,6 +77,8 @@ const CAPABILITY_TITLE_FIXES = {
   'measure_temp_suction_air': { title: { en: 'Suction Air Temperature', de: 'Ansaugluft Temperatur' } },
   'measure_temp_room':        { title: { en: 'Room Temperature',        de: 'Raumtemperatur' } },
   'measure_temp_room_target': { title: { en: 'Room Target Temperature', de: 'Raumtemperatur Soll' } },
+  'cooling_enabled':          { title: { en: 'Cooling Enabled',         de: 'Kühlung freigegeben' } },
+  'measure_hours_cooling':    { title: { en: 'Cooling Operating Hours', de: 'Betriebsstunden Kühlung' } },
 };
 
 // heatpump_state1 = Grob-Status (0=läuft, 1=steht, 4=Fehler)
@@ -551,6 +525,12 @@ class LuxtronikHeatpumpDevice extends Device {
     await this._setIfValid('measure_hours_heating',    this._n(v.hours_heating));
     await this._setIfValid('measure_hours_hotwater',   this._n(v.hours_warmwater));
 
+    // ── Kühlung (nur wenn Kühlung freigegeben) ───────────────────────────────
+    // FreigabKuehl: 0 = gesperrt, 1 = freigegeben
+    const coolingEnabled = v.FreigabKuehl === 1;
+    await this._setCapabilityConditional('cooling_enabled',       coolingEnabled,             coolingEnabled);
+    await this._setCapabilityConditional('measure_hours_cooling', this._n(v.hours_cooling),   coolingEnabled);
+
     // ── Wärmepumpen-Status ───────────────────────────────────────────────────
     // state3 = detaillierter Betriebsstatus; state1 = grober Status (für Fehler)
     const rawState  = v.heatpump_state3;
@@ -572,19 +552,29 @@ class LuxtronikHeatpumpDevice extends Device {
     // → nur state1 === 4 ist zuverlässig für einen aktiven Fehler
     const hasError = (v.heatpump_state1 === 4);
     await this._setIfValid('alarm_generic', hasError);
-    // Heating Status (Extended State String) – translated to English
+    // Heizungs-Status – via HEATING_STATE_MAP übersetzt
     if (v.heatpump_extendet_state_string !== undefined) {
-      const heatingLabel = translateHeatingState(
-        v.heatpump_state3,
-        v.heatpump_extendet_state_string,
-      );
+      const raw  = String(v.heatpump_extendet_state_string);
+      const lang = this.homey.i18n.getLanguage();
+      let heatingLabel;
+      if (raw.startsWith('Estrich Programm')) {
+        // Dynamischer Suffix "Stufe X - Y °C" – nur das Schlüsselwort übersetzen
+        const suffix    = raw.replace('Estrich Programm', '').trim();
+        const base      = lang === 'de' ? 'Estrich Programm' : 'Screed Program';
+        const levelWord = lang === 'de' ? 'Stufe' : 'Level';
+        heatingLabel = base + ' ' + suffix.replace('Stufe', levelWord);
+      } else {
+        const entry = HEATING_STATE_MAP[raw];
+        heatingLabel = entry ? (entry[lang] ?? entry.en) : raw;
+      }
       await this._setIfValid('heating_state_string', heatingLabel);
     }
-    // Hot Water Status – translated to English
+    // Warmwasser-Status – via HOTWATER_STATE_MAP übersetzt
     if (v.opStateHotWaterString !== undefined) {
-      const rawHW = String(v.opStateHotWaterString);
-      const hotwaterLabel = HOTWATER_STATE_LABELS_EN[rawHW] ?? rawHW;
-      await this._setIfValid('hotwater_state_string', hotwaterLabel);
+      const raw   = String(v.opStateHotWaterString);
+      const lang  = this.homey.i18n.getLanguage();
+      const entry = HOTWATER_STATE_MAP[raw];
+      await this._setIfValid('hotwater_state_string', entry ? (entry[lang] ?? entry.en) : raw);
     }
     if (hasError && !this._lastErrorState) {
       // Fehlermeldung aus dem Protokoll holen
