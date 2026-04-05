@@ -77,7 +77,6 @@ const CAPABILITY_TITLE_FIXES = {
   'measure_temp_suction_air': { title: { en: 'Suction Air Temperature', de: 'Ansaugluft Temperatur' } },
   'measure_temp_room':        { title: { en: 'Room Temperature',        de: 'Raumtemperatur' } },
   'measure_temp_room_target': { title: { en: 'Room Target Temperature', de: 'Raumtemperatur Soll' } },
-  'cooling_enabled':          { title: { en: 'Cooling Enabled',         de: 'Kühlung freigegeben' } },
   'measure_hours_cooling':    { title: { en: 'Cooling Operating Hours', de: 'Betriebsstunden Kühlung' } },
 };
 
@@ -324,6 +323,21 @@ class LuxtronikHeatpumpDevice extends Device {
     this._ip           = newSettings.ip;
     this._port         = Number(newSettings.port) || 8889;
     this._pollInterval = (Number(newSettings.poll_interval) || 60) * 1000;
+
+    // Leistungssensor sofort aktualisieren ohne auf den nächsten Poll zu warten
+    // _lastState enthält den zuletzt bekannten Status der WP
+    if (newSettings.power_sensor_enabled === true && this._lastState) {
+      if (!this.hasCapability('measure_power')) {
+        try { await this.addCapability('measure_power'); }
+        catch (e) { this.error('addCapability measure_power:', e.message); }
+      }
+      const watts = Number(newSettings[`power_${this._lastState}`]) || 0;
+      await this._setIfValid('measure_power', watts);
+    } else if (newSettings.power_sensor_enabled === false && this.hasCapability('measure_power')) {
+      try { await this.removeCapability('measure_power'); }
+      catch (e) { this.error('removeCapability measure_power:', e.message); }
+    }
+
     this._connectPump();
     await this._doPoll();
     this._startPolling();
@@ -527,9 +541,7 @@ class LuxtronikHeatpumpDevice extends Device {
 
     // ── Kühlung (nur wenn Kühlung freigegeben) ───────────────────────────────
     // FreigabKuehl: 0 = gesperrt, 1 = freigegeben
-    const coolingEnabled = v.FreigabKuehl === 1;
-    await this._setCapabilityConditional('cooling_enabled',       coolingEnabled,             coolingEnabled);
-    await this._setCapabilityConditional('measure_hours_cooling', this._n(v.hours_cooling),   coolingEnabled);
+    await this._setCapabilityConditional('measure_hours_cooling', this._n(v.hours_cooling), v.FreigabKuehl === 1);
 
     // ── Wärmepumpen-Status ───────────────────────────────────────────────────
     // state3 = detaillierter Betriebsstatus; state1 = grober Status (für Fehler)
@@ -544,6 +556,21 @@ class LuxtronikHeatpumpDevice extends Device {
         await this._triggerStateChanged.trigger(this, { state: stateSlug }).catch(() => {});
       }
       this._lastState = stateSlug;
+    }
+
+    // ── Virtueller Leistungssensor ───────────────────────────────────────────
+    // measure_power wird dynamisch hinzugefügt/entfernt je nach Einstellung
+    const powerEnabled = this.getSetting('power_sensor_enabled') === true;
+    if (powerEnabled) {
+      if (!this.hasCapability('measure_power')) {
+        try { await this.addCapability('measure_power'); }
+        catch (e) { this.error('addCapability measure_power:', e.message); }
+      }
+      const watts = Number(this.getSetting(`power_${stateSlug}`)) || 0;
+      await this._setIfValid('measure_power', watts);
+    } else if (this.hasCapability('measure_power')) {
+      try { await this.removeCapability('measure_power'); }
+      catch (e) { this.error('removeCapability measure_power:', e.message); }
     }
 
     // ── Fehler ───────────────────────────────────────────────────────────────

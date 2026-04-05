@@ -36,7 +36,6 @@
     "measure_hours_compressor",
     "measure_hours_heating",
     "measure_hours_hotwater",
-    "cooling_enabled",
     "measure_hours_cooling",
     "alarm_generic",
     "last_poll",
@@ -148,13 +147,6 @@
       "title": {
         "en": "Hot Water Operating Hours",
         "de": "Betriebsstunden Brauchwasser"
-      },
-      "preventTag": true
-    },
-    "cooling_enabled": {
-      "title": {
-        "en": "Cooling Enabled",
-        "de": "Kühlung freigegeben"
       },
       "preventTag": true
     },
@@ -342,6 +334,144 @@
             "en": "How often the watchdog checks if a successful poll has occurred. Should be <= poll interval × watchdog threshold (default: 60 s).",
             "de": "Wie oft der Watchdog prüft ob eine erfolgreiche Abfrage stattgefunden hat. Sollte <= Abfrageintervall × Watchdog-Schwellwert sein (Standard: 60 s)."
           }
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "label": {
+        "en": "Power Sensor (Estimated)",
+        "de": "Leistungssensor (Schätzwert)"
+      },
+      "children": [
+        {
+          "id": "power_sensor_enabled",
+          "type": "checkbox",
+          "label": {
+            "en": "Enable power sensor",
+            "de": "Leistungssensor aktivieren"
+          },
+          "value": false,
+          "hint": {
+            "en": "Shows estimated power consumption per heat pump state. All values default to 0 — configure them for your installation before enabling.",
+            "de": "Zeigt den geschätzten Stromverbrauch je Wärmepumpen-Status. Alle Werte sind standardmäßig 0 — bitte vor dem Aktivieren für Ihre Anlage konfigurieren."
+          }
+        },
+        {
+          "id": "power_heating",
+          "type": "number",
+          "label": { "en": "Heating (W)", "de": "Heizen (W)" },
+          "value": 0,
+          "min": 0,
+          "max": 20000,
+          "hint": {
+            "en": "Typical heat pumps consume 800–3000 W during heating.",
+            "de": "Typische Wärmepumpen benötigen im Heizbetrieb 800–3000 W."
+          }
+        },
+        {
+          "id": "power_hotwater",
+          "type": "number",
+          "label": { "en": "Hot Water (W)", "de": "Warmwasser (W)" },
+          "value": 0,
+          "min": 0,
+          "max": 20000,
+          "hint": {
+            "en": "Typical heat pumps consume 1200–3000 W during hot water heating.",
+            "de": "Typische Wärmepumpen benötigen bei der Warmwasserbereitung 1200–3000 W."
+          }
+        },
+        {
+          "id": "power_swimming",
+          "type": "number",
+          "label": { "en": "Swimming Pool (W)", "de": "Schwimmbad (W)" },
+          "value": 0,
+          "min": 0,
+          "max": 20000,
+          "hint": {
+            "en": "Typical heat pumps consume 800–3000 W during pool heating.",
+            "de": "Typische Wärmepumpen benötigen beim Schwimmbadheizen 800–3000 W."
+          }
+        },
+        {
+          "id": "power_provider_lock",
+          "type": "number",
+          "label": { "en": "EVU Lock (W)", "de": "EVU-Sperre (W)" },
+          "value": 0,
+          "min": 0,
+          "max": 20000,
+          "hint": {
+            "en": "Typical heat pumps consume 10–25 W during EVU lock (controller only).",
+            "de": "Typische Wärmepumpen benötigen während der EVU-Sperre 10–25 W (nur Steuerung)."
+          }
+        },
+        {
+          "id": "power_defrost",
+          "type": "number",
+          "label": { "en": "Defrost (W)", "de": "Abtauen (W)" },
+          "value": 0,
+          "min": 0,
+          "max": 20000,
+          "hint": {
+            "en": "Typical heat pumps consume 1200–3000 W during defrost.",
+            "de": "Typische Wärmepumpen benötigen beim Abtauen 1200–3000 W."
+          }
+        },
+        {
+          "id": "power_off",
+          "type": "number",
+          "label": { "en": "Off (W)", "de": "Aus (W)" },
+          "value": 0,
+          "min": 0,
+          "max": 20000,
+          "hint": {
+            "en": "Typical heat pumps consume 10–25 W when off (controller, controls).",
+            "de": "Typische Wärmepumpen benötigen im Aus-Zustand 10–25 W (Steuerung, Regelung)."
+          }
+        },
+        {
+          "id": "power_external",
+          "type": "number",
+          "label": { "en": "External (W)", "de": "Extern (W)" },
+          "value": 0,
+          "min": 0,
+          "max": 20000,
+          "hint": {
+            "en": "External mode means the auxiliary heater (boiler) is active instead of the heat pump. If the boiler is metered separately, enter only the heat pump's own consumption (controller, pumps), typically 10–100 W.",
+            "de": "Extern bedeutet, dass der Zuheizer (Boiler) aktiv ist und nicht die Wärmepumpe selbst heizt. Wenn der Heizstab separat gemessen wird, hier nur den Verbrauch der Wärmepumpe selbst angeben (Steuerung, Pumpen), typisch 10–100 W."
+          }
+        },
+        {
+          "id": "power_cooling",
+          "type": "number",
+          "label": { "en": "Cooling (W)", "de": "Kühlen (W)" },
+          "value": 0,
+          "min": 0,
+          "max": 20000,
+          "hint": {
+            "en": "Typical heat pumps consume 500–2500 W during cooling.",
+            "de": "Typische Wärmepumpen benötigen im Kühlbetrieb 500–2500 W."
+          }
+        },
+        {
+          "id": "power_standby",
+          "type": "number",
+          "label": { "en": "Standby (W)", "de": "Standby (W)" },
+          "value": 0,
+          "min": 0,
+          "max": 20000,
+          "hint": {
+            "en": "Typical heat pumps consume 10–25 W in standby (controller, controls).",
+            "de": "Typische Wärmepumpen benötigen im Standby 10–25 W (Steuerung, Regelung)."
+          }
+        },
+        {
+          "id": "power_unknown",
+          "type": "number",
+          "label": { "en": "Unknown (W)", "de": "Unbekannt (W)" },
+          "value": 0,
+          "min": 0,
+          "max": 20000
         }
       ]
     }
