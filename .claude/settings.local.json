@@ -11,7 +11,8 @@
       "Bash(for f:*)",
       "Bash(do echo:*)",
       "Read(//c/Users/andi/OneDrive/Documents/GitHub/com.luxtronik.heatpump/**)",
-      "Bash(done)"
+      "Bash(done)",
+      "WebFetch(domain:apps.developer.homey.app)"
     ]
   }
 }

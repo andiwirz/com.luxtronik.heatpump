@@ -328,8 +328,10 @@ class LuxtronikHeatpumpDevice extends Device {
     // _lastState enthält den zuletzt bekannten Status der WP
     if (newSettings.power_sensor_enabled === true && this._lastState) {
       if (!this.hasCapability('measure_power')) {
-        try { await this.addCapability('measure_power'); }
-        catch (e) { this.error('addCapability measure_power:', e.message); }
+        try {
+          await this.addCapability('measure_power');
+          await this.setCapabilityOptions('measure_power', { approximated: true });
+        } catch (e) { this.error('addCapability measure_power:', e.message); }
       }
       const watts = Number(newSettings[`power_${this._lastState}`]) || 0;
       await this._setIfValid('measure_power', watts);
@@ -563,8 +565,10 @@ class LuxtronikHeatpumpDevice extends Device {
     const powerEnabled = this.getSetting('power_sensor_enabled') === true;
     if (powerEnabled) {
       if (!this.hasCapability('measure_power')) {
-        try { await this.addCapability('measure_power'); }
-        catch (e) { this.error('addCapability measure_power:', e.message); }
+        try {
+          await this.addCapability('measure_power');
+          await this.setCapabilityOptions('measure_power', { approximated: true });
+        } catch (e) { this.error('addCapability measure_power:', e.message); }
       }
       const watts = Number(this.getSetting(`power_${stateSlug}`)) || 0;
       await this._setIfValid('measure_power', watts);
