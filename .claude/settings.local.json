@@ -12,7 +12,9 @@
       "Bash(do echo:*)",
       "Read(//c/Users/andi/OneDrive/Documents/GitHub/com.luxtronik.heatpump/**)",
       "Bash(done)",
-      "WebFetch(domain:apps.developer.homey.app)"
+      "WebFetch(domain:apps.developer.homey.app)",
+      "Bash(find C:UsersandiOneDriveDocumentsGitHubcom.luxtronik.heatpumpnode_modulesluxtronik2 -type f -name *.js -o -name *.json)",
+      "Bash(node -e \":*)"
     ]
   }
 }

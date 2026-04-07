@@ -6,7 +6,7 @@ Features
 - Thermostat widgets for hot water and heating: set target temperatures and view actual values directly on the device tile
 - Hot water boost (Auxiliary Heating): start immediate hot water heating via the second heat source with automatic stop when target temperature is reached or time limit expires
 - Hot water boost (Party): same function using Party mode
-- Thermal disinfection: enable continuous disinfection mode for legionella protection directly on the controller (parameter 27), auto-stops at configurable target temperature (default 65 °C)
+- Thermal disinfection: enable continuous disinfection mode for legionella protection directly on the controller (parameter 27), with a dedicated thermostat slider (50–80 °C) that reads and writes the target temperature directly from/to the controller — auto-stops when reached
 - Heating and hot water status sensors: detailed status strings directly from the controller
 - Connection watchdog: monitors polling and marks the device unavailable if the controller stops responding; shows time of last successful poll
 - Comprehensive flow integration: 12 triggers, 13 conditions and 11 actions available in Homey Flows

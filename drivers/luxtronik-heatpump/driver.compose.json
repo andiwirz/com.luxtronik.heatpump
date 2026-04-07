@@ -17,6 +17,7 @@
     "hotwater_boost_party",
     "hotwater_boost",
     "thermal_disinfection_continuous",
+    "target_temperature.tdi",
     "measure_temp_outdoor",
     "measure_temp_hotwater_target",
     "measure_temp_hotwater",
@@ -187,6 +188,17 @@
       "preventInsights": true,
       "preventTag": true
     },
+    "target_temperature.tdi": {
+      "title": {
+        "en": "Thermal Disinfection Setpoint (TDI)",
+        "de": "Thermische Desinfektion Soll (TDI-Solltemp)"
+      },
+      "min": 50,
+      "max": 80,
+      "step": 0.5,
+      "preventInsights": true,
+      "preventTag": true
+    },
     "measure_temperature.heating": {
       "title": {
         "en": "Flow Temperature",
@@ -274,21 +286,6 @@
             "en": "How long the hot water boost runs before switching back to Automatic.",
             "de": "Wie lange die Schnelladung läuft, bevor automatisch zurückgeschaltet wird."
           }
-        },
-        {
-          "id": "thermal_disinfection_target_temp",
-          "type": "number",
-          "label": {
-            "en": "Thermal Disinfection Target Temperature (°C)",
-            "de": "Thermische Desinfektion Zieltemperatur (°C)"
-          },
-          "value": 65,
-          "hint": {
-            "en": "The hot water temperature at which thermal disinfection is automatically disabled (default: 65 °C).",
-            "de": "Warmwassertemperatur bei der die thermische Desinfektion automatisch abschaltet (Standard: 65 °C)."
-          },
-          "min": 60,
-          "max": 70
         },
         {
           "id": "watchdog_timeout",

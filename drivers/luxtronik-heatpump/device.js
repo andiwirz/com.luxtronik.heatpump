@@ -130,7 +130,7 @@ class LuxtronikHeatpumpDevice extends Device {
       }
     }
     // ── Neue Capabilities hinzufügen falls noch nicht vorhanden ─────────────────
-    const NEW_CAPABILITIES = ['hotwater_boost', 'firmware_version', 'thermal_disinfection_continuous', 'hotwater_boost_party', 'target_temperature', 'measure_temperature', 'heating_state_string', 'hotwater_state_string', 'target_temperature.heating', 'measure_temperature.heating', 'last_poll'];
+    const NEW_CAPABILITIES = ['hotwater_boost', 'firmware_version', 'thermal_disinfection_continuous', 'hotwater_boost_party', 'target_temperature', 'measure_temperature', 'heating_state_string', 'hotwater_state_string', 'target_temperature.heating', 'measure_temperature.heating', 'last_poll', 'target_temperature.tdi'];
     for (const cap of NEW_CAPABILITIES) {
       if (!this.hasCapability(cap)) {
         this.log(`Füge neue Capability hinzu: ${cap}`);
@@ -282,6 +282,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (this.hasCapability('heating_temperature_correction')) this.registerCapabilityListener('heating_temperature_correction', async (v) => this._setHeatingTemperatureCorrection(parseFloat(v)));
     this.registerCapabilityListener('target_temperature',               async (v) => this._setWarmwaterTargetTemperature(parseFloat(v)));
     this.registerCapabilityListener('target_temperature.heating',      async (v) => this._setHeatingTemperatureCorrection(parseFloat(v)));
+    this.registerCapabilityListener('target_temperature.tdi',          async (v) => this._setTdiTargetTemperature(parseFloat(v)));
     if (this.hasCapability('warmwater_target_temperature')) this.registerCapabilityListener('warmwater_target_temperature',   async (v) => this._setWarmwaterTargetTemperature(parseFloat(v)));
     this.registerCapabilityListener('hotwater_boost_party',             async (v) => {
       const s = await this.getSettings();
@@ -499,7 +500,7 @@ class LuxtronikHeatpumpDevice extends Device {
     // Thermische Desinfektion: automatisch deaktivieren wenn Zieltemperatur erreicht
     if (this.getCapabilityValue('thermal_disinfection_continuous') === true) {
       const currentTemp = this._n(v.temperature_hot_water);
-      const tdiTarget   = Number((await this.getSettings()).thermal_disinfection_target_temp) || 65;
+      const tdiTarget   = (this.getCapabilityValue('target_temperature.tdi') ?? 65) - 0.1;
       if (currentTemp !== null && currentTemp >= tdiTarget) {
         this.log(`Thermische Desinfektion: ${tdiTarget}°C erreicht (${currentTemp}°C) — deaktiviere Dauerbetrieb`);
         await this._setThermalDisinfectionContinuous(false).catch((e) => this.error('TDI auto-off fehlgeschlagen:', e.message));
@@ -654,6 +655,9 @@ class LuxtronikHeatpumpDevice extends Device {
     const wwTarget = p.warmwater_temperature ?? p.temperature_hot_water_target;
     // Mirror → built-in target_temperature (Thermostat-Widget Hot Water Setpoint)
     await this._setIfValid('target_temperature', this._n(wwTarget));
+
+    // Thermische Desinfektion Soll (TDI): parameter 47 = temperature_hot_water_limit
+    await this._setIfValid('target_temperature.tdi', this._n(p.temperature_hot_water_limit));
   }
 
   // ─── Setzer ────────────────────────────────────────────────────────────────
@@ -691,6 +695,37 @@ class LuxtronikHeatpumpDevice extends Device {
     this._setWriteProtect('target_temperature', 120000);
     await this._write('warmwater_target_temperature', clamped);
     this.log(`Brauchwasser Soll-Temperatur erfolgreich gesendet: ${clamped} °C`);
+  }
+
+  async _setTdiTargetTemperature(value) {
+    // parameter 47 = temperature_hot_water_limit; kein Named-Write in luxtronik2 → _startWrite direkt
+    const clamped = Math.min(80, Math.max(50, Math.round(value * 2) / 2));
+    this.log(`Setze TDI-Solltemperatur: ${clamped} °C (parameter 47)`);
+    await this.setCapabilityValue('target_temperature.tdi', clamped).catch(() => {});
+    this._setWriteProtect('target_temperature.tdi', 120000);
+    await this._writeRaw(47, Math.round(clamped * 10));
+    this.log(`TDI-Solltemperatur erfolgreich gesendet: ${clamped} °C`);
+  }
+
+  _writeRaw(parameterIndex, setValue) {
+    return new Promise((resolve, reject) => {
+      if (!this._pump) { reject(new Error('Nicht verbunden')); return; }
+      this._stopPolling();
+      this.log(`_writeRaw: parameter[${parameterIndex}] = ${setValue} (Polling pausiert)`);
+      setTimeout(() => {
+        this._pump._startWrite(parameterIndex, setValue, (err, res) => {
+          this._startPolling();
+          if (err) {
+            const msg = (err && err.message) ? err.message : String(err);
+            this.error(`WriteRaw-Fehler (param${parameterIndex}=${setValue}): ${msg}`);
+            reject(new Error(msg));
+          } else {
+            this.log(`WriteRaw OK: param[${parameterIndex}]=${setValue}`, JSON.stringify(res));
+            resolve(res);
+          }
+        });
+      }, 200);
+    });
   }
 
   // ─── Schnelladung ─────────────────────────────────────────────────────────────

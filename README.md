@@ -59,6 +59,7 @@ Diese App kommuniziert mit dem **Luxtronik 2.0 / 2.1** Controller, der in Wärme
 | **Schnellladung (Zuheizung)**      | Toggle – Zuheizer-Modus, automatische Abschaltung            |
 | **Schnellladung (Party)**          | Toggle – Party-Modus, automatische Abschaltung               |
 | **Thermische Desinfektion**        | Toggle – Dauerbetrieb, auto. Abschaltung bei Zieltemperatur  |
+| **TDI-Solltemperatur**             | Zieltemperatur für thermische Desinfektion: 50–80 °C         |
 
 ---
 
@@ -82,7 +83,7 @@ Beide Varianten:
 Aktiviert den Dauerbetrieb (Parameter 27) für den Legionellenschutz:
 
 - Nach jeder Warmwasserbereitung folgt automatisch eine thermische Desinfektion
-- Schaltet automatisch ab wenn die Warmwassertemperatur ≥ Zieltemperatur (konfigurierbar, Standard: 65 °C)
+- Schaltet automatisch ab wenn die Warmwassertemperatur ≥ TDI-Solltemperatur (direkt vom Controller gelesen, einstellbar über den Thermostat-Schieberegler „Thermische Desinfektion Soll", 50–80 °C)
 - Manuelles Beenden jederzeit möglich
 - Löst den Flow-Trigger „Thermische Desinfektion beendet" aus
 
@@ -122,7 +123,6 @@ Aktiviert den Dauerbetrieb (Parameter 27) für den Legionellenschutz:
 | Port                                | 8889     | TCP-Port des Controllers                              |
 | Abfrageintervall (Sekunden)         | 60       | Wie oft die Wärmepumpe abgefragt wird (min. 10 s)    |
 | Schnellladung Dauer (Minuten)       | 60       | Maximale Laufzeit beider Schnellladungs-Modi          |
-| Desinfektion Zieltemperatur (°C)    | 65       | Abschalttemperatur der thermischen Desinfektion (60–70 °C) |
 
 ---
 
