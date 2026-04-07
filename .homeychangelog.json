@@ -88,5 +88,8 @@
   },
   "2.0.25": {
     "en": "new function: Power sensor (estimated value)"
+  },
+  "2.0.26": {
+    "en": "Add thermal disinfection setpoint thermostat (TDI) — reads and writes temperature_hot_water_limit (parameter 47) directly from/to the controller; replaces the local app setting with a live slider (50–80 °C) that also controls the auto-stop threshold"
   }
 }
