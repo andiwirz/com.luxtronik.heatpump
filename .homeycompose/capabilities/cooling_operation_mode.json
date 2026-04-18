@@ -1,0 +1,28 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "Cooling Operation Mode",
+    "de": "Kühlbetrieb Betriebsart"
+  },
+  "values": [
+    {
+      "id": "0",
+      "title": {
+        "en": "Off",
+        "de": "Aus"
+      }
+    },
+    {
+      "id": "1",
+      "title": {
+        "en": "Automatic",
+        "de": "Automatik"
+      }
+    }
+  ],
+  "getable": true,
+  "setable": true,
+  "uiComponent": "picker",
+  "insights": false,
+  "icon": "/assets/capabilities/operational_state.svg"
+}

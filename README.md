@@ -2,17 +2,17 @@
 
 **App ID:** `com.luxtronik.heatpump`  
 **SDK:** Homey SDK 3  
-**Kompatibel mit:** Homey Pro (Early 2023), Homey Pro (2019), Homey Bridge (Firmware >= 11.0.0)
+**Compatible with:** Homey Pro (Early 2023), Homey Pro (2019), Homey Bridge (Firmware >= 11.0.0)
 
 ---
 
-## Unterstützte Wärmepumpen
+## Supported Heat Pumps
 
-Diese App kommuniziert mit dem **Luxtronik 2.0 / 2.1** Controller, der in Wärmepumpen folgender Hersteller verbaut ist:
+This app communicates with the **Luxtronik 2.0 / 2.1** controller, which is built into heat pumps from the following manufacturers:
 
-| Hersteller        | Beispiel-Modelle                       |
+| Manufacturer      | Example Models                         |
 |-------------------|----------------------------------------|
-| Alpha Innotec     | LW/SW/WZS-Serie                        |
+| Alpha Innotec     | LW/SW/WZS series                       |
 | Siemens Novelan   | WPR NET                                |
 | Roth              | ThermoAura, ThermoTerra               |
 | Elco              | Aquatop, Aerotop                      |
@@ -23,229 +23,229 @@ Diese App kommuniziert mit dem **Luxtronik 2.0 / 2.1** Controller, der in Wärme
 
 ---
 
-## Funktionsübersicht
+## Feature Overview
 
-### Lesbare Werte (Sensoren)
+### Readable Values (Sensors)
 
-| Capability                                         | Beschreibung                              |
-|----------------------------------------------------|-------------------------------------------|
-| Wärmepumpen-Status                                 | Heizen / Warmwasser / Abtauen / Standby / EVU-Sperre / … |
-| Heizung Status                                     | Detaillierter Heizungsstatus vom Controller (Extended State String) |
-| Warmwasser Status                                  | Sperrzeit / Aufheizen / Temp. OK / Aus    |
-| Aussentemperatur                                   | Aktuell + gleitender 24h-Mittelwert       |
-| Vorlauftemperatur                                  | Heizkreis Vorlauf                         |
-| Rücklauftemperatur                                 | Heizkreis Rücklauf + Sollwert             |
-| Heissgastemperatur                                 | Verdichter Austritt                       |
-| Warmwassertemperatur                               | Ist-Temperatur                            |
-| Warmwasser Soll-Temperatur (gelesen)               | Vom Controller gelesener Sollwert         |
-| Wärmequelle Eingang / Ausgang                      | Sole- / Lufttemperatur                    |
-| Ansauglufttemperatur                               | Nur bei Luft-Wärmepumpen                 |
-| Raumtemperatur Ist / Soll                          | Nur mit angeschlossenem RBE-Raumdisplay   |
-| Volumenstrom                                       | l/h (Wärmequelle)                         |
-| Energie Heizung / Warmwasser / Gesamt              | kWh                                       |
-| Betriebsstunden Verdichter / Heizung / Warmwasser  | Stunden                                   |
-| Fehleralarm                                        | Fehler aktiv: Ja / Nein                   |
-| Letzte Abfrage                                     | Uhrzeit des letzten erfolgreichen Polls (lokale Zeit) |
-| Firmware-Version                                   | Softwarestand des Controllers             |
+| Capability                                         | Description                              |
+|----------------------------------------------------|------------------------------------------|
+| Heat Pump Status                                   | Heating / Hot Water / Defrost / Standby / EVU Lock / … |
+| Heating Status                                     | Detailed heating status from the controller (Extended State String) |
+| Hot Water Status                                   | Lock Period / Heating Up / Temp. OK / Off |
+| Outdoor Temperature                                | Current + rolling 24h average            |
+| Flow Temperature                                   | Heating circuit flow                     |
+| Return Temperature                                 | Heating circuit return + setpoint        |
+| Hot Gas Temperature                                | Compressor outlet                        |
+| Hot Water Temperature                              | Actual temperature                       |
+| Hot Water Target Temperature (read)                | Setpoint read from the controller        |
+| Heat Source Inlet / Outlet                         | Brine / air temperature                  |
+| Suction Air Temperature                            | Air-source heat pumps only               |
+| Room Temperature Actual / Target                   | Only with connected RBE room display     |
+| Volume Flow                                        | l/h (heat source)                        |
+| Energy Heating / Hot Water / Total                 | kWh                                      |
+| Operating Hours Compressor / Heating / Hot Water   | Hours                                    |
+| Error Alarm                                        | Error active: Yes / No                   |
+| Last Poll                                          | Time of last successful poll (local time)|
+| Firmware Version                                   | Controller software version              |
 
-### Steuerbare Werte
+### Controllable Values
 
-| Capability                         | Wertebereich / Optionen                                      |
+| Capability                         | Range / Options                                              |
 |------------------------------------|--------------------------------------------------------------|
-| **Warmwasser Thermostat**          | Soll: 30–65 °C · Ist: aktuelle Warmwassertemperatur         |
-| **Heizungs Thermostat**            | Korrektur: −5 bis +5 °C · Ist: aktuelle Vorlauftemperatur   |
-| **Heizungs-Betriebsart**           | Automatik · Zuheizer · Party · Ferien · Aus                  |
-| **Brauchwasser-Betriebsart**       | Automatik · Zuheizer · Party · Ferien · Aus                  |
-| **Schnellladung (Zuheizung)**      | Toggle – Zuheizer-Modus, automatische Abschaltung            |
-| **Schnellladung (Party)**          | Toggle – Party-Modus, automatische Abschaltung               |
-| **Thermische Desinfektion**        | Toggle – Dauerbetrieb, auto. Abschaltung bei Zieltemperatur  |
-| **TDI-Solltemperatur**             | Zieltemperatur für thermische Desinfektion: 50–80 °C         |
+| **Hot Water Thermostat**           | Setpoint: 30–65 °C · Actual: current hot water temperature   |
+| **Heating Thermostat**             | Correction: −5 to +5 °C · Actual: current flow temperature  |
+| **Heating Operation Mode**         | Automatic · Auxiliary · Party · Holiday · Off               |
+| **Hot Water Operation Mode**       | Automatic · Auxiliary · Party · Holiday · Off               |
+| **Hot Water Boost (Auxiliary)**    | Toggle – auxiliary mode, automatic stop                      |
+| **Hot Water Boost (Party)**        | Toggle – party mode, automatic stop                          |
+| **Thermal Disinfection**           | Toggle – continuous mode, auto-stop at target temperature    |
+| **TDI Setpoint**                   | Target temperature for thermal disinfection: 50–80 °C        |
 
 ---
 
-## Brauchwasser Schnellladung
+## Hot Water Boost
 
-Zwei Modi stehen zur Verfügung:
+Two modes are available:
 
-**Schnellladung (Zuheizung):** Setzt die Brauchwasser-Betriebsart auf „Zuheizer"  
-**Schnellladung (Party):** Setzt die Brauchwasser-Betriebsart auf „Party"
+**Boost (Auxiliary Heating):** Sets the hot water operation mode to "Auxiliary"  
+**Boost (Party):** Sets the hot water operation mode to "Party"
 
-Beide Varianten:
-- Schalten automatisch ab wenn die Warmwassertemperatur die Soll-Temperatur erreicht
-- Schalten nach der konfigurierten Maximaldauer ab (Standard: 60 Min., einstellbar in den Geräteeinstellungen)
-- Setzen die Betriebsart danach zurück auf „Automatik"
-- Lösen den Flow-Trigger „Schnellladung beendet" bei automatischer Abschaltung aus
-
----
-
-## Thermische Desinfektion
-
-Aktiviert den Dauerbetrieb (Parameter 27) für den Legionellenschutz:
-
-- Nach jeder Warmwasserbereitung folgt automatisch eine thermische Desinfektion
-- Schaltet automatisch ab wenn die Warmwassertemperatur ≥ TDI-Solltemperatur (direkt vom Controller gelesen, einstellbar über den Thermostat-Schieberegler „Thermische Desinfektion Soll", 50–80 °C)
-- Manuelles Beenden jederzeit möglich
-- Löst den Flow-Trigger „Thermische Desinfektion beendet" aus
-
-> **Hinweis:** Setzt einen angeschlossenen zweiten Wärmeerzeuger (ZWE) voraus.
+Both variants:
+- Stop automatically when the hot water temperature reaches the target temperature
+- Stop after the configured maximum duration (default: 60 min., configurable in device settings)
+- Reset the operation mode back to "Automatic" afterwards
+- Fire the flow trigger "Hot Water Boost Ended" on automatic stop
 
 ---
 
-## Verbindungs-Watchdog
+## Thermal Disinfection
 
-- **Poll-Timeout (30s):** Keine Antwort innerhalb von 30 Sekunden → Gerät sofort als unavailable markiert
-- **Watchdog-Timer:** Prüft jede Minute ob der letzte erfolgreiche Poll zu lange zurückliegt (Schwellwert: 3× Polling-Intervall)
-- **Letzte Abfrage:** Capability zeigt die Uhrzeit des letzten erfolgreichen Polls in lokaler Zeit
-- Gerät wird automatisch wieder als available markiert sobald der Controller antwortet
+Activates continuous operation (parameter 27) for legionella protection:
+
+- After each hot water heating cycle, thermal disinfection follows automatically
+- Stops automatically when the hot water temperature ≥ TDI setpoint (read directly from the controller, adjustable via the "Thermal Disinfection Setpoint" thermostat slider, 50–80 °C)
+- Manual stop possible at any time
+- Fires the flow trigger "Thermal Disinfection Ended"
+
+> **Note:** Requires a connected second heat source (auxiliary heater).
+
+---
+
+## Connection Watchdog
+
+- **Poll Timeout (30s):** No response within 30 seconds → device immediately marked as unavailable
+- **Watchdog Timer:** Checks every minute whether the last successful poll is too far in the past (threshold: 3× polling interval)
+- **Last Poll:** Capability shows the time of the last successful poll in local time
+- Device is automatically marked as available again as soon as the controller responds
 
 ---
 
 ## Installation
 
-### Voraussetzungen
+### Requirements
 
-- Luxtronik 2.0 / 2.1 Controller über LAN erreichbar
-- Statische IP-Adresse empfohlen (DHCP-Reservierung im Router einrichten)
-- Standard-Port: **8889** (TCP)
+- Luxtronik 2.0 / 2.1 controller reachable via LAN
+- Static IP address recommended (set up DHCP reservation in your router)
+- Default port: **8889** (TCP)
 
-### Einrichtung in Homey
+### Setup in Homey
 
-1. App aus dem Homey App Store installieren
-2. Gerät hinzufügen: **Geräte → + → Luxtronik Wärmepumpen Manager**
-3. IP-Adresse und Port (Standard: 8889) eingeben
-4. Verbindungstest – bei Erfolg wird das Gerät angelegt
+1. Install the app from the Homey App Store
+2. Add device: **Devices → + → Luxtronik Heat Pump Manager**
+3. Enter IP address and port (default: 8889)
+4. Connection test – if successful, the device is created
 
-### Geräteeinstellungen
+### Device Settings
 
-| Einstellung                         | Standard | Beschreibung                                          |
-|-------------------------------------|----------|-------------------------------------------------------|
-| IP-Adresse                          | –        | IP des Luxtronik-Controllers                          |
-| Port                                | 8889     | TCP-Port des Controllers                              |
-| Abfrageintervall (Sekunden)         | 60       | Wie oft die Wärmepumpe abgefragt wird (min. 10 s)    |
-| Schnellladung Dauer (Minuten)       | 60       | Maximale Laufzeit beider Schnellladungs-Modi          |
+| Setting                             | Default  | Description                                          |
+|-------------------------------------|----------|------------------------------------------------------|
+| IP Address                          | –        | IP of the Luxtronik controller                       |
+| Port                                | 8889     | TCP port of the controller                           |
+| Poll Interval (seconds)             | 60       | How often the heat pump is queried (min. 10 s)       |
+| Hot Water Boost Duration (minutes)  | 60       | Maximum runtime for both boost modes                 |
 
 ---
 
-## Flow-Karten
+## Flow Cards
 
-### Auslöser (Triggers)
+### Triggers
 
-| Karte                                      | Token      | Beschreibung                                  |
+| Card                                       | Token      | Description                                   |
 |--------------------------------------------|------------|-----------------------------------------------|
-| Heizungs-Betriebsart geändert              | `mode`     | Neue Betriebsart als Text                     |
-| Brauchwasser-Betriebsart geändert          | `mode`     | Neue Betriebsart als Text                     |
-| Wärmepumpen-Status geändert                | `state`    | Neuer Status als Text                         |
-| Fehler aufgetreten                         | `error`    | Fehlermeldung als Text                        |
-| Fehler quittiert                           | –          | Wenn Fehler wieder verschwindet               |
-| Schnellladung (Zuheizung) beendet          | –          | Bei automatischer Abschaltung                 |
-| Schnellladung (Party) beendet              | –          | Bei automatischer Abschaltung                 |
-| Thermische Desinfektion beendet            | –          | Bei automatischer Abschaltung                 |
-| Gerät nicht erreichbar                     | –          | Wenn Watchdog anschlägt                       |
-| Gerät wieder erreichbar                    | –          | Wenn Verbindung wiederhergestellt             |
-| Aussentemperatur fiel unter … °C           | Schwellwert| Schwellwert-Vergleich mit aktuellem Wert      |
-| Aussentemperatur stieg über … °C           | Schwellwert| Schwellwert-Vergleich mit aktuellem Wert      |
+| Heating Operation Mode Changed             | `mode`     | New mode as text                              |
+| Hot Water Operation Mode Changed           | `mode`     | New mode as text                              |
+| Heat Pump Status Changed                   | `state`    | New status as text                            |
+| Error Occurred                             | `error`    | Error message as text                         |
+| Error Cleared                              | –          | When the error disappears                     |
+| Hot Water Boost (Auxiliary) Ended          | –          | On automatic stop                             |
+| Hot Water Boost (Party) Ended              | –          | On automatic stop                             |
+| Thermal Disinfection Ended                 | –          | On automatic stop                             |
+| Device Unavailable                         | –          | When watchdog triggers                        |
+| Device Available                           | –          | When connection is restored                   |
+| Outdoor Temperature Dropped Below … °C    | Threshold  | Threshold comparison with current value       |
+| Outdoor Temperature Rose Above … °C       | Threshold  | Threshold comparison with current value       |
 
-### Bedingungen (Conditions)
+### Conditions
 
-| Karte                                      | Parameter              |
+| Card                                       | Parameter              |
 |--------------------------------------------|------------------------|
-| Heizungs-Betriebsart ist …                 | Dropdown               |
-| Brauchwasser-Betriebsart ist …             | Dropdown               |
-| Wärmepumpen-Status ist …                   | Dropdown               |
-| Heizung Status ist …                       | Freitext               |
-| Warmwasser Status ist …                    | Dropdown (4 Werte)     |
-| Warmwassertemperatur ist über … °C         | Zahl                   |
-| Warmwassertemperatur ist unter … °C        | Zahl                   |
-| Aussentemperatur ist über … °C             | Zahl                   |
-| Aussentemperatur ist unter … °C            | Zahl                   |
-| Thermische Desinfektion ist aktiv          | –                      |
-| Schnellladung (Zuheizung) ist aktiv        | –                      |
-| Schnellladung (Party) ist aktiv            | –                      |
-| Gerät ist erreichbar                       | –                      |
+| Heating Operation Mode Is …               | Dropdown               |
+| Hot Water Operation Mode Is …             | Dropdown               |
+| Heat Pump Status Is …                     | Dropdown               |
+| Heating Status Is …                       | Free text              |
+| Hot Water Status Is …                     | Dropdown (4 values)    |
+| Hot Water Temperature Is Above … °C       | Number                 |
+| Hot Water Temperature Is Below … °C       | Number                 |
+| Outdoor Temperature Is Above … °C         | Number                 |
+| Outdoor Temperature Is Below … °C         | Number                 |
+| Thermal Disinfection Is Active            | –                      |
+| Hot Water Boost (Auxiliary) Is Active     | –                      |
+| Hot Water Boost (Party) Is Active         | –                      |
+| Device Is Available                       | –                      |
 
-### Aktionen (Actions)
+### Actions
 
-| Karte                                              | Parameter                      |
+| Card                                               | Parameter                      |
 |----------------------------------------------------|--------------------------------|
-| Heizungs-Betriebsart setzen                        | Dropdown (Automatik … Aus)     |
-| Brauchwasser-Betriebsart setzen                    | Dropdown (Automatik … Aus)     |
-| Heizungs-Temperaturkorrektur setzen                | Zahl: −5 … +5 °C               |
-| Brauchwasser Soll-Temperatur setzen                | Zahl: 30 … 65 °C               |
-| Brauchwasser Soll-Temperatur anpassen (relativ)    | Offset: −20 … +20 °C           |
-| Schnellladung (Zuheizung) starten                  | Dauer in Minuten (5–480)       |
-| Schnellladung (Zuheizung) stoppen                  | –                              |
-| Schnellladung (Party) starten                      | Dauer in Minuten (5–480)       |
-| Schnellladung (Party) stoppen                      | –                              |
-| Thermische Desinfektion aktivieren                 | –                              |
-| Thermische Desinfektion deaktivieren               | –                              |
+| Set Heating Operation Mode                         | Dropdown (Automatic … Off)     |
+| Set Hot Water Operation Mode                       | Dropdown (Automatic … Off)     |
+| Set Heating Temperature Correction                 | Number: −5 … +5 °C             |
+| Set Hot Water Target Temperature                   | Number: 30 … 65 °C             |
+| Adjust Hot Water Target Temperature (relative)     | Offset: −20 … +20 °C           |
+| Start Hot Water Boost (Auxiliary)                  | Duration in minutes (5–480)    |
+| Stop Hot Water Boost (Auxiliary)                   | –                              |
+| Start Hot Water Boost (Party)                      | Duration in minutes (5–480)    |
+| Stop Hot Water Boost (Party)                       | –                              |
+| Enable Thermal Disinfection                        | –                              |
+| Disable Thermal Disinfection                       | –                              |
 
 ---
 
-## Betriebsart-Codes (Referenz)
+## Operation Mode Codes (Reference)
 
-| Code | Heizung    | Brauchwasser |
-|------|------------|--------------|
-| 0    | Automatik  | Automatik    |
-| 1    | Zuheizer   | Zuheizer     |
-| 2    | Party      | Party        |
-| 3    | Ferien     | Ferien       |
-| 4    | Aus        | Aus          |
+| Code | Heating    | Hot Water  |
+|------|------------|------------|
+| 0    | Automatic  | Automatic  |
+| 1    | Auxiliary  | Auxiliary  |
+| 2    | Party      | Party      |
+| 3    | Holiday    | Holiday    |
+| 4    | Off        | Off        |
 
 ---
 
-## Wärmepumpen-Status-Codes (Referenz)
+## Heat Pump Status Codes (Reference)
 
-| Slug            | Bedeutung                     |
+| Slug            | Meaning                       |
 |-----------------|-------------------------------|
-| `heating`       | Heizen                        |
-| `hotwater`      | Warmwasserbereitung           |
-| `swimming`      | Schwimmbadheizung             |
-| `provider_lock` | EVU-Sperre                    |
-| `defrost`       | Abtauen                       |
-| `off`           | Aus                           |
-| `external`      | Extern (2. Wärmeerzeuger)     |
-| `cooling`       | Kühlen                        |
-| `standby`       | Bereitschaft                  |
+| `heating`       | Heating                       |
+| `hotwater`      | Hot water heating             |
+| `swimming`      | Swimming pool heating         |
+| `provider_lock` | EVU lock                      |
+| `defrost`       | Defrost                       |
+| `off`           | Off                           |
+| `external`      | External (2nd heat source)    |
+| `cooling`       | Cooling                       |
+| `standby`       | Standby                       |
 
 ---
 
-## Hinweise & Warnungen
+## Notes & Warnings
 
-> ⚠️ **Vorsicht:** Falsche Einstellungen können die Wärmepumpe in einen Fehlerzustand versetzen. Änderungen nur vornehmen, wenn die Funktion des Parameters bekannt ist.
+> ⚠️ **Caution:** Incorrect settings can put the heat pump into an error state. Only make changes if the function of the parameter is known.
 
-- Die Thermostat-Korrektur (`target_temperature.heating`) verschiebt die Heizkurve um den eingestellten Wert. Positive Werte → wärmer, negative Werte → kühler.
-- Alle Schreiboperationen werden sofort an den Controller gesendet.
-- Der Write-Schutz verhindert dass Polling-Zyklen manuell gesetzte Werte sofort überschreiben (120s Schutzfenster).
+- The thermostat correction (`target_temperature.heating`) shifts the heating curve by the set value. Positive values → warmer, negative values → cooler.
+- All write operations are sent to the controller immediately.
+- Write protection prevents polling cycles from immediately overwriting manually set values (120s protection window).
 
 ---
 
-## Technischer Hintergrund
+## Technical Background
 
-Die App kommuniziert über TCP (Port 8889) direkt mit dem Luxtronik-Controller.  
-Als Protokoll-Bibliothek wird [`luxtronik2`](https://www.npmjs.com/package/luxtronik2) verwendet.
+The app communicates via TCP (port 8889) directly with the Luxtronik controller.  
+The protocol library used is [`luxtronik2`](https://www.npmjs.com/package/luxtronik2).
 
-Parameter-Referenz:
+Parameter reference:
 - [Bouni/python-luxtronik – parameters.py](https://github.com/Bouni/python-luxtronik/blob/master/luxtronik/parameters.py)
 - [Bouni/python-luxtronik – calculations.py](https://github.com/Bouni/python-luxtronik/blob/master/luxtronik/calculations.py)
 - [FHEM Luxtronik Wiki (DE)](https://wiki.fhem.de/wiki/Luxtronik_2.0)
 
 ---
 
-## Lizenz
+## License
 
-MIT License – siehe [LICENSE](LICENSE)
-
----
-
-## 🤖 KI-Entwicklung
-
-Diese App wurde vollständig mit Hilfe von **Claude (Anthropic AI)** entwickelt.
+MIT License – see [LICENSE](LICENSE)
 
 ---
 
-## 🙏 Danksagungen
+## 🤖 AI Development
+
+This app was developed entirely with the help of **Claude (Anthropic AI)**.
+
+---
+
+## 🙏 Acknowledgements
 
 - [RobinFlikkema/homey-luxtronik](https://github.com/RobinFlikkema/homey-luxtronik)
-- [coolchip/luxtronik2](https://github.com/coolchip/luxtronik2) (npm-Paket)
-- [BenPru/luxtronik](https://github.com/BenPru/luxtronik) (Home Assistant Integration)
+- [coolchip/luxtronik2](https://github.com/coolchip/luxtronik2) (npm package)
+- [BenPru/luxtronik](https://github.com/BenPru/luxtronik) (Home Assistant integration)
 - [Bouni/luxtronik](https://github.com/Bouni/luxtronik)

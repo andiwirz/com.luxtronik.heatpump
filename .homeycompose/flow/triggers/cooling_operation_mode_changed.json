@@ -1,0 +1,24 @@
+{
+  "id": "cooling_operation_mode_changed",
+  "title": {
+    "en": "Cooling mode changed",
+    "de": "Kühlbetrieb-Betriebsart geändert"
+  },
+  "tokens": [
+    {
+      "name": "mode",
+      "type": "string",
+      "title": {
+        "en": "Mode",
+        "de": "Betriebsart"
+      }
+    }
+  ],
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=luxtronik-heatpump"
+    }
+  ]
+}

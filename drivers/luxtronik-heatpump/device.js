@@ -168,8 +168,10 @@ class LuxtronikHeatpumpDevice extends Device {
     this._pump         = null;
     this._timer        = null;
     this._lastState    = null;
+    this._lastPollTime = null;
     this._lastHeatingMode   = null;
     this._lastWarmwaterMode = null;
+    this._lastCoolingMode   = null;
     this._lastErrorState    = false;
     // Timestamp map: nach einem Write diese Capability für 2 Polls nicht überschreiben
     this._writeProtectUntil = {};
@@ -183,6 +185,7 @@ class LuxtronikHeatpumpDevice extends Device {
     // Flow-Trigger
     this._triggerHeatingModeChanged  = this.homey.flow.getDeviceTriggerCard('heating_operation_mode_changed');
     this._triggerWarmwaterModeChanged = this.homey.flow.getDeviceTriggerCard('warmwater_operation_mode_changed');
+    this._triggerCoolingModeChanged   = this.homey.flow.getDeviceTriggerCard('cooling_operation_mode_changed');
     this._triggerStateChanged         = this.homey.flow.getDeviceTriggerCard('heatpump_state_changed');
     this._triggerErrorOccurred        = this.homey.flow.getDeviceTriggerCard('error_occurred');
     this._triggerBoostEnded           = this.homey.flow.getDeviceTriggerCard('hotwater_boost_ended');
@@ -202,6 +205,9 @@ class LuxtronikHeatpumpDevice extends Device {
 
     this.homey.flow.getConditionCard('warmwater_operation_mode_is')
       .registerRunListener((args) => String(this.getCapabilityValue('warmwater_operation_mode')) === String(args.mode));
+
+    this.homey.flow.getConditionCard('cooling_operation_mode_is')
+      .registerRunListener((args) => String(this.getCapabilityValue('cooling_operation_mode')) === String(args.mode));
 
     this.homey.flow.getConditionCard('heatpump_state_is')
       .registerRunListener((args) => this.getCapabilityValue('heatpump_state') === args.state);
@@ -251,6 +257,9 @@ class LuxtronikHeatpumpDevice extends Device {
     this.homey.flow.getActionCard('set_warmwater_operation_mode')
       .registerRunListener(async (args) => this._setWarmwaterOperationMode(parseInt(args.mode, 10)));
 
+    this.homey.flow.getActionCard('set_cooling_operation_mode')
+      .registerRunListener(async (args) => this._setCoolingOperationMode(parseInt(args.mode, 10)));
+
     this.homey.flow.getActionCard('set_heating_temperature_correction')
       .registerRunListener(async (args) => this._setHeatingTemperatureCorrection(parseFloat(args.value)));
 
@@ -279,6 +288,7 @@ class LuxtronikHeatpumpDevice extends Device {
     // Capability-Listener (UI)
     this.registerCapabilityListener('heating_operation_mode',        async (v) => this._setHeatingOperationMode(parseInt(v, 10)));
     this.registerCapabilityListener('warmwater_operation_mode',       async (v) => this._setWarmwaterOperationMode(parseInt(v, 10)));
+    this.registerCapabilityListener('cooling_operation_mode',         async (v) => this._setCoolingOperationMode(parseInt(v, 10)));
     if (this.hasCapability('heating_temperature_correction')) this.registerCapabilityListener('heating_temperature_correction', async (v) => this._setHeatingTemperatureCorrection(parseFloat(v)));
     this.registerCapabilityListener('target_temperature',               async (v) => this._setWarmwaterTargetTemperature(parseFloat(v)));
     this.registerCapabilityListener('target_temperature.heating',      async (v) => this._setHeatingTemperatureCorrection(parseFloat(v)));
@@ -339,6 +349,13 @@ class LuxtronikHeatpumpDevice extends Device {
     } else if (newSettings.power_sensor_enabled === false && this.hasCapability('measure_power')) {
       try { await this.removeCapability('measure_power'); }
       catch (e) { this.error('removeCapability measure_power:', e.message); }
+    }
+
+    // meter_power entfernen wenn Bedingungen nicht mehr erfüllt
+    if (!this._meterPowerActive(newSettings) && this.hasCapability('meter_power')) {
+      try { await this.removeCapability('meter_power'); }
+      catch (e) { this.error('removeCapability meter_power:', e.message); }
+      this._lastPollTime = null;
     }
 
     this._connectPump();
@@ -500,7 +517,7 @@ class LuxtronikHeatpumpDevice extends Device {
     // Thermische Desinfektion: automatisch deaktivieren wenn Zieltemperatur erreicht
     if (this.getCapabilityValue('thermal_disinfection_continuous') === true) {
       const currentTemp = this._n(v.temperature_hot_water);
-      const tdiTarget   = (this.getCapabilityValue('target_temperature.tdi') ?? 65) - 0.1;
+      const tdiTarget   = (this.getCapabilityValue('target_temperature.tdi') ?? 65) - 1;
       if (currentTemp !== null && currentTemp >= tdiTarget) {
         this.log(`Thermische Desinfektion: ${tdiTarget}°C erreicht (${currentTemp}°C) — deaktiviere Dauerbetrieb`);
         await this._setThermalDisinfectionContinuous(false).catch((e) => this.error('TDI auto-off fehlgeschlagen:', e.message));
@@ -544,7 +561,20 @@ class LuxtronikHeatpumpDevice extends Device {
 
     // ── Kühlung (nur wenn Kühlung freigegeben) ───────────────────────────────
     // FreigabKuehl: 0 = gesperrt, 1 = freigegeben
-    await this._setCapabilityConditional('measure_hours_cooling', this._n(v.hours_cooling), v.FreigabKuehl === 1);
+    const coolingEnabled = v.FreigabKuehl === 1;
+    await this._setCapabilityConditional('measure_hours_cooling', this._n(v.hours_cooling), coolingEnabled);
+    if (coolingEnabled) {
+      const coolingMode = this._int(p.cooling_operation_mode) ?? 0;
+      const coolingModeStr = String(coolingMode);
+      await this._setCapabilityConditional('cooling_operation_mode', coolingModeStr, true);
+      if (this._lastCoolingMode !== null && this._lastCoolingMode !== coolingModeStr) {
+        const label = coolingMode === 1 ? 'Automatic' : 'Off';
+        await this._triggerCoolingModeChanged.trigger(this, { mode: label }).catch(() => {});
+      }
+      this._lastCoolingMode = coolingModeStr;
+    } else {
+      await this._setCapabilityConditional('cooling_operation_mode', null, false);
+    }
 
     // ── Wärmepumpen-Status ───────────────────────────────────────────────────
     // state3 = detaillierter Betriebsstatus; state1 = grober Status (für Fehler)
@@ -576,6 +606,33 @@ class LuxtronikHeatpumpDevice extends Device {
     } else if (this.hasCapability('measure_power')) {
       try { await this.removeCapability('measure_power'); }
       catch (e) { this.error('removeCapability measure_power:', e.message); }
+    }
+
+    // ── Kumulierter Energiezähler (meter_power) ──────────────────────────────
+    // Nur aktiv wenn power_sensor_enabled=true UND Heizen/Warmwasser/Standby > 0
+    const meterActive = this._meterPowerActive();
+    if (meterActive) {
+      if (!this.hasCapability('meter_power')) {
+        try { await this.addCapability('meter_power'); }
+        catch (e) { this.error('addCapability meter_power:', e.message); }
+      }
+      const now = Date.now();
+      if (this._lastPollTime !== null) {
+        const elapsedHours = (now - this._lastPollTime) / 3600000;
+        const watts        = Number(this.getSetting(`power_${stateSlug}`)) || 0;
+        const kwhIncrement = watts * elapsedHours / 1000;
+        const currentKwh   = (await this.getStoreValue('meter_power_kwh')) || 0;
+        const newKwh       = Math.round((currentKwh + kwhIncrement) * 10000) / 10000;
+        await this.setStoreValue('meter_power_kwh', newKwh);
+        await this._setIfValid('meter_power', newKwh);
+      }
+      this._lastPollTime = now;
+    } else {
+      this._lastPollTime = null;
+      if (this.hasCapability('meter_power')) {
+        try { await this.removeCapability('meter_power'); }
+        catch (e) { this.error('removeCapability meter_power:', e.message); }
+      }
     }
 
     // ── Fehler ───────────────────────────────────────────────────────────────
@@ -674,6 +731,16 @@ class LuxtronikHeatpumpDevice extends Device {
     await this._write('warmwater_operation_mode', mode);
     await this.setCapabilityValue('warmwater_operation_mode', String(mode));
     await this._triggerWarmwaterModeChanged.trigger(this, { mode: OPERATION_MODE_LABELS[mode] ?? String(mode) }).catch(() => {});
+  }
+
+  async _setCoolingOperationMode(mode) {
+    if (mode !== 0 && mode !== 1) throw new Error(`Ungültiger Kühlbetrieb-Modus: ${mode}`);
+    this.log(`Setze Kühlbetrieb-Betriebsart: ${mode} (${mode === 1 ? 'Automatik' : 'Aus'})`);
+    await this._write('cooling_operation_mode', mode);
+    await this.setCapabilityValue('cooling_operation_mode', String(mode)).catch(() => {});
+    const label = mode === 1 ? 'Automatic' : 'Off';
+    await this._triggerCoolingModeChanged.trigger(this, { mode: label }).catch(() => {});
+    this._lastCoolingMode = String(mode);
   }
 
   async _setHeatingTemperatureCorrection(value) {
@@ -808,6 +875,16 @@ class LuxtronikHeatpumpDevice extends Device {
   }
 
   // ─── Low-level Write ───────────────────────────────────────────────────────
+
+  // Gibt true zurück wenn meter_power aktiv sein soll:
+  // power_sensor_enabled=true UND Heizen, Warmwasser und Standby alle > 0
+  _meterPowerActive(settings) {
+    const s = settings || this.getSettings();
+    return s.power_sensor_enabled === true
+      && Number(s.power_heating) > 0
+      && Number(s.power_hotwater) > 0
+      && Number(s.power_standby) > 0;
+  }
 
   _write(parameter, value) {
     return new Promise((resolve, reject) => {

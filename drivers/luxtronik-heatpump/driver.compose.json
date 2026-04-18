@@ -37,6 +37,7 @@
     "measure_hours_compressor",
     "measure_hours_heating",
     "measure_hours_hotwater",
+    "cooling_operation_mode",
     "measure_hours_cooling",
     "alarm_generic",
     "last_poll",
