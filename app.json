@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.luxtronik.heatpump",
-  "version": "2.0.27",
+  "version": "2.0.28",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "name": {
@@ -56,6 +56,30 @@
   },
   "flow": {
     "triggers": [
+      {
+        "id": "cooling_operation_mode_changed",
+        "title": {
+          "en": "Cooling mode changed",
+          "de": "Kühlbetrieb-Betriebsart geändert"
+        },
+        "tokens": [
+          {
+            "name": "mode",
+            "type": "string",
+            "title": {
+              "en": "Mode",
+              "de": "Betriebsart"
+            }
+          }
+        ],
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          }
+        ]
+      },
       {
         "id": "heating_operation_mode_changed",
         "title": {
@@ -314,6 +338,48 @@
       }
     ],
     "conditions": [
+      {
+        "id": "cooling_operation_mode_is",
+        "title": {
+          "en": "Cooling mode !{{is|is not}}",
+          "de": "Kühlbetrieb-Betriebsart !{{ist|ist nicht}}"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          },
+          {
+            "name": "mode",
+            "type": "dropdown",
+            "title": {
+              "en": "Mode",
+              "de": "Betriebsart"
+            },
+            "values": [
+              {
+                "id": "0",
+                "label": {
+                  "en": "Off",
+                  "de": "Aus"
+                }
+              },
+              {
+                "id": "1",
+                "label": {
+                  "en": "Automatic",
+                  "de": "Automatik"
+                }
+              }
+            ]
+          }
+        ],
+        "titleFormatted": {
+          "en": "The cooling mode is [[mode]]",
+          "de": "Die Kühlbetrieb-Betriebsart ist [[mode]]"
+        }
+      },
       {
         "id": "heating_operation_mode_is",
         "title": {
@@ -751,6 +817,48 @@
       }
     ],
     "actions": [
+      {
+        "id": "set_cooling_operation_mode",
+        "title": {
+          "en": "Set cooling mode",
+          "de": "Kühlbetrieb-Betriebsart setzen"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          },
+          {
+            "name": "mode",
+            "type": "dropdown",
+            "title": {
+              "en": "Mode",
+              "de": "Betriebsart"
+            },
+            "values": [
+              {
+                "id": "0",
+                "label": {
+                  "en": "Off",
+                  "de": "Aus"
+                }
+              },
+              {
+                "id": "1",
+                "label": {
+                  "en": "Automatic",
+                  "de": "Automatik"
+                }
+              }
+            ]
+          }
+        ],
+        "titleFormatted": {
+          "en": "Set cooling mode to [[mode]]",
+          "de": "Kühlbetrieb-Betriebsart auf [[mode]] setzen"
+        }
+      },
       {
         "id": "set_heating_operation_mode",
         "title": {

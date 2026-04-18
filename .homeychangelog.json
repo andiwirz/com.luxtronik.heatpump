@@ -94,5 +94,8 @@
   },
   "2.0.27": {
     "en": "Add control for cooling mode"
+  },
+  "2.0.28": {
+    "en": "fix Invalid Flow Card cooling_operation_mode_changed"
   }
 }
