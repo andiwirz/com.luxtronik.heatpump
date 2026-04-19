@@ -100,5 +100,8 @@
   },
   "2.0.29": {
     "en": "add estimated meter_power"
+  },
+  "2.0.30": {
+    "en": "update help under app settings"
   }
 }

@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.luxtronik.heatpump",
-  "version": "2.0.29",
+  "version": "2.0.30",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "name": {
@@ -1545,8 +1545,8 @@
               },
               "value": false,
               "hint": {
-                "en": "Shows estimated power consumption per heat pump state. All values default to 0 — configure them for your installation before enabling.",
-                "de": "Zeigt den geschätzten Stromverbrauch je Wärmepumpen-Status. Alle Werte sind standardmäßig 0 — bitte vor dem Aktivieren für Ihre Anlage konfigurieren."
+                "en": "Shows estimated power consumption (W) per heat pump state. Configure the watt values for your installation before enabling. If Heating, Hot Water and Standby are all set to a value > 0, a cumulative energy meter (kWh) is also activated automatically and appears in the Homey Energy dashboard.",
+                "de": "Zeigt den geschätzten Stromverbrauch (W) je Wärmepumpen-Status. Bitte die Watt-Werte vor dem Aktivieren für Ihre Anlage konfigurieren. Wenn Heizen, Warmwasser und Standby alle > 0 gesetzt sind, wird zusätzlich ein kumulierter Energiezähler (kWh) automatisch aktiviert und im Homey Energie-Dashboard angezeigt."
               }
             },
             {
@@ -1560,8 +1560,8 @@
               "min": 0,
               "max": 20000,
               "hint": {
-                "en": "Typical heat pumps consume 800–3000 W during heating.",
-                "de": "Typische Wärmepumpen benötigen im Heizbetrieb 800–3000 W."
+                "en": "Typical heat pumps consume 800–3000 W during heating. Required for the energy meter (kWh).",
+                "de": "Typische Wärmepumpen benötigen im Heizbetrieb 800–3000 W. Pflichtfeld für den Energiezähler (kWh)."
               }
             },
             {
@@ -1575,8 +1575,8 @@
               "min": 0,
               "max": 20000,
               "hint": {
-                "en": "Typical heat pumps consume 1200–3000 W during hot water heating.",
-                "de": "Typische Wärmepumpen benötigen bei der Warmwasserbereitung 1200–3000 W."
+                "en": "Typical heat pumps consume 1200–3000 W during hot water heating. Required for the energy meter (kWh).",
+                "de": "Typische Wärmepumpen benötigen bei der Warmwasserbereitung 1200–3000 W. Pflichtfeld für den Energiezähler (kWh)."
               }
             },
             {
@@ -1680,8 +1680,8 @@
               "min": 0,
               "max": 20000,
               "hint": {
-                "en": "Typical heat pumps consume 10–25 W in standby (controller, controls).",
-                "de": "Typische Wärmepumpen benötigen im Standby 10–25 W (Steuerung, Regelung)."
+                "en": "Typical heat pumps consume 10–25 W in standby (controller, controls). Required for the energy meter (kWh).",
+                "de": "Typische Wärmepumpen benötigen im Standby 10–25 W (Steuerung, Regelung). Pflichtfeld für den Energiezähler (kWh)."
               }
             },
             {
