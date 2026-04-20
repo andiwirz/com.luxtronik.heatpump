@@ -103,5 +103,8 @@
   },
   "2.0.30": {
     "en": "update help under app settings"
+  },
+  "2.0.31": {
+    "en": "add donation option"
   }
 }

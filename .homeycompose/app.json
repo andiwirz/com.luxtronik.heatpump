@@ -1,6 +1,6 @@
 {
   "id": "com.luxtronik.heatpump",
-  "version": "2.0.30",
+  "version": "2.0.31",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "name": {
@@ -52,5 +52,12 @@
   "source": "https://github.com/andiwirz/com.luxtronik.heatpump",
   "bugs": {
     "url": "https://github.com/andiwirz/com.luxtronik.heatpump/issues"
+  },
+  "contributing": {
+    "donate": {
+      "paypal": {
+        "username": "AndiWirz"
+      }
+    }
   }
 }
