@@ -1,0 +1,24 @@
+{
+  "id": "hotwater_boost_party_started",
+  "title": {
+    "en": "Hot Water Boost (Party) started",
+    "de": "Warmwasser Schnellladung (Party) gestartet"
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=luxtronik-heatpump"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "duration",
+      "type": "number",
+      "title": {
+        "en": "Duration (min)",
+        "de": "Dauer (min)"
+      }
+    }
+  ]
+}

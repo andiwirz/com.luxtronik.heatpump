@@ -13,7 +13,7 @@ This app communicates with the **Luxtronik 2.0 / 2.1** controller, which is buil
 | Manufacturer      | Example Models                         |
 |-------------------|----------------------------------------|
 | Alpha Innotec     | LW/SW/WZS series                       |
-| Siemens Novelan   | WPR NET                                |
+| Siemens Novelan   | WPR NET, WSV series                    |
 | Roth              | ThermoAura, ThermoTerra               |
 | Elco              | Aquatop, Aerotop                      |
 | Buderus           | Logamatic HMC20, HMC20 Z              |
@@ -29,7 +29,7 @@ This app communicates with the **Luxtronik 2.0 / 2.1** controller, which is buil
 
 | Capability                                         | Description                              |
 |----------------------------------------------------|------------------------------------------|
-| Heat Pump Status                                   | Heating / Hot Water / Defrost / Standby / EVU Lock / … |
+| Heat Pump Status                                   | Heating / Hot Water / Defrost / Standby / EVU Lock / Cooling / External / Off |
 | Heating Status                                     | Detailed heating status from the controller (Extended State String) |
 | Hot Water Status                                   | Lock Period / Heating Up / Temp. OK / Off |
 | Outdoor Temperature                                | Current + rolling 24h average            |
@@ -42,8 +42,8 @@ This app communicates with the **Luxtronik 2.0 / 2.1** controller, which is buil
 | Suction Air Temperature                            | Air-source heat pumps only               |
 | Room Temperature Actual / Target                   | Only with connected RBE room display     |
 | Volume Flow                                        | l/h (heat source)                        |
-| Energy Heating / Hot Water / Total                 | kWh                                      |
-| Operating Hours Compressor / Heating / Hot Water   | Hours                                    |
+| Energy Heating / Hot Water / Total                 | kWh (from controller)                    |
+| Operating Hours Compressor / Heating / Hot Water / Cooling | Hours                           |
 | Error Alarm                                        | Error active: Yes / No                   |
 | Last Poll                                          | Time of last successful poll (local time)|
 | Firmware Version                                   | Controller software version              |
@@ -56,6 +56,7 @@ This app communicates with the **Luxtronik 2.0 / 2.1** controller, which is buil
 | **Heating Thermostat**             | Correction: −5 to +5 °C · Actual: current flow temperature  |
 | **Heating Operation Mode**         | Automatic · Auxiliary · Party · Holiday · Off               |
 | **Hot Water Operation Mode**       | Automatic · Auxiliary · Party · Holiday · Off               |
+| **Cooling Operation Mode**         | Off · Automatic (only on devices with cooling support)       |
 | **Hot Water Boost (Auxiliary)**    | Toggle – auxiliary mode, automatic stop                      |
 | **Hot Water Boost (Party)**        | Toggle – party mode, automatic stop                          |
 | **Thermal Disinfection**           | Toggle – continuous mode, auto-stop at target temperature    |
@@ -75,6 +76,7 @@ Both variants:
 - Stop after the configured maximum duration (default: 60 min., configurable in device settings)
 - Reset the operation mode back to "Automatic" afterwards
 - Fire the flow trigger "Hot Water Boost Ended" on automatic stop
+- Create a **Timeline entry** when started and when ended
 
 ---
 
@@ -83,18 +85,59 @@ Both variants:
 Activates continuous operation (parameter 27) for legionella protection:
 
 - After each hot water heating cycle, thermal disinfection follows automatically
-- Stops automatically when the hot water temperature ≥ TDI setpoint (read directly from the controller, adjustable via the "Thermal Disinfection Setpoint" thermostat slider, 50–80 °C)
+- Stops automatically when the hot water temperature ≥ TDI setpoint − 1 °C (adjustable via the "Thermal Disinfection Setpoint" thermostat slider, 50–80 °C)
 - Manual stop possible at any time
 - Fires the flow trigger "Thermal Disinfection Ended"
+- Creates a **Timeline entry** when completed
 
 > **Note:** Requires a connected second heat source (auxiliary heater).
+
+---
+
+## Cooling Mode
+
+On devices with cooling support (e.g. Novelan WSV 6.2K3M), the **Cooling Operation Mode** capability is shown automatically:
+
+- **Off** – cooling disabled
+- **Automatic** – cooling enabled when outdoor temperature permits
+
+The capability is only displayed when the controller reports that cooling is available (`FreigabKuehl = 1`). Changes are applied immediately and confirmed via a flow trigger.
+
+---
+
+## Estimated Power Sensor
+
+An optional estimated power sensor (`measure_power`) can be activated in the device settings. It reports the estimated power consumption in watts based on the current heat pump state (Heating, Hot Water, Standby, etc.).
+
+Each state can be configured separately with a typical watt value for your installation.
+
+**Automatic energy meter (kWh):** If Heating, Hot Water, and Standby watts are all set to a value > 0, a cumulative energy meter (`meter_power`) is activated automatically. The device then appears as a consumer in the **Homey Energy dashboard**. The kWh value is calculated from the time between polls and the configured watt value, and is stored persistently across app restarts.
+
+---
+
+## Homey Timeline
+
+The following events are written directly to the **Homey Timeline**:
+
+| Event                                | Entry                                              |
+|--------------------------------------|----------------------------------------------------|
+| Heat pump state changes              | 🔄 `State: Heating` / `Betriebsart: Heizbetrieb`  |
+| Error becomes active                 | ⚠️ `Error active: <message>`                       |
+| Error cleared                        | ✅ `Error cleared`                                 |
+| Thermal disinfection completed       | 🧫 `Thermal disinfection completed (65.2 °C)`      |
+| Hot water boost (auxiliary) started  | 💧 `Hot water boost started (60 min)`              |
+| Hot water boost (auxiliary) ended    | 💧 `Hot water boost ended`                         |
+| Hot water boost (party) started      | 🎉 `Hot water boost (party) started (60 min)`      |
+| Hot water boost (party) ended        | 🎉 `Hot water boost (party) ended`                 |
+
+Timeline entries are written in the Homey interface language (German or English).
 
 ---
 
 ## Connection Watchdog
 
 - **Poll Timeout (30s):** No response within 30 seconds → device immediately marked as unavailable
-- **Watchdog Timer:** Checks every minute whether the last successful poll is too far in the past (threshold: 3× polling interval)
+- **Watchdog Timer:** Checks periodically whether the last successful poll is too far in the past (threshold: 3× polling interval, configurable)
 - **Last Poll:** Capability shows the time of the last successful poll in local time
 - Device is automatically marked as available again as soon as the controller responds
 
@@ -117,12 +160,17 @@ Activates continuous operation (parameter 27) for legionella protection:
 
 ### Device Settings
 
-| Setting                             | Default  | Description                                          |
-|-------------------------------------|----------|------------------------------------------------------|
-| IP Address                          | –        | IP of the Luxtronik controller                       |
-| Port                                | 8889     | TCP port of the controller                           |
-| Poll Interval (seconds)             | 60       | How often the heat pump is queried (min. 10 s)       |
-| Hot Water Boost Duration (minutes)  | 60       | Maximum runtime for both boost modes                 |
+| Setting                             | Default  | Description                                                        |
+|-------------------------------------|----------|--------------------------------------------------------------------|
+| IP Address                          | –        | IP of the Luxtronik controller                                     |
+| Port                                | 8889     | TCP port of the controller                                         |
+| Poll Interval (seconds)             | 60       | How often the heat pump is queried (min. 10 s)                     |
+| Hot Water Boost Duration (minutes)  | 60       | Maximum runtime for both boost modes                               |
+| Poll Timeout (seconds)              | 30       | Time before a non-responding device is marked unavailable          |
+| Watchdog Threshold (× poll interval)| 3        | Missed poll intervals before watchdog triggers                     |
+| Watchdog Check Interval (seconds)   | 60       | How often the watchdog checks for a successful poll                |
+| Enable Power Sensor                 | Off      | Activates estimated watt sensor per heat pump state                |
+| Heating / Hot Water / Standby (W)   | 0        | Required for the automatic kWh energy meter                        |
 
 ---
 
@@ -134,6 +182,7 @@ Activates continuous operation (parameter 27) for legionella protection:
 |--------------------------------------------|------------|-----------------------------------------------|
 | Heating Operation Mode Changed             | `mode`     | New mode as text                              |
 | Hot Water Operation Mode Changed           | `mode`     | New mode as text                              |
+| Cooling Operation Mode Changed             | `mode`     | New mode as text (Off / Automatic)            |
 | Heat Pump Status Changed                   | `state`    | New status as text                            |
 | Error Occurred                             | `error`    | Error message as text                         |
 | Error Cleared                              | –          | When the error disappears                     |
@@ -151,11 +200,10 @@ Activates continuous operation (parameter 27) for legionella protection:
 |--------------------------------------------|------------------------|
 | Heating Operation Mode Is …               | Dropdown               |
 | Hot Water Operation Mode Is …             | Dropdown               |
+| Cooling Operation Mode Is …               | Dropdown (Off / Automatic) |
 | Heat Pump Status Is …                     | Dropdown               |
 | Heating Status Is …                       | Free text              |
 | Hot Water Status Is …                     | Dropdown (4 values)    |
-| Hot Water Temperature Is Above … °C       | Number                 |
-| Hot Water Temperature Is Below … °C       | Number                 |
 | Outdoor Temperature Is Above … °C         | Number                 |
 | Outdoor Temperature Is Below … °C         | Number                 |
 | Thermal Disinfection Is Active            | –                      |
@@ -169,6 +217,7 @@ Activates continuous operation (parameter 27) for legionella protection:
 |----------------------------------------------------|--------------------------------|
 | Set Heating Operation Mode                         | Dropdown (Automatic … Off)     |
 | Set Hot Water Operation Mode                       | Dropdown (Automatic … Off)     |
+| Set Cooling Operation Mode                         | Dropdown (Off / Automatic)     |
 | Set Heating Temperature Correction                 | Number: −5 … +5 °C             |
 | Set Hot Water Target Temperature                   | Number: 30 … 65 °C             |
 | Adjust Hot Water Target Temperature (relative)     | Offset: −20 … +20 °C           |
@@ -183,13 +232,13 @@ Activates continuous operation (parameter 27) for legionella protection:
 
 ## Operation Mode Codes (Reference)
 
-| Code | Heating    | Hot Water  |
-|------|------------|------------|
-| 0    | Automatic  | Automatic  |
-| 1    | Auxiliary  | Auxiliary  |
-| 2    | Party      | Party      |
-| 3    | Holiday    | Holiday    |
-| 4    | Off        | Off        |
+| Code | Heating    | Hot Water  | Cooling    |
+|------|------------|------------|------------|
+| 0    | Automatic  | Automatic  | Off        |
+| 1    | Auxiliary  | Auxiliary  | Automatic  |
+| 2    | Party      | Party      | –          |
+| 3    | Holiday    | Holiday    | –          |
+| 4    | Off        | Off        | –          |
 
 ---
 
@@ -216,6 +265,7 @@ Activates continuous operation (parameter 27) for legionella protection:
 - The thermostat correction (`target_temperature.heating`) shifts the heating curve by the set value. Positive values → warmer, negative values → cooler.
 - All write operations are sent to the controller immediately.
 - Write protection prevents polling cycles from immediately overwriting manually set values (120s protection window).
+- The cooling mode capability is only shown when the controller reports cooling as available.
 
 ---
 

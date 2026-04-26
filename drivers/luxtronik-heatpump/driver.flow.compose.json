@@ -6,6 +6,10 @@
         "en": "Heating mode changed",
         "de": "Heizungs-Betriebsart geändert"
       },
+      "titleFormatted": {
+        "en": "Heating mode changed to [[mode]]",
+        "de": "Heizungs-Betriebsart geändert auf [[mode]]"
+      },
       "tokens": [
         {
           "name": "mode",
@@ -24,6 +28,10 @@
         "en": "Hot water mode changed",
         "de": "Brauchwasser-Betriebsart geändert"
       },
+      "titleFormatted": {
+        "en": "Hot water mode changed to [[mode]]",
+        "de": "Brauchwasser-Betriebsart geändert auf [[mode]]"
+      },
       "tokens": [
         {
           "name": "mode",
@@ -41,6 +49,10 @@
       "title": {
         "en": "Heat pump state changed",
         "de": "Wärmepumpen-Status geändert"
+      },
+      "titleFormatted": {
+        "en": "Heat pump state changed to [[state]]",
+        "de": "Wärmepumpen-Status geändert auf [[state]]"
       },
       "tokens": [
         {

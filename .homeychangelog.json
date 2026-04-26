@@ -106,5 +106,13 @@
   },
   "2.0.31": {
     "en": "add donation option"
+  },
+  "2.0.32": {
+    "en": "New: Homey Timeline integration — key events (state changes, errors, thermal disinfection completed, hot water boost started/ended) are now written to the Homey Timeline in the interface language (DE/EN).",
+    "de": "Neu: Homey Timeline-Integration — wichtige Ereignisse (Betriebsartwechsel, Fehler, Thermische Desinfektion abgeschlossen, Schnellladung gestartet/beendet) werden jetzt in der Homey-Timeline in der Benutzersprache (DE/EN) eingetragen."
+  },
+  "2.0.33": {
+    "en": "Fix: Notifications now correctly use the Homey SDK v3 notifications API. Added push notifications for heating, hot water and cooling mode changes. New flow triggers: Hot Water Boost started (auxiliary & party).",
+    "de": "Fix: Benachrichtigungen nutzen jetzt korrekt die Homey SDK v3 Notifications-API. Neue Push-Benachrichtigungen bei Betriebsart-Änderungen (Heizung, Warmwasser, Kühlung). Neue Flow-Auslöser: Schnellladung gestartet (Zuheizung & Party)."
   }
 }

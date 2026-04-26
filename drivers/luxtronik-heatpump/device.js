@@ -11,6 +11,13 @@ const OPERATION_MODE_LABELS = {
   3: 'Holidays',
   4: 'Off',
 };
+const OPERATION_MODE_LABELS_DE = {
+  0: 'Automatik',
+  1: 'Zuheizer',
+  2: 'Party',
+  3: 'Ferien',
+  4: 'Aus',
+};
 
 // heatpump_state3 = Extended State (Detailstatus der Wärmepumpe)
 // Quelle: luxtronik2/types.js → extendetStateMessages
@@ -83,6 +90,21 @@ const CAPABILITY_TITLE_FIXES = {
 // heatpump_state1 = Grob-Status (0=läuft, 1=steht, 4=Fehler)
 // Nur für Fehlerkennung verwendet
 const HEATPUMP_STATE1_ERROR = 4;
+
+// Anzeigebezeichnungen für die Timeline (DE/EN)
+const STATE_TIMELINE_LABELS = {
+  heating:       { de: 'Heizbetrieb',        en: 'Heating' },
+  hotwater:      { de: 'Warmwasser',          en: 'Hot Water' },
+  defrost:       { de: 'Abtauen',             en: 'Defrost' },
+  standby:       { de: 'Standby',             en: 'Standby' },
+  provider_lock: { de: 'EVU-Sperre',          en: 'EVU Lock' },
+  cooling:       { de: 'Kühlen',              en: 'Cooling' },
+  swimming:      { de: 'Schwimmbad',          en: 'Swimming Pool' },
+  external:      { de: 'Extern (Zuheizer)',   en: 'External (Boiler)' },
+  off:           { de: 'Aus / Fehler',        en: 'Off / Error' },
+  unknown:       { de: 'Unbekannt',           en: 'Unknown' },
+};
+
 
 class LuxtronikHeatpumpDevice extends Device {
 
@@ -188,7 +210,9 @@ class LuxtronikHeatpumpDevice extends Device {
     this._triggerCoolingModeChanged   = this.homey.flow.getDeviceTriggerCard('cooling_operation_mode_changed');
     this._triggerStateChanged         = this.homey.flow.getDeviceTriggerCard('heatpump_state_changed');
     this._triggerErrorOccurred        = this.homey.flow.getDeviceTriggerCard('error_occurred');
-    this._triggerBoostEnded           = this.homey.flow.getDeviceTriggerCard('hotwater_boost_ended');
+    this._triggerBoostStarted             = this.homey.flow.getDeviceTriggerCard('hotwater_boost_started');
+    this._triggerBoostEnded               = this.homey.flow.getDeviceTriggerCard('hotwater_boost_ended');
+    this._triggerBoostPartyStarted        = this.homey.flow.getDeviceTriggerCard('hotwater_boost_party_started');
     this._triggerBoostPartyEnded          = this.homey.flow.getDeviceTriggerCard('hotwater_boost_party_ended');
     this._triggerDeviceUnavailable        = this.homey.flow.getDeviceTriggerCard('device_unavailable');
     this._triggerDeviceAvailable          = this.homey.flow.getDeviceTriggerCard('device_available');
@@ -522,6 +546,10 @@ class LuxtronikHeatpumpDevice extends Device {
         this.log(`Thermische Desinfektion: ${tdiTarget}°C erreicht (${currentTemp}°C) — deaktiviere Dauerbetrieb`);
         await this._setThermalDisinfectionContinuous(false).catch((e) => this.error('TDI auto-off fehlgeschlagen:', e.message));
         await this._triggerThermalDisinfEnded.trigger(this, {}).catch(() => {});
+        await this._notify(this._tl(
+          `🧫 Thermische Desinfektion abgeschlossen (${currentTemp} °C)`,
+          `🧫 Thermal disinfection completed (${currentTemp} °C)`
+        ));
       }
     }
 
@@ -568,8 +596,10 @@ class LuxtronikHeatpumpDevice extends Device {
       const coolingModeStr = String(coolingMode);
       await this._setCapabilityConditional('cooling_operation_mode', coolingModeStr, true);
       if (this._lastCoolingMode !== null && this._lastCoolingMode !== coolingModeStr) {
-        const label = coolingMode === 1 ? 'Automatic' : 'Off';
-        await this._triggerCoolingModeChanged.trigger(this, { mode: label }).catch(() => {});
+        const labelEn = coolingMode === 1 ? 'Automatic' : 'Off';
+        const labelDe = coolingMode === 1 ? 'Automatik' : 'Aus';
+        await this._triggerCoolingModeChanged.trigger(this, { mode: labelEn }).catch(() => {});
+        await this._notify(this._tl(`❄️ Kühlbetrieb: ${labelDe}`, `❄️ Cooling mode: ${labelEn}`));
       }
       this._lastCoolingMode = coolingModeStr;
     } else {
@@ -587,6 +617,8 @@ class LuxtronikHeatpumpDevice extends Device {
       await this._setIfValid('heatpump_state', stateSlug);
       if (this._lastState !== null) {
         await this._triggerStateChanged.trigger(this, { state: stateSlug }).catch(() => {});
+        const stateLabel = (STATE_TIMELINE_LABELS[stateSlug] || {})[this.homey.i18n.getLanguage()] || stateSlug;
+        await this._notify(this._tl(`🔄 Betriebsart: ${stateLabel}`, `🔄 State: ${stateLabel}`));
       }
       this._lastState = stateSlug;
     }
@@ -671,9 +703,11 @@ class LuxtronikHeatpumpDevice extends Device {
         ? v.errors.map((e) => (typeof e === 'object' ? JSON.stringify(e) : String(e))).join(', ')
         : 'Fehler (state1=4)';
       await this._triggerErrorOccurred.trigger(this, { error: msg }).catch(() => {});
+      await this._notify(this._tl(`⚠️ Fehler aktiv: ${msg}`, `⚠️ Error active: ${msg}`));
     }
     if (!hasError && this._lastErrorState === true) {
       await this._triggerErrorCleared.trigger(this, {}).catch(() => {});
+      await this._notify(this._tl('✅ Fehler behoben', '✅ Error cleared'));
     }
     this._lastErrorState = hasError;
 
@@ -689,6 +723,9 @@ class LuxtronikHeatpumpDevice extends Device {
       await this._setIfValid('heating_operation_mode', modeStr);
       if (this._lastHeatingMode !== null && this._lastHeatingMode !== modeStr) {
         await this._triggerHeatingModeChanged.trigger(this, { mode: OPERATION_MODE_LABELS[heatingMode] ?? modeStr }).catch(() => {});
+        const labelEn = OPERATION_MODE_LABELS[heatingMode] ?? modeStr;
+        const labelDe = OPERATION_MODE_LABELS_DE[heatingMode] ?? modeStr;
+        await this._notify(this._tl(`🌡️ Heizung Betriebsart: ${labelDe}`, `🌡️ Heating mode: ${labelEn}`));
       }
       this._lastHeatingMode = modeStr;
     }
@@ -699,6 +736,9 @@ class LuxtronikHeatpumpDevice extends Device {
       await this._setIfValid('warmwater_operation_mode', modeStr);
       if (this._lastWarmwaterMode !== null && this._lastWarmwaterMode !== modeStr) {
         await this._triggerWarmwaterModeChanged.trigger(this, { mode: OPERATION_MODE_LABELS[warmwaterMode] ?? modeStr }).catch(() => {});
+        const labelEn = OPERATION_MODE_LABELS[warmwaterMode] ?? modeStr;
+        const labelDe = OPERATION_MODE_LABELS_DE[warmwaterMode] ?? modeStr;
+        await this._notify(this._tl(`💧 Warmwasser Betriebsart: ${labelDe}`, `💧 Hot water mode: ${labelEn}`));
       }
       this._lastWarmwaterMode = modeStr;
     }
@@ -810,6 +850,8 @@ class LuxtronikHeatpumpDevice extends Device {
     // Zuheizer-Modus setzen
     await this._setWarmwaterOperationMode(1);
     await this.setCapabilityValue('hotwater_boost', true);
+    await this._triggerBoostStarted.trigger(this, { duration }).catch(() => {});
+    await this._notify(this._tl(`💧 Schnellladung gestartet (${duration} min)`, `💧 Hot water boost started (${duration} min)`));
 
     // Auto-Reset nach konfigurierbarer Zeit
     this._boostTimer = setTimeout(async () => {
@@ -818,6 +860,7 @@ class LuxtronikHeatpumpDevice extends Device {
       await this._setWarmwaterOperationMode(0).catch((e) => this.error('Boost-Reset fehlgeschlagen:', e.message));
       await this.setCapabilityValue('hotwater_boost', false).catch(() => {});
       await this._triggerBoostEnded.trigger(this, {}).catch(() => {});
+      await this._notify(this._tl('💧 Schnellladung beendet', '💧 Hot water boost ended'));
     }, duration * 60 * 1000);
   }
 
@@ -826,6 +869,8 @@ class LuxtronikHeatpumpDevice extends Device {
     if (this._boostTimer) {
       clearTimeout(this._boostTimer);
       this._boostTimer = null;
+      await this._triggerBoostEnded.trigger(this, {}).catch(() => {});
+      await this._notify(this._tl('💧 Schnellladung beendet', '💧 Hot water boost ended'));
     }
     await this._setWarmwaterOperationMode(0);
     await this.setCapabilityValue('hotwater_boost', false);
@@ -841,6 +886,8 @@ class LuxtronikHeatpumpDevice extends Device {
     // Party-Modus setzen
     await this._setWarmwaterOperationMode(2);
     await this.setCapabilityValue('hotwater_boost_party', true);
+    await this._triggerBoostPartyStarted.trigger(this, { duration }).catch(() => {});
+    await this._notify(this._tl(`🎉 Schnellladung (Party) gestartet (${duration} min)`, `🎉 Hot water boost (party) started (${duration} min)`));
     // Auto-Reset nach konfigurierbarer Zeit
     this._boostPartyTimer = setTimeout(async () => {
       this.log(`Schnellladung (Party) beendet (${duration} min), schalte zurück auf Automatik`);
@@ -848,6 +895,7 @@ class LuxtronikHeatpumpDevice extends Device {
       await this._setWarmwaterOperationMode(0).catch((e) => this.error('Party-Boost-Reset fehlgeschlagen:', e.message));
       await this.setCapabilityValue('hotwater_boost_party', false).catch(() => {});
       await this._triggerBoostPartyEnded.trigger(this, {}).catch(() => {});
+      await this._notify(this._tl('🎉 Schnellladung (Party) beendet', '🎉 Hot water boost (party) ended'));
     }, duration * 60 * 1000);
   }
 
@@ -856,6 +904,8 @@ class LuxtronikHeatpumpDevice extends Device {
     if (this._boostPartyTimer) {
       clearTimeout(this._boostPartyTimer);
       this._boostPartyTimer = null;
+      await this._triggerBoostPartyEnded.trigger(this, {}).catch(() => {});
+      await this._notify(this._tl('🎉 Schnellladung (Party) beendet', '🎉 Hot water boost (party) ended'));
     }
     await this._setWarmwaterOperationMode(0);
     await this.setCapabilityValue('hotwater_boost_party', false);
@@ -965,6 +1015,20 @@ class LuxtronikHeatpumpDevice extends Device {
     const n = parseInt(val, 10);
     return Number.isNaN(n) ? null : n;
   }
+
+  // ─── Benachrichtigungen ────────────────────────────────────────────────────
+
+  /** Sendet eine Push-Benachrichtigung via Homey Notifications */
+  _notify(excerpt) {
+    return this.homey.notifications.createNotification({ excerpt })
+      .catch((e) => this.error('Benachrichtigungs-Fehler:', e.message));
+  }
+
+  /** Gibt den deutschen oder englischen Text zurück je nach Homey-Sprache */
+  _tl(de, en) {
+    return this.homey.i18n.getLanguage() === 'de' ? de : en;
+  }
+
 }
 
 module.exports = LuxtronikHeatpumpDevice;
