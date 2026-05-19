@@ -13,5 +13,5 @@
   "setable": false,
   "uiComponent": "sensor",
   "insights": true,
-  "icon": "/assets/capabilities/target_temperature_level.svg"
+  "icon": "/assets/capabilities/return_temp.svg"
 }

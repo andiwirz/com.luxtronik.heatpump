@@ -13,5 +13,5 @@
   "setable": false,
   "uiComponent": "sensor",
   "insights": true,
-  "icon": "/assets/capabilities/water.svg"
+  "icon": "/assets/capabilities/measure_temp_hotwater.svg"
 }

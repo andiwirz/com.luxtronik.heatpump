@@ -131,5 +131,9 @@
   "2.0.37": {
     "en": "Fixed: Missing capabilities (warmwater_operation_mode, alarm_generic, measure_volume_flow, meter_energy_hotwater, meter_energy_total, measure_hours_compressor, measure_hours_hotwater) are now automatically added to existing device instances on app start. New: Option in device settings to hide cooling capabilities (cooling mode, cooling hours, release temperature, inlet temperature).",
     "de": "Behoben: Fehlende Capabilities (warmwater_operation_mode, alarm_generic, measure_volume_flow, meter_energy_hotwater, meter_energy_total, measure_hours_compressor, measure_hours_hotwater) werden bei bestehenden Geräten beim App-Start automatisch ergänzt. Neu: Option in den Geräteeinstellungen zum Ausblenden der Kühlungs-Capabilities (Kühlbetrieb, Betriebsstunden, Freigabe-Temperatur, Einlauftemperatur)."
+  },
+  "2.0.38": {
+    "en": "Updated: Custom SVG icons for capability tiles — return temperature, supply temperature, outdoor temperatures (min./max.), heating curve, setback, ZWE enable temperature, heat pump state and heating status now each have a dedicated icon.",
+    "de": "Aktualisiert: Eigene SVG-Icons für Capability-Kacheln — Rücklauftemperatur, Vorlauftemperatur, Aussentemperaturen (Min./Max.), Heizkurve, Absenkung, ZWE-Freigabetemperatur, Wärmepumpen-Status und Heizung-Status haben jetzt jeweils ein eigenes Icon."
   }
 }

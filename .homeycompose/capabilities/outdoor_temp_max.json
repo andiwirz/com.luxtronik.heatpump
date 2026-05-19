@@ -13,5 +13,5 @@
   "setable": false,
   "uiComponent": "sensor",
   "insights": false,
-  "icon": "/assets/capabilities/temperature.svg"
+  "icon": "/assets/capabilities/outdoor_temp_max.svg"
 }

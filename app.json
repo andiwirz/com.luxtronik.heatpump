@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.luxtronik.heatpump",
-  "version": "2.0.37",
+  "version": "2.0.38",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "name": {
@@ -2413,7 +2413,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/heating.svg"
+      "icon": "/assets/capabilities/temp_setback.svg"
     },
     "delta_mk1_reduction": {
       "type": "number",
@@ -2430,7 +2430,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": false,
-      "icon": "/assets/capabilities/heating.svg"
+      "icon": "/assets/capabilities/temp_setback.svg"
     },
     "firmware_version": {
       "type": "string",
@@ -2459,7 +2459,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/heating.svg"
+      "icon": "/assets/capabilities/heating_curve.svg"
     },
     "heating_curve_offset": {
       "type": "number",
@@ -2476,7 +2476,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/heating.svg"
+      "icon": "/assets/capabilities/heating_curve.svg"
     },
     "heating_limit": {
       "type": "number",
@@ -2493,7 +2493,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/heating.svg"
+      "icon": "/assets/capabilities/heating_limit.svg"
     },
     "heating_operation_mode": {
       "type": "enum",
@@ -2824,7 +2824,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/measure_temperature.svg"
+      "icon": "/assets/capabilities/supply_temp.svg"
     },
     "measure_temp_hotgas": {
       "type": "number",
@@ -2858,7 +2858,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/water.svg"
+      "icon": "/assets/capabilities/measure_temp_hotwater.svg"
     },
     "measure_temp_hotwater_target": {
       "type": "number",
@@ -2892,7 +2892,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/measure_temperature.svg"
+      "icon": "/assets/capabilities/measure_temp_outdoor.svg"
     },
     "measure_temp_outdoor_avg": {
       "type": "number",
@@ -2926,7 +2926,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/measure_temperature.svg"
+      "icon": "/assets/capabilities/return_temp.svg"
     },
     "measure_temp_return_target": {
       "type": "number",
@@ -2943,7 +2943,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/target_temperature_level.svg"
+      "icon": "/assets/capabilities/return_temp.svg"
     },
     "measure_temp_room": {
       "type": "number",
@@ -3113,7 +3113,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": false,
-      "icon": "/assets/capabilities/heating.svg"
+      "icon": "/assets/capabilities/heating_curve.svg"
     },
     "mk1_curve_offset": {
       "type": "number",
@@ -3130,7 +3130,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": false,
-      "icon": "/assets/capabilities/heating.svg"
+      "icon": "/assets/capabilities/heating_curve.svg"
     },
     "outdoor_temp_max": {
       "type": "number",
@@ -3147,7 +3147,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": false,
-      "icon": "/assets/capabilities/temperature.svg"
+      "icon": "/assets/capabilities/outdoor_temp_max.svg"
     },
     "outdoor_temp_min": {
       "type": "number",
@@ -3164,7 +3164,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
+      "icon": "/assets/capabilities/outdoor_temp_min.svg"
     },
     "return_temp_hysteresis": {
       "type": "number",
@@ -3181,7 +3181,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/heating.svg"
+      "icon": "/assets/capabilities/return_temp.svg"
     },
     "return_temp_limit": {
       "type": "number",
@@ -3198,7 +3198,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/heating.svg"
+      "icon": "/assets/capabilities/return_temp.svg"
     },
     "return_temp_min": {
       "type": "number",
@@ -3215,7 +3215,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/heating.svg"
+      "icon": "/assets/capabilities/return_temp.svg"
     },
     "supply_temp_limit": {
       "type": "number",
@@ -3232,7 +3232,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/heating.svg"
+      "icon": "/assets/capabilities/supply_temp.svg"
     },
     "tdi_target_temperature": {
       "type": "number",
@@ -3264,7 +3264,7 @@
       "decimals": 1,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "insights": false,
       "icon": "/assets/capabilities/heating.svg"
     },
@@ -3281,7 +3281,7 @@
       "decimals": 1,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "insights": false,
       "icon": "/assets/capabilities/water.svg"
     },
@@ -3300,7 +3300,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/temperature.svg"
+      "icon": "/assets/capabilities/temp_setback.svg"
     },
     "temp_zwe_enable": {
       "type": "number",
@@ -3317,7 +3317,7 @@
       "setable": false,
       "uiComponent": "sensor",
       "insights": true,
-      "icon": "/assets/capabilities/heating.svg"
+      "icon": "/assets/capabilities/temp_zwe_enable.svg"
     },
     "thermal_disinfection_continuous": {
       "type": "boolean",
