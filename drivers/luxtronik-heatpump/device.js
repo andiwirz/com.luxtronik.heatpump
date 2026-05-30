@@ -91,6 +91,20 @@ const CAPABILITY_TITLE_FIXES = {
 // Nur für Fehlerkennung verwendet
 const HEATPUMP_STATE1_ERROR = 4;
 
+// Emoji-Anzeige für heatpump_state_string (Geräteanzeige / Indicator)
+const STATE_EMOJI = {
+  heating:       '🔥',
+  hotwater:      '💧',
+  defrost:       '🌡️',
+  standby:       '⏸️',
+  provider_lock: '🔒',
+  cooling:       '❄️',
+  swimming:      '🏊',
+  external:      '⚡',
+  off:           '⭕',
+  unknown:       '❓',
+};
+
 // Anzeigebezeichnungen für die Timeline (DE/EN)
 const STATE_TIMELINE_LABELS = {
   heating:       { de: 'Heizbetrieb',        en: 'Heating' },
@@ -909,13 +923,8 @@ class LuxtronikHeatpumpDevice extends Device {
       this._lastState = stateSlug;
     }
 
-    // ── Wärmepumpen-Status als String (für Geräteanzeige / Indicator) ────────
-    // Format: "Standby (63°)" — lokalisierter Status + aktuelle Warmwassertemperatur
-    const hwTemp = this._n(v.temperature_hot_water);
-    const stateLabelStr = (STATE_TIMELINE_LABELS[stateSlug] || {})[this.homey.i18n.getLanguage()] || stateSlug;
-    const stateStringVal = hwTemp !== null
-      ? `${stateLabelStr} (${Math.round(hwTemp)}°)`
-      : stateLabelStr;
+    // ── Wärmepumpen-Status als Emoji (Geräteanzeige / Indicator) ─────────────
+    const stateStringVal = STATE_EMOJI[stateSlug] ?? '❓';
     await this._setIfValid('heatpump_state_string', stateStringVal);
 
     // ── Virtueller Leistungssensor ───────────────────────────────────────────

@@ -147,5 +147,9 @@
   "2.0.41": {
     "en": "New: Heat Pump State string capability (heatpump_state_string) — shows heat pump state and current hot water temperature as a combined text (e.g. 'Standby (63°)'). Hidden from the device tile but selectable as device indicator under device settings.",
     "de": "Neu: Wärmepumpen-Status als Text-Capability (heatpump_state_string) — zeigt den Betriebsstatus und die aktuelle Warmwassertemperatur als kombinierten Text (z.B. 'Standby (63°)'). Unsichtbar auf der Gerätekachel, aber als Geräteanzeige unter den Geräteeinstellungen wählbar."
+  },
+  "2.0.42": {
+    "en": "Updated: heatpump_state_string now shows a single emoji for the current heat pump state (e.g. 🔥 Heating, ⏸️ Standby, 💧 Hot Water). Selectable as device indicator under Device → ⚙️ → Device display.",
+    "de": "Aktualisiert: heatpump_state_string zeigt jetzt ein einzelnes Emoji für den aktuellen Wärmepumpenstatus (z.B. 🔥 Heizen, ⏸️ Standby, 💧 Warmwasser). Als Geräteanzeige wählbar unter Gerät → ⚙️ → Geräteanzeige."
   }
 }
