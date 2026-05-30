@@ -1,0 +1,89 @@
+{
+  "app": {
+    "name": "Luxtronik Gestionnaire de Pompe à Chaleur",
+    "description": "Contrôlez et surveillez votre pompe à chaleur Luxtronik 2.0"
+  },
+  "pair": {
+    "title": "Ajouter une pompe à chaleur Luxtronik",
+    "ip": "Adresse IP",
+    "port": "Port",
+    "connecting": "Connexion en cours...",
+    "success": "Connexion réussie !",
+    "error": {
+      "no_ip": "Veuillez entrer une adresse IP valide.",
+      "connection_failed": "Impossible de se connecter à la pompe à chaleur. Vérifiez l'adresse IP et le port.",
+      "timeout": "Délai de connexion dépassé. Vérifiez que la pompe à chaleur est allumée et accessible."
+    }
+  },
+  "settings": {
+    "ip": "Adresse IP",
+    "port": "Port",
+    "poll_interval": "Intervalle d'interrogation (secondes)"
+  },
+  "capability": {
+    "heating_operation_mode": {
+      "title": "Mode de chauffage",
+      "values": {
+        "0": "Automatique",
+        "1": "Source de chaleur secondaire",
+        "2": "Fête",
+        "3": "Vacances",
+        "4": "Arrêt"
+      }
+    },
+    "warmwater_operation_mode": {
+      "title": "Mode eau chaude sanitaire",
+      "values": {
+        "0": "Automatique",
+        "1": "Source de chaleur secondaire",
+        "2": "Fête",
+        "3": "Vacances",
+        "4": "Arrêt"
+      }
+    },
+    "heating_temperature_correction": {
+      "title": "Correction de température chauffage"
+    },
+    "warmwater_target_temperature": {
+      "title": "Température cible eau chaude"
+    },
+    "heatpump_state": {
+      "title": "État de la pompe à chaleur",
+      "values": {
+        "heating": "Chauffage",
+        "hotwater": "Eau chaude",
+        "swimming": "Piscine",
+        "provider_lock": "Verrouillage EVU",
+        "defrost": "Dégivrage",
+        "off": "Arrêt",
+        "external": "Externe",
+        "cooling": "Refroidissement",
+        "standby": "Veille",
+        "unknown": "Inconnu"
+      }
+    }
+  },
+  "cooling": {
+    "enabled": "Refroidissement activé",
+    "disabled": "Refroidissement désactivé"
+  },
+  "flow": {
+    "triggers": {
+      "heating_operation_mode_changed": "Mode de chauffage modifié",
+      "warmwater_operation_mode_changed": "Mode eau chaude modifié",
+      "heatpump_state_changed": "État de la pompe à chaleur modifié",
+      "error_occurred": "Erreur survenue"
+    },
+    "conditions": {
+      "heating_operation_mode_is": "Le mode de chauffage est",
+      "warmwater_operation_mode_is": "Le mode eau chaude est",
+      "heatpump_state_is": "L'état de la pompe à chaleur est"
+    },
+    "actions": {
+      "set_heating_operation_mode": "Définir le mode de chauffage",
+      "set_warmwater_operation_mode": "Définir le mode eau chaude",
+      "set_heating_temperature_correction": "Définir la correction de température chauffage",
+      "set_warmwater_target_temperature": "Définir la température cible eau chaude"
+    }
+  }
+}

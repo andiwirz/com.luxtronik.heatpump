@@ -1,0 +1,89 @@
+{
+  "app": {
+    "name": "Luxtronik Warmtepomp Manager",
+    "description": "Bedien en monitor uw Luxtronik 2.0 warmtepomp"
+  },
+  "pair": {
+    "title": "Luxtronik warmtepomp toevoegen",
+    "ip": "IP-adres",
+    "port": "Poort",
+    "connecting": "Verbinding maken...",
+    "success": "Verbinding geslaagd!",
+    "error": {
+      "no_ip": "Voer een geldig IP-adres in.",
+      "connection_failed": "Kan geen verbinding maken met de warmtepomp. Controleer het IP-adres en de poort.",
+      "timeout": "Verbinding verlopen. Controleer of de warmtepomp is ingeschakeld en bereikbaar is."
+    }
+  },
+  "settings": {
+    "ip": "IP-adres",
+    "port": "Poort",
+    "poll_interval": "Polling-interval (seconden)"
+  },
+  "capability": {
+    "heating_operation_mode": {
+      "title": "Verwarmingsstand",
+      "values": {
+        "0": "Automatisch",
+        "1": "Bijverwarming",
+        "2": "Feest",
+        "3": "Vakantie",
+        "4": "Uit"
+      }
+    },
+    "warmwater_operation_mode": {
+      "title": "Warmwaterstand",
+      "values": {
+        "0": "Automatisch",
+        "1": "Bijverwarming",
+        "2": "Feest",
+        "3": "Vakantie",
+        "4": "Uit"
+      }
+    },
+    "heating_temperature_correction": {
+      "title": "Temperatuurcorrectie verwarming"
+    },
+    "warmwater_target_temperature": {
+      "title": "Doeltemperatuur warmwater"
+    },
+    "heatpump_state": {
+      "title": "Warmtepomp status",
+      "values": {
+        "heating": "Verwarmen",
+        "hotwater": "Warmwater",
+        "swimming": "Zwembad",
+        "provider_lock": "EVU-blokkering",
+        "defrost": "Ontdooien",
+        "off": "Uit",
+        "external": "Extern",
+        "cooling": "Koelen",
+        "standby": "Stand-by",
+        "unknown": "Onbekend"
+      }
+    }
+  },
+  "cooling": {
+    "enabled": "Koeling vrijgegeven",
+    "disabled": "Koeling geblokkeerd"
+  },
+  "flow": {
+    "triggers": {
+      "heating_operation_mode_changed": "Verwarmingsstand gewijzigd",
+      "warmwater_operation_mode_changed": "Warmwaterstand gewijzigd",
+      "heatpump_state_changed": "Warmtepomp status gewijzigd",
+      "error_occurred": "Fout opgetreden"
+    },
+    "conditions": {
+      "heating_operation_mode_is": "Verwarmingsstand is",
+      "warmwater_operation_mode_is": "Warmwaterstand is",
+      "heatpump_state_is": "Warmtepomp status is"
+    },
+    "actions": {
+      "set_heating_operation_mode": "Verwarmingsstand instellen",
+      "set_warmwater_operation_mode": "Warmwaterstand instellen",
+      "set_heating_temperature_correction": "Temperatuurcorrectie verwarming instellen",
+      "set_warmwater_target_temperature": "Doeltemperatuur warmwater instellen"
+    }
+  }
+}

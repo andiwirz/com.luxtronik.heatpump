@@ -1,16 +1,20 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.luxtronik.heatpump",
-  "version": "2.0.42",
+  "version": "2.0.43",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "name": {
     "en": "Luxtronik Heat Pump Manager",
-    "de": "Luxtronik Wärmepumpen Manager"
+    "de": "Luxtronik Wärmepumpen Manager",
+    "nl": "Luxtronik Warmtepomp Manager",
+    "fr": "Luxtronik Gestionnaire de Pompe à Chaleur"
   },
   "description": {
     "en": "Control and monitor your Luxtronik 2.0 heat pump",
-    "de": "Steuern und überwachen Sie Ihre Luxtronik 2.0 Wärmepumpe"
+    "de": "Steuern und überwachen Sie Ihre Luxtronik 2.0 Wärmepumpe",
+    "nl": "Bedien en monitor uw Luxtronik 2.0 warmtepomp",
+    "fr": "Contrôlez et surveillez votre pompe à chaleur Luxtronik 2.0"
   },
   "category": [
     "climate"
@@ -29,6 +33,28 @@
     ],
     "de": [
       "wärmepumpe",
+      "luxtronik",
+      "alpha innotec",
+      "novelan",
+      "roth",
+      "elco",
+      "buderus",
+      "nibe",
+      "wolf"
+    ],
+    "nl": [
+      "warmtepomp",
+      "luxtronik",
+      "alpha innotec",
+      "novelan",
+      "roth",
+      "elco",
+      "buderus",
+      "nibe",
+      "wolf"
+    ],
+    "fr": [
+      "pompe à chaleur",
       "luxtronik",
       "alpha innotec",
       "novelan",
