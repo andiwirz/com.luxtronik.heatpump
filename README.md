@@ -76,9 +76,22 @@ This app communicates with the **Luxtronik 2.0 / 2.1** controller, which is buil
 
 ### Device Indicator
 
-The `heatpump_state_string` capability combines the heat pump state and the current hot water temperature into a single text value (e.g. `Standby (63°)` or `Hot Water (51°)`). It is hidden from the device tile but can be selected as the **device indicator** (the value shown below the device name in the Homey device list):
+The `heatpump_state_string` capability shows the current heat pump state as an emoji (e.g. `⏸️` for Standby, `🔥` for Heating, `💧` for Hot Water). It is hidden from the device tile but can be selected as the **device indicator** (the value shown below the device name in the Homey device list):
 
 **Device → ⚙️ → Device display → Heat Pump State**
+
+| State           | Emoji |
+|-----------------|-------|
+| Heating         | 🔥    |
+| Hot Water       | 💧    |
+| Defrost         | 🌡️    |
+| Standby         | ⏸️    |
+| EVU Lock        | 🔒    |
+| Cooling         | ❄️    |
+| Swimming Pool   | 🏊    |
+| External        | ⚡    |
+| Off             | ⭕    |
+| Unknown         | ❓    |
 
 ---
 
@@ -176,6 +189,21 @@ The app settings include a **Debug** tab that shows all raw values and parameter
 ### Version Info
 
 The **Version** tab in the app settings shows the current app version, SDK, compatibility, protocol, library, author and GitHub link.
+
+---
+
+## Language Support
+
+The app is fully translated into the following languages:
+
+| Language   | Code | App UI | Flow Cards | Pairing |
+|------------|------|--------|------------|---------|
+| English    | `en` | ✅     | ✅         | ✅      |
+| German     | `de` | ✅     | ✅         | ✅      |
+| Dutch      | `nl` | ✅     | ✅         | ✅      |
+| French     | `fr` | ✅     | ✅         | ✅      |
+
+Homey automatically uses the language matching the user's Homey interface language.
 
 ---
 
