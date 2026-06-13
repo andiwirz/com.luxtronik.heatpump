@@ -24,6 +24,7 @@
     "measure_temp_hotwater",
     "measure_temp_outdoor_avg",
     "measure_temp_return",
+    "measure_temp_flow",
     "measure_temp_return_target",
     "measure_temp_hotgas",
     "measure_temp_source_in",

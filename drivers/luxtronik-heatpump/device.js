@@ -186,7 +186,7 @@ class LuxtronikHeatpumpDevice extends Device {
       'delta_heating_reduction', 'delta_mk1_reduction',
       'temp_zwe_enable', 'temp_2nd_comp_heating', 'temp_2nd_comp_hotwater',
       'cooling_release_temp_cap', 'cooling_inlet_temp_cap',
-      'heatpump_state_string',
+      'heatpump_state_string', 'measure_temp_flow',
       // Hinweis: cooling_operation_mode, measure_temp_room, measure_temp_suction_air,
       // measure_hours_cooling, measure_power, meter_power werden bedingt hinzugefügt
     ];
@@ -198,7 +198,7 @@ class LuxtronikHeatpumpDevice extends Device {
       }
     }
     // ── Cleanup: unerwünschte Capabilities entfernen ────────────────────────────
-    const REMOVE_CAPABILITIES = ['thermal_disinfection', 'warmwater_target_temperature', 'heating_temperature_correction', 'measure_temp_flow', 'target_temperature.tdi'];
+    const REMOVE_CAPABILITIES = ['thermal_disinfection', 'warmwater_target_temperature', 'heating_temperature_correction', 'target_temperature.tdi'];
     for (const cap of REMOVE_CAPABILITIES) {
       if (this.hasCapability(cap)) {
         this.log(`Entferne Capability: ${cap}`);
