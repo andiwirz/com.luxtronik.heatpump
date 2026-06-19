@@ -222,12 +222,6 @@
     "heating_temperature_correction": {
       "preventInsights": true,
       "preventTag": true
-    },
-    "measure_temp_hotwater": {
-      "preventTag": true
-    },
-    "measure_temp_flow": {
-      "preventTag": true
     }
   },
   "images": {

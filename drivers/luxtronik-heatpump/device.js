@@ -38,6 +38,7 @@ const HEATPUMP_STATE_MAP = {
   14: 'external',       // Brauchwasser Ext.
   16: 'standby',        // Durchflussüberwachung
   17: 'heating',        // Elektrische Zusatzheizung
+  18: 'heating',        // Verdichter heizt auf (Kompressor-Aufwärmphase)
   19: 'hotwater',       // Warmwasser Nachheizung
 };
 
@@ -62,6 +63,7 @@ const HEATING_STATE_MAP = {
   'Durchflussueberwachung':         { en: 'Flow Monitoring',            de: 'Durchflussüberwachung' },
   'Elektrische Zusatzheizung':      { en: 'Electric Auxiliary Heating', de: 'Elektrische Zusatzheizung' },
   'Warmw. Nachheizung':             { en: 'DHW Reheating',              de: 'Warmwasser Nachheizung' },
+  'Unknown [18]':                   { en: 'Compressor Heating Up',      de: 'Verdichter heizt auf' },
   // state3=7: Library konkateniert Basisstring + Subtyp ohne Leerzeichen
   'AbtauenAbtauen (Kreisumkehr)':  { en: 'Defrost (Reverse Cycle)',    de: 'Abtauen (Kreisumkehr)' },
   'AbtauenLuftabtauen':            { en: 'Air Defrost',                de: 'Luftabtauen' },
