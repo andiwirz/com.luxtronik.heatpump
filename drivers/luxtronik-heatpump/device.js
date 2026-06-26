@@ -920,9 +920,19 @@ class LuxtronikHeatpumpDevice extends Device {
     // state3 = detaillierter Betriebsstatus; state1 = grober Status (für Fehler)
     const rawState  = v.heatpump_state3;
     const state1    = v.heatpump_state1;
-    const stateSlug = (state1 === HEATPUMP_STATE1_ERROR)
+    let stateSlug = (state1 === HEATPUMP_STATE1_ERROR)
       ? 'off'
       : (HEATPUMP_STATE_MAP[rawState] ?? 'unknown');
+    // Kühlbetrieb-Erkennung: Viele Luxtronik/AIT-Steuerungen (z. B. MSW2-6S) melden
+    // im Kühlbetrieb KEINEN state3=10 ('Kühlbetrieb'), sondern behalten state3=0
+    // ('Heizbetrieb') und signalisieren Kühlung ausschließlich über die Freigabe
+    // Kühlung (FreigabKuehl, Calc-Index 146). Nur der generische Status state3=0
+    // wird überschrieben; spezifische Heizmodi (17 Elektr. Zusatzheizung,
+    // 18 Verdichter heizt auf) bleiben 'heating'. Stabil auch wenn der Verdichter
+    // gerade taktet/aus ist, da die Umwälzung im Kühlmodus weiterläuft.
+    if (this._n(v.FreigabKuehl) === 1 && stateSlug === 'heating' && rawState === 0) {
+      stateSlug = 'cooling';
+    }
     if (stateSlug !== this._lastState) {
       await this._setIfValid('heatpump_state', stateSlug);
       if (this._lastState !== null) {
@@ -1001,6 +1011,12 @@ class LuxtronikHeatpumpDevice extends Device {
       } else {
         const entry = HEATING_STATE_MAP[raw];
         heatingLabel = entry ? (entry[lang] ?? entry.en) : raw;
+      }
+      // Kühlbetrieb überschreibt 'Heizbetrieb' (gleiche Logik wie heatpump_state oben):
+      // bei aktiver Freigabe Kühlung meldet die Steuerung 'Heizbetrieb' obwohl gekühlt wird.
+      if (this._n(v.FreigabKuehl) === 1 && raw === 'Heizbetrieb') {
+        const coolEntry = HEATING_STATE_MAP.Kuehlbetrieb;
+        heatingLabel = coolEntry ? (coolEntry[lang] ?? coolEntry.en) : heatingLabel;
       }
       await this._setIfValid('heating_state_string', heatingLabel);
     }
