@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Energy Heating",
-    "de": "Energie Heizung"
+    "de": "Energie Heizung",
+    "nl": "Energie verwarming"
   },
   "units": {
     "en": "kWh",

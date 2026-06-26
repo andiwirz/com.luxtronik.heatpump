@@ -2,7 +2,8 @@
   "type": "string",
   "title": {
     "en": "Last Poll",
-    "de": "Letzte Abfrage"
+    "de": "Letzte Abfrage",
+    "nl": "Laatste opvraging"
   },
   "getable": true,
   "setable": false,

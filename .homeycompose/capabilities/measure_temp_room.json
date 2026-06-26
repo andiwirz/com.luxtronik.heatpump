@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Room Temperature",
-    "de": "Raumtemperatur"
+    "de": "Raumtemperatur",
+    "nl": "Ruimtetemperatuur"
   },
   "units": {
     "en": "°C",

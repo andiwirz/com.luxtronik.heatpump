@@ -47,46 +47,46 @@ const HEATPUMP_STATE_MAP = {
 // Quelle: luxtronik2/types.js → extendetStateMessages + createExtendedStateString()
 // Hinweis: state3=7 (Abtauen) konkateniert die Library ohne Leerzeichen (Bug im npm)
 const HEATING_STATE_MAP = {
-  'Heizbetrieb':                   { en: 'Heating',                    de: 'Heizbetrieb' },
-  'Keine Anforderung':              { en: 'No Request',                 de: 'Keine Anforderung' },
-  'Netz Einschaltverzoegerung':     { en: 'Grid Startup Delay',         de: 'Netz Einschaltverzögerung' },
-  'Schaltspielzeit':                { en: 'Switching Cycle Time',       de: 'Schaltspielzeit' },
-  'EVU Sperrzeit':                  { en: 'EVU Lock',                   de: 'EVU Sperrzeit' },
-  'Brauchwasser':                   { en: 'Hot Water',                  de: 'Brauchwasser' },
+  'Heizbetrieb':                   { en: 'Heating',                    de: 'Heizbetrieb',                 nl: 'Verwarmen' },
+  'Keine Anforderung':              { en: 'No Request',                 de: 'Keine Anforderung',           nl: 'Geen warmtevraag' },
+  'Netz Einschaltverzoegerung':     { en: 'Grid Startup Delay',         de: 'Netz Einschaltverzögerung',   nl: 'Netinschakelvertraging' },
+  'Schaltspielzeit':                { en: 'Switching Cycle Time',       de: 'Schaltspielzeit',             nl: 'Schakelspeltijd' },
+  'EVU Sperrzeit':                  { en: 'EVU Lock',                   de: 'EVU Sperrzeit',               nl: 'EVU-blokkering' },
+  'Brauchwasser':                   { en: 'Hot Water',                  de: 'Brauchwasser',                nl: 'Warmwater' },
   // Estrich Programm: dynamischer Suffix "Stufe X - Y °C" → Sonderbehandlung im Poll
-  'Pumpenvorlauf':                  { en: 'Pump Pre-run',               de: 'Pumpenvorlauf' },
-  'Thermische Desinfektion':        { en: 'Thermal Disinfection',       de: 'Thermische Desinfektion' },
-  'Kuehlbetrieb':                   { en: 'Cooling',                    de: 'Kühlbetrieb' },
-  'Schwimmbad/Photovoltaik':        { en: 'Pool / Photovoltaic',        de: 'Schwimmbad / Photovoltaik' },
-  'Heizen Ext.':                    { en: 'External Heating',           de: 'Heizen Ext.' },
-  'Brauchwasser Ext.':              { en: 'External Hot Water',         de: 'Brauchwasser Ext.' },
-  'Durchflussueberwachung':         { en: 'Flow Monitoring',            de: 'Durchflussüberwachung' },
-  'Elektrische Zusatzheizung':      { en: 'Electric Auxiliary Heating', de: 'Elektrische Zusatzheizung' },
-  'Warmw. Nachheizung':             { en: 'DHW Reheating',              de: 'Warmwasser Nachheizung' },
-  'Unknown [18]':                   { en: 'Compressor Heating Up',      de: 'Verdichter heizt auf' },
+  'Pumpenvorlauf':                  { en: 'Pump Pre-run',               de: 'Pumpenvorlauf',               nl: 'Pompvoorloop' },
+  'Thermische Desinfektion':        { en: 'Thermal Disinfection',       de: 'Thermische Desinfektion',     nl: 'Thermische desinfectie' },
+  'Kuehlbetrieb':                   { en: 'Cooling',                    de: 'Kühlbetrieb',                 nl: 'Koelen' },
+  'Schwimmbad/Photovoltaik':        { en: 'Pool / Photovoltaic',        de: 'Schwimmbad / Photovoltaik',   nl: 'Zwembad / Fotovoltaïsch' },
+  'Heizen Ext.':                    { en: 'External Heating',           de: 'Heizen Ext.',                 nl: 'Externe verwarming' },
+  'Brauchwasser Ext.':              { en: 'External Hot Water',         de: 'Brauchwasser Ext.',           nl: 'Extern warmwater' },
+  'Durchflussueberwachung':         { en: 'Flow Monitoring',            de: 'Durchflussüberwachung',       nl: 'Doorstroombewaking' },
+  'Elektrische Zusatzheizung':      { en: 'Electric Auxiliary Heating', de: 'Elektrische Zusatzheizung',   nl: 'Elektrische bijverwarming' },
+  'Warmw. Nachheizung':             { en: 'DHW Reheating',              de: 'Warmwasser Nachheizung',      nl: 'Warmwater naverwarming' },
+  'Unknown [18]':                   { en: 'Compressor Heating Up',      de: 'Verdichter heizt auf',        nl: 'Compressor warmt op' },
   // state3=7: Library konkateniert Basisstring + Subtyp ohne Leerzeichen
-  'AbtauenAbtauen (Kreisumkehr)':  { en: 'Defrost (Reverse Cycle)',    de: 'Abtauen (Kreisumkehr)' },
-  'AbtauenLuftabtauen':            { en: 'Air Defrost',                de: 'Luftabtauen' },
-  'AbtauenAbtauen':                { en: 'Defrost',                    de: 'Abtauen' },
+  'AbtauenAbtauen (Kreisumkehr)':  { en: 'Defrost (Reverse Cycle)',    de: 'Abtauen (Kreisumkehr)',       nl: 'Ontdooien (kringomkering)' },
+  'AbtauenLuftabtauen':            { en: 'Air Defrost',                de: 'Luftabtauen',                 nl: 'Luchtontdooiing' },
+  'AbtauenAbtauen':                { en: 'Defrost',                    de: 'Abtauen',                     nl: 'Ontdooien' },
 };
 
 // Mapping: Originalstring der luxtronik2-Library → { en, de }
 // Quelle: luxtronik2/utils.js → createHotWaterStateString()
 const HOTWATER_STATE_MAP = {
-  'Sperrzeit': { en: 'Lock Period',    de: 'Sperrzeit' },
-  'Aufheizen': { en: 'Heating Up',     de: 'Aufheizen' },
-  'Temp. OK':  { en: 'Temperature OK', de: 'Temperatur OK' },
-  'Aus':       { en: 'Off',            de: 'Aus' },
+  'Sperrzeit': { en: 'Lock Period',    de: 'Sperrzeit',     nl: 'Blokkeertijd' },
+  'Aufheizen': { en: 'Heating Up',     de: 'Aufheizen',     nl: 'Opwarmen' },
+  'Temp. OK':  { en: 'Temperature OK', de: 'Temperatur OK', nl: 'Temperatuur OK' },
+  'Aus':       { en: 'Off',            de: 'Aus',           nl: 'Uit' },
 };
 
 // Capability-Titel die beim dynamischen addCapability() explizit gesetzt werden müssen,
 // weil Homey den Titel beim ersten Hinzufügen speichert und spätere app.json-Änderungen
 // nicht automatisch auf bereits vorhandene Capabilities anwendet.
 const CAPABILITY_TITLE_FIXES = {
-  'measure_temp_suction_air': { title: { en: 'Suction Air Temperature', de: 'Ansaugluft Temperatur' } },
-  'measure_temp_room':        { title: { en: 'Room Temperature',        de: 'Raumtemperatur' } },
-  'measure_temp_room_target': { title: { en: 'Room Target Temperature', de: 'Raumtemperatur Soll' } },
-  'measure_hours_cooling':    { title: { en: 'Cooling Operating Hours', de: 'Betriebsstunden Kühlung' } },
+  'measure_temp_suction_air': { title: { en: 'Suction Air Temperature', de: 'Ansaugluft Temperatur',  nl: 'Aanzuigluchttemperatuur' } },
+  'measure_temp_room':        { title: { en: 'Room Temperature',        de: 'Raumtemperatur',         nl: 'Ruimtetemperatuur' } },
+  'measure_temp_room_target': { title: { en: 'Room Target Temperature', de: 'Raumtemperatur Soll',     nl: 'Gewenste ruimtetemperatuur' } },
+  'measure_hours_cooling':    { title: { en: 'Cooling Operating Hours', de: 'Betriebsstunden Kühlung', nl: 'Bedrijfsuren koeling' } },
 };
 
 // heatpump_state1 = Grob-Status (0=läuft, 1=steht, 4=Fehler)
@@ -109,16 +109,16 @@ const STATE_EMOJI = {
 
 // Anzeigebezeichnungen für die Timeline (DE/EN)
 const STATE_TIMELINE_LABELS = {
-  heating:       { de: 'Heizbetrieb',        en: 'Heating' },
-  hotwater:      { de: 'Warmwasser',          en: 'Hot Water' },
-  defrost:       { de: 'Abtauen',             en: 'Defrost' },
-  standby:       { de: 'Standby',             en: 'Standby' },
-  provider_lock: { de: 'EVU-Sperre',          en: 'EVU Lock' },
-  cooling:       { de: 'Kühlen',              en: 'Cooling' },
-  swimming:      { de: 'Schwimmbad',          en: 'Swimming Pool' },
-  external:      { de: 'Extern (Zuheizer)',   en: 'External (Boiler)' },
-  off:           { de: 'Aus / Fehler',        en: 'Off / Error' },
-  unknown:       { de: 'Unbekannt',           en: 'Unknown' },
+  heating:       { de: 'Heizbetrieb',        en: 'Heating',           nl: 'Verwarmen' },
+  hotwater:      { de: 'Warmwasser',          en: 'Hot Water',         nl: 'Warmwater' },
+  defrost:       { de: 'Abtauen',             en: 'Defrost',           nl: 'Ontdooien' },
+  standby:       { de: 'Standby',             en: 'Standby',           nl: 'Stand-by' },
+  provider_lock: { de: 'EVU-Sperre',          en: 'EVU Lock',          nl: 'EVU-blokkering' },
+  cooling:       { de: 'Kühlen',              en: 'Cooling',           nl: 'Koelen' },
+  swimming:      { de: 'Schwimmbad',          en: 'Swimming Pool',     nl: 'Zwembad' },
+  external:      { de: 'Extern (Zuheizer)',   en: 'External (Boiler)', nl: 'Extern (bijverwarming)' },
+  off:           { de: 'Aus / Fehler',        en: 'Off / Error',       nl: 'Uit / Fout' },
+  unknown:       { de: 'Unbekannt',           en: 'Unknown',           nl: 'Onbekend' },
 };
 
 
@@ -223,6 +223,23 @@ class LuxtronikHeatpumpDevice extends Device {
       if (this.hasCapability(cap)) {
         try { await this.setCapabilityOptions(cap, options); }
         catch (e) { this.error(`setCapabilityOptions ${cap} fehlgeschlagen:`, e.message); }
+      }
+    }
+
+    // ── Alle Capability-Titel aus dem App-Manifest erzwingen ────────────────────
+    // Homey speichert den Titel pro Gerät beim Hinzufügen und aktualisiert ihn
+    // NICHT bei App-Updates. Damit Übersetzungen (z.B. NL) auf bereits gekoppelten
+    // Geräten ankommen, hier den aktuellen Manifest-Titel setzen, falls abweichend.
+    const manifestCaps = (this.homey.manifest && this.homey.manifest.capabilities) || {};
+    for (const cap of this.getCapabilities()) {
+      const def = manifestCaps[cap];
+      if (!def || !def.title) continue;
+      let current = null;
+      try { current = this.getCapabilityOptions(cap); } catch (e) { current = null; }
+      const curTitle = current && current.title ? JSON.stringify(current.title) : null;
+      if (curTitle !== JSON.stringify(def.title)) {
+        try { await this.setCapabilityOptions(cap, { ...(current || {}), title: def.title }); }
+        catch (e) { this.error(`Titel-Sync ${cap} fehlgeschlagen:`, e.message); }
       }
     }
 
@@ -1051,8 +1068,8 @@ class LuxtronikHeatpumpDevice extends Device {
       if (raw.startsWith('Estrich Programm')) {
         // Dynamischer Suffix "Stufe X - Y °C" – nur das Schlüsselwort übersetzen
         const suffix    = raw.replace('Estrich Programm', '').trim();
-        const base      = lang === 'de' ? 'Estrich Programm' : 'Screed Program';
-        const levelWord = lang === 'de' ? 'Stufe' : 'Level';
+        const base      = lang === 'de' ? 'Estrich Programm' : (lang === 'nl' ? 'Dekvloerprogramma' : 'Screed Program');
+        const levelWord = lang === 'de' ? 'Stufe' : (lang === 'nl' ? 'Stap' : 'Level');
         heatingLabel = base + ' ' + suffix.replace('Stufe', levelWord);
       } else {
         const entry = HEATING_STATE_MAP[raw];

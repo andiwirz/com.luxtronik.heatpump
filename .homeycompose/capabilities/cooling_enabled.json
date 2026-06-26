@@ -2,7 +2,8 @@
   "type": "boolean",
   "title": {
     "en": "Cooling Enabled",
-    "de": "Kühlung freigegeben"
+    "de": "Kühlung freigegeben",
+    "nl": "Koeling vrijgegeven"
   },
   "getable": true,
   "setable": false,

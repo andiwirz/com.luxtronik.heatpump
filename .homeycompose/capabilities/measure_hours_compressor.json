@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Compressor Hours",
-    "de": "Betriebsstunden Verdichter"
+    "de": "Betriebsstunden Verdichter",
+    "nl": "Bedrijfsuren compressor"
   },
   "units": {
     "en": "h",

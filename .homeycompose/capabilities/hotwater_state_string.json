@@ -2,7 +2,8 @@
   "type": "string",
   "title": {
     "en": "Hot Water Status",
-    "de": "Warmwasser Status"
+    "de": "Warmwasser Status",
+    "nl": "Warmwaterstatus"
   },
   "getable": true,
   "setable": false,

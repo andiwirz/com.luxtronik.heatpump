@@ -2522,7 +2522,8 @@
       "type": "boolean",
       "title": {
         "en": "Error",
-        "de": "Fehler"
+        "de": "Fehler",
+        "nl": "Fout"
       },
       "getable": true,
       "setable": false,
@@ -2534,7 +2535,8 @@
       "type": "boolean",
       "title": {
         "en": "Cooling Enabled",
-        "de": "Kühlung freigegeben"
+        "de": "Kühlung freigegeben",
+        "nl": "Koeling vrijgegeven"
       },
       "getable": true,
       "setable": false,
@@ -2553,7 +2555,8 @@
       "type": "number",
       "title": {
         "en": "Cooling Inlet Temperature",
-        "de": "Kühlung Einlauftemperatur"
+        "de": "Kühlung Einlauftemperatur",
+        "nl": "Koeling inlaattemperatuur"
       },
       "units": {
         "en": "°C",
@@ -2570,21 +2573,24 @@
       "type": "enum",
       "title": {
         "en": "Cooling Operation Mode",
-        "de": "Kühlbetrieb Betriebsart"
+        "de": "Kühlbetrieb Betriebsart",
+        "nl": "Koeling bedrijfsmodus"
       },
       "values": [
         {
           "id": "0",
           "title": {
             "en": "Off",
-            "de": "Aus"
+            "de": "Aus",
+            "nl": "Uit"
           }
         },
         {
           "id": "1",
           "title": {
             "en": "Automatic",
-            "de": "Automatik"
+            "de": "Automatik",
+            "nl": "Automatisch"
           }
         }
       ],
@@ -2598,7 +2604,8 @@
       "type": "number",
       "title": {
         "en": "Cooling Release Temperature",
-        "de": "Kühlung Freigabe-Temperatur"
+        "de": "Kühlung Freigabe-Temperatur",
+        "nl": "Koeling vrijgavetemperatuur"
       },
       "units": {
         "en": "°C",
@@ -2615,7 +2622,8 @@
       "type": "number",
       "title": {
         "en": "Heating Setback Delta",
-        "de": "Absenkung Heizung Delta"
+        "de": "Absenkung Heizung Delta",
+        "nl": "Verlaging verwarming delta"
       },
       "units": {
         "en": "K",
@@ -2632,7 +2640,8 @@
       "type": "number",
       "title": {
         "en": "MK1 Setback Delta",
-        "de": "Absenkung MK1 Delta"
+        "de": "Absenkung MK1 Delta",
+        "nl": "Verlaging MK1 delta"
       },
       "units": {
         "en": "K",
@@ -2649,7 +2658,8 @@
       "type": "string",
       "title": {
         "en": "Firmware Version",
-        "de": "Firmware Version"
+        "de": "Firmware Version",
+        "nl": "Firmwareversie"
       },
       "getable": true,
       "setable": false,
@@ -2661,7 +2671,8 @@
       "type": "boolean",
       "title": {
         "en": "Refresh",
-        "de": "Aktualisieren"
+        "de": "Aktualisieren",
+        "nl": "Vernieuwen"
       },
       "getable": false,
       "setable": true,
@@ -2673,7 +2684,8 @@
       "type": "number",
       "title": {
         "en": "Heating Curve Endpoint",
-        "de": "Heizkurve Endpunkt"
+        "de": "Heizkurve Endpunkt",
+        "nl": "Stooklijn eindpunt"
       },
       "units": {
         "en": "°C",
@@ -2690,7 +2702,8 @@
       "type": "number",
       "title": {
         "en": "Heating Curve Offset",
-        "de": "Heizkurve Parallelverschiebung"
+        "de": "Heizkurve Parallelverschiebung",
+        "nl": "Stooklijn parallelverschuiving"
       },
       "units": {
         "en": "°C",
@@ -2707,7 +2720,8 @@
       "type": "number",
       "title": {
         "en": "Heating Limit",
-        "de": "Heizgrenze"
+        "de": "Heizgrenze",
+        "nl": "Verwarmingsgrens"
       },
       "units": {
         "en": "°C",
@@ -2724,42 +2738,48 @@
       "type": "enum",
       "title": {
         "en": "Heating Operation Mode",
-        "de": "Heizung Betriebsart"
+        "de": "Heizung Betriebsart",
+        "nl": "Verwarming bedrijfsmodus"
       },
       "values": [
         {
           "id": "0",
           "title": {
             "en": "Automatic",
-            "de": "Automatik"
+            "de": "Automatik",
+            "nl": "Automatisch"
           }
         },
         {
           "id": "1",
           "title": {
             "en": "Second Heat Source",
-            "de": "Zuheizer"
+            "de": "Zuheizer",
+            "nl": "Bijverwarming"
           }
         },
         {
           "id": "2",
           "title": {
             "en": "Party",
-            "de": "Party"
+            "de": "Party",
+            "nl": "Party"
           }
         },
         {
           "id": "3",
           "title": {
             "en": "Holidays",
-            "de": "Ferien"
+            "de": "Ferien",
+            "nl": "Vakantie"
           }
         },
         {
           "id": "4",
           "title": {
             "en": "Off",
-            "de": "Aus"
+            "de": "Aus",
+            "nl": "Uit"
           }
         }
       ],
@@ -2773,7 +2793,8 @@
       "type": "string",
       "title": {
         "en": "Heating Status",
-        "de": "Heizung Status"
+        "de": "Heizung Status",
+        "nl": "Verwarmingsstatus"
       },
       "getable": true,
       "setable": false,
@@ -2785,7 +2806,8 @@
       "type": "number",
       "title": {
         "en": "Heating Temperature Correction",
-        "de": "Heizung Temperaturkorrektur"
+        "de": "Heizung Temperaturkorrektur",
+        "nl": "Verwarming temperatuurcorrectie"
       },
       "units": {
         "en": "°C",
@@ -2805,77 +2827,88 @@
       "type": "enum",
       "title": {
         "en": "Heat Pump State",
-        "de": "Wärmepumpen Status"
+        "de": "Wärmepumpen Status",
+        "nl": "Warmtepompstatus"
       },
       "values": [
         {
           "id": "heating",
           "title": {
             "en": "Heating",
-            "de": "Heizen"
+            "de": "Heizen",
+            "nl": "Verwarmen"
           }
         },
         {
           "id": "hotwater",
           "title": {
             "en": "Hot Water",
-            "de": "Warmwasser"
+            "de": "Warmwasser",
+            "nl": "Warmwater"
           }
         },
         {
           "id": "swimming",
           "title": {
             "en": "Swimming Pool",
-            "de": "Schwimmbad"
+            "de": "Schwimmbad",
+            "nl": "Zwembad"
           }
         },
         {
           "id": "provider_lock",
           "title": {
             "en": "EVU Lock",
-            "de": "EVU-Sperre"
+            "de": "EVU-Sperre",
+            "nl": "EVU-blokkering"
           }
         },
         {
           "id": "defrost",
           "title": {
             "en": "Defrost",
-            "de": "Abtauen"
+            "de": "Abtauen",
+            "nl": "Ontdooien"
           }
         },
         {
           "id": "off",
           "title": {
             "en": "Off",
-            "de": "Aus"
+            "de": "Aus",
+            "nl": "Uit"
           }
         },
         {
           "id": "external",
           "title": {
             "en": "External",
-            "de": "Extern"
+            "de": "Extern",
+            "nl": "Extern"
           }
         },
         {
           "id": "cooling",
           "title": {
             "en": "Cooling",
-            "de": "Kühlen"
+            "de": "Kühlen",
+            "nl": "Koelen"
           }
         },
         {
           "id": "standby",
           "title": {
             "en": "Standby",
-            "de": "Standby"
+            "de": "Standby",
+            "nl": "Stand-by"
           }
         },
         {
           "id": "unknown",
           "title": {
             "en": "Unknown",
-            "de": "Unbekannt"
+            "de": "Unbekannt",
+            "nl": "Onbekend"
           }
         }
       ],
@@ -2889,7 +2922,8 @@
       "type": "string",
       "title": {
         "en": "Heat Pump State",
-        "de": "Wärmepumpen Status"
+        "de": "Wärmepumpen Status",
+        "nl": "Warmtepompstatus"
       },
       "getable": true,
       "setable": false,
@@ -2901,7 +2935,8 @@
       "type": "boolean",
       "title": {
         "en": "Hot Water Boost (Auxiliary Heating)",
-        "de": "Brauchwasser Schnellladung (Zuheizung)"
+        "de": "Brauchwasser Schnellladung (Zuheizung)",
+        "nl": "Warmwater snellading (bijverwarming)"
       },
       "getable": true,
       "setable": true,
@@ -2921,7 +2956,8 @@
       "type": "boolean",
       "title": {
         "en": "Hot Water Boost (Party)",
-        "de": "Brauchwasser Schnellladung (Party)"
+        "de": "Brauchwasser Schnellladung (Party)",
+        "nl": "Warmwater snellading (party)"
       },
       "getable": true,
       "setable": true,
@@ -2941,7 +2977,8 @@
       "type": "number",
       "title": {
         "en": "Hot Water Hysteresis",
-        "de": "Warmwasser-Hysterese"
+        "de": "Warmwasser-Hysterese",
+        "nl": "Warmwater hysterese"
       },
       "units": {
         "en": "K",
@@ -2958,7 +2995,8 @@
       "type": "string",
       "title": {
         "en": "Hot Water Status",
-        "de": "Warmwasser Status"
+        "de": "Warmwasser Status",
+        "nl": "Warmwaterstatus"
       },
       "getable": true,
       "setable": false,
@@ -2970,7 +3008,8 @@
       "type": "string",
       "title": {
         "en": "Last Poll",
-        "de": "Letzte Abfrage"
+        "de": "Letzte Abfrage",
+        "nl": "Laatste opvraging"
       },
       "getable": true,
       "setable": false,
@@ -2982,7 +3021,8 @@
       "type": "number",
       "title": {
         "en": "Compressor Hours",
-        "de": "Betriebsstunden Verdichter"
+        "de": "Betriebsstunden Verdichter",
+        "nl": "Bedrijfsuren compressor"
       },
       "units": {
         "en": "h",
@@ -2999,7 +3039,8 @@
       "type": "number",
       "title": {
         "en": "Cooling Hours",
-        "de": "Betriebsstunden Kühlung"
+        "de": "Betriebsstunden Kühlung",
+        "nl": "Bedrijfsuren koeling"
       },
       "units": {
         "en": "h",
@@ -3016,7 +3057,8 @@
       "type": "number",
       "title": {
         "en": "Heating Hours",
-        "de": "Betriebsstunden Heizung"
+        "de": "Betriebsstunden Heizung",
+        "nl": "Bedrijfsuren verwarming"
       },
       "units": {
         "en": "h",
@@ -3033,7 +3075,8 @@
       "type": "number",
       "title": {
         "en": "Hot Water Hours",
-        "de": "Betriebsstunden Brauchwasser"
+        "de": "Betriebsstunden Brauchwasser",
+        "nl": "Bedrijfsuren warmwater"
       },
       "units": {
         "en": "h",
@@ -3050,7 +3093,8 @@
       "type": "number",
       "title": {
         "en": "Flow Temperature",
-        "de": "Vorlauftemperatur"
+        "de": "Vorlauftemperatur",
+        "nl": "Aanvoertemperatuur"
       },
       "units": {
         "en": "°C",
@@ -3067,7 +3111,8 @@
       "type": "number",
       "title": {
         "en": "Hot Gas Temperature",
-        "de": "Heissgastemperatur"
+        "de": "Heissgastemperatur",
+        "nl": "Heetgastemperatuur"
       },
       "units": {
         "en": "°C",
@@ -3084,7 +3129,8 @@
       "type": "number",
       "title": {
         "en": "Hot Water Temperature",
-        "de": "Warmwassertemperatur"
+        "de": "Warmwassertemperatur",
+        "nl": "Warmwatertemperatuur"
       },
       "units": {
         "en": "°C",
@@ -3101,7 +3147,8 @@
       "type": "number",
       "title": {
         "en": "Hot Water Target",
-        "de": "Warmwasser Soll"
+        "de": "Warmwasser Soll",
+        "nl": "Warmwater streefwaarde"
       },
       "units": {
         "en": "°C",
@@ -3118,7 +3165,8 @@
       "type": "number",
       "title": {
         "en": "Outdoor Temperature",
-        "de": "Aussentemperatur"
+        "de": "Aussentemperatur",
+        "nl": "Buitentemperatuur"
       },
       "units": {
         "en": "°C",
@@ -3135,7 +3183,8 @@
       "type": "number",
       "title": {
         "en": "Outdoor Avg. Temperature",
-        "de": "Mittlere Aussentemperatur"
+        "de": "Mittlere Aussentemperatur",
+        "nl": "Gemiddelde buitentemperatuur"
       },
       "units": {
         "en": "°C",
@@ -3152,7 +3201,8 @@
       "type": "number",
       "title": {
         "en": "Return Temperature",
-        "de": "Rücklauftemperatur"
+        "de": "Rücklauftemperatur",
+        "nl": "Retourtemperatuur"
       },
       "units": {
         "en": "°C",
@@ -3169,7 +3219,8 @@
       "type": "number",
       "title": {
         "en": "Return Target Temperature",
-        "de": "Rücklauf Soll-Temperatur"
+        "de": "Rücklauf Soll-Temperatur",
+        "nl": "Gewenste retourtemperatuur"
       },
       "units": {
         "en": "°C",
@@ -3186,7 +3237,8 @@
       "type": "number",
       "title": {
         "en": "Room Temperature",
-        "de": "Raumtemperatur"
+        "de": "Raumtemperatur",
+        "nl": "Ruimtetemperatuur"
       },
       "units": {
         "en": "°C",
@@ -3203,7 +3255,8 @@
       "type": "number",
       "title": {
         "en": "Room Target Temperature",
-        "de": "Raumtemperatur Soll"
+        "de": "Raumtemperatur Soll",
+        "nl": "Gewenste ruimtetemperatuur"
       },
       "units": {
         "en": "°C",
@@ -3220,7 +3273,8 @@
       "type": "number",
       "title": {
         "en": "Heat Source Inlet",
-        "de": "Wärmequelle Eingang"
+        "de": "Wärmequelle Eingang",
+        "nl": "Warmtebron ingang"
       },
       "units": {
         "en": "°C",
@@ -3237,7 +3291,8 @@
       "type": "number",
       "title": {
         "en": "Heat Source Outlet",
-        "de": "Wärmequelle Ausgang"
+        "de": "Wärmequelle Ausgang",
+        "nl": "Warmtebron uitgang"
       },
       "units": {
         "en": "°C",
@@ -3254,7 +3309,8 @@
       "type": "number",
       "title": {
         "en": "Suction Air Temperature",
-        "de": "Ansaugluft Temperatur"
+        "de": "Ansaugluft Temperatur",
+        "nl": "Aanzuigluchttemperatuur"
       },
       "units": {
         "en": "°C",
@@ -3271,7 +3327,8 @@
       "type": "number",
       "title": {
         "en": "Volume Flow",
-        "de": "Volumenstrom"
+        "de": "Volumenstrom",
+        "nl": "Volumestroom"
       },
       "units": {
         "en": "l/h",
@@ -3288,7 +3345,8 @@
       "type": "number",
       "title": {
         "en": "Energy Heating",
-        "de": "Energie Heizung"
+        "de": "Energie Heizung",
+        "nl": "Energie verwarming"
       },
       "units": {
         "en": "kWh",
@@ -3305,7 +3363,8 @@
       "type": "number",
       "title": {
         "en": "Energy Hot Water",
-        "de": "Energie Brauchwasser"
+        "de": "Energie Brauchwasser",
+        "nl": "Energie warmwater"
       },
       "units": {
         "en": "kWh",
@@ -3322,7 +3381,8 @@
       "type": "number",
       "title": {
         "en": "Energy Total",
-        "de": "Energie Gesamt"
+        "de": "Energie Gesamt",
+        "nl": "Energie totaal"
       },
       "units": {
         "en": "kWh",
@@ -3339,7 +3399,8 @@
       "type": "number",
       "title": {
         "en": "MK1 Curve Endpoint",
-        "de": "MK1 Kurve Endpunkt"
+        "de": "MK1 Kurve Endpunkt",
+        "nl": "MK1 stooklijn eindpunt"
       },
       "units": {
         "en": "°C",
@@ -3356,7 +3417,8 @@
       "type": "number",
       "title": {
         "en": "MK1 Curve Offset",
-        "de": "MK1 Kurve Parallelverschiebung"
+        "de": "MK1 Kurve Parallelverschiebung",
+        "nl": "MK1 stooklijn parallelverschuiving"
       },
       "units": {
         "en": "°C",
@@ -3373,7 +3435,8 @@
       "type": "number",
       "title": {
         "en": "Max. Outdoor Temperature",
-        "de": "Max. Aussentemperatur"
+        "de": "Max. Aussentemperatur",
+        "nl": "Max. buitentemperatuur"
       },
       "units": {
         "en": "°C",
@@ -3390,7 +3453,8 @@
       "type": "number",
       "title": {
         "en": "Min. Outdoor Temperature",
-        "de": "Min. Aussentemperatur"
+        "de": "Min. Aussentemperatur",
+        "nl": "Min. buitentemperatuur"
       },
       "units": {
         "en": "°C",
@@ -3407,7 +3471,8 @@
       "type": "number",
       "title": {
         "en": "Return Temperature Hysteresis",
-        "de": "Rücklauf-Hysterese"
+        "de": "Rücklauf-Hysterese",
+        "nl": "Retourtemperatuur hysterese"
       },
       "units": {
         "en": "K",
@@ -3424,7 +3489,8 @@
       "type": "number",
       "title": {
         "en": "Return Temperature Limit",
-        "de": "Rücklauftemperatur-Grenze"
+        "de": "Rücklauftemperatur-Grenze",
+        "nl": "Retourtemperatuur grens"
       },
       "units": {
         "en": "°C",
@@ -3441,7 +3507,8 @@
       "type": "number",
       "title": {
         "en": "Return Temperature Min.",
-        "de": "Rücklauftemperatur Minimum"
+        "de": "Rücklauftemperatur Minimum",
+        "nl": "Retourtemperatuur minimum"
       },
       "units": {
         "en": "°C",
@@ -3458,7 +3525,8 @@
       "type": "number",
       "title": {
         "en": "Supply Temperature Limit",
-        "de": "Vorlauftemperatur-Grenze"
+        "de": "Vorlauftemperatur-Grenze",
+        "nl": "Aanvoertemperatuur grens"
       },
       "units": {
         "en": "°C",
@@ -3475,7 +3543,8 @@
       "type": "number",
       "title": {
         "en": "Thermal Disinfection Setpoint (TDI)",
-        "de": "Thermische Desinfektion Soll (TDI)"
+        "de": "Thermische Desinfektion Soll (TDI)",
+        "nl": "Thermische desinfectie streefwaarde (TDI)"
       },
       "units": {
         "en": "°C",
@@ -3492,7 +3561,8 @@
       "type": "number",
       "title": {
         "en": "2nd Compressor Heating Temp.",
-        "de": "2. Verdichter Aussentemp. Heizen"
+        "de": "2. Verdichter Aussentemp. Heizen",
+        "nl": "2e compressor temp. verwarmen"
       },
       "units": {
         "en": "°C",
@@ -3509,7 +3579,8 @@
       "type": "number",
       "title": {
         "en": "2nd Compressor Hot Water Temp.",
-        "de": "2. Verdichter Vorlauftemp. Warmwasser"
+        "de": "2. Verdichter Vorlauftemp. Warmwasser",
+        "nl": "2e compressor temp. warmwater"
       },
       "units": {
         "en": "°C",
@@ -3526,7 +3597,8 @@
       "type": "number",
       "title": {
         "en": "Setback Temperature Limit",
-        "de": "Absenk-Temperaturgrenze"
+        "de": "Absenk-Temperaturgrenze",
+        "nl": "Verlaging temperatuurgrens"
       },
       "units": {
         "en": "°C",
@@ -3543,7 +3615,8 @@
       "type": "number",
       "title": {
         "en": "ZWE Enable Temperature",
-        "de": "ZWE Freigabe-Temperatur"
+        "de": "ZWE Freigabe-Temperatur",
+        "nl": "ZWE vrijgavetemperatuur"
       },
       "units": {
         "en": "°C",
@@ -3560,7 +3633,8 @@
       "type": "boolean",
       "title": {
         "en": "Thermal Disinfection (after next hot water cycle)",
-        "de": "Thermische Desinfektion (nach nächster Warmwasserbereitung)"
+        "de": "Thermische Desinfektion (nach nächster Warmwasserbereitung)",
+        "nl": "Thermische desinfectie (na volgende warmwaterbereiding)"
       },
       "getable": true,
       "setable": true,
@@ -3580,42 +3654,48 @@
       "type": "enum",
       "title": {
         "en": "Hot Water Operation Mode",
-        "de": "Brauchwasser Betriebsart"
+        "de": "Brauchwasser Betriebsart",
+        "nl": "Warmwater bedrijfsmodus"
       },
       "values": [
         {
           "id": "0",
           "title": {
             "en": "Automatic",
-            "de": "Automatik"
+            "de": "Automatik",
+            "nl": "Automatisch"
           }
         },
         {
           "id": "1",
           "title": {
             "en": "Second Heat Source",
-            "de": "Zuheizer"
+            "de": "Zuheizer",
+            "nl": "Bijverwarming"
           }
         },
         {
           "id": "2",
           "title": {
             "en": "Party",
-            "de": "Party"
+            "de": "Party",
+            "nl": "Party"
           }
         },
         {
           "id": "3",
           "title": {
             "en": "Holidays",
-            "de": "Ferien"
+            "de": "Ferien",
+            "nl": "Vakantie"
           }
         },
         {
           "id": "4",
           "title": {
             "en": "Off",
-            "de": "Aus"
+            "de": "Aus",
+            "nl": "Uit"
           }
         }
       ],
@@ -3629,7 +3709,8 @@
       "type": "number",
       "title": {
         "en": "Hot Water Target Temperature",
-        "de": "Brauchwasser Soll-Temperatur"
+        "de": "Brauchwasser Soll-Temperatur",
+        "nl": "Gewenste warmwatertemperatuur"
       },
       "units": {
         "en": "°C",

@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Setback Temperature Limit",
-    "de": "Absenk-Temperaturgrenze"
+    "de": "Absenk-Temperaturgrenze",
+    "nl": "Verlaging temperatuurgrens"
   },
   "units": {
     "en": "°C",

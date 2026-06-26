@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Min. Outdoor Temperature",
-    "de": "Min. Aussentemperatur"
+    "de": "Min. Aussentemperatur",
+    "nl": "Min. buitentemperatuur"
   },
   "units": {
     "en": "°C",

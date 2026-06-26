@@ -2,7 +2,8 @@
   "type": "string",
   "title": {
     "en": "Heating Status",
-    "de": "Heizung Status"
+    "de": "Heizung Status",
+    "nl": "Verwarmingsstatus"
   },
   "getable": true,
   "setable": false,

@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Suction Air Temperature",
-    "de": "Ansaugluft Temperatur"
+    "de": "Ansaugluft Temperatur",
+    "nl": "Aanzuigluchttemperatuur"
   },
   "units": {
     "en": "°C",

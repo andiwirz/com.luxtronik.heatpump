@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Cooling Hours",
-    "de": "Betriebsstunden Kühlung"
+    "de": "Betriebsstunden Kühlung",
+    "nl": "Bedrijfsuren koeling"
   },
   "units": {
     "en": "h",

@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Hot Water Target Temperature",
-    "de": "Brauchwasser Soll-Temperatur"
+    "de": "Brauchwasser Soll-Temperatur",
+    "nl": "Gewenste warmwatertemperatuur"
   },
   "units": {
     "en": "°C",

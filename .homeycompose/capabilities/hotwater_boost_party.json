@@ -2,7 +2,8 @@
   "type": "boolean",
   "title": {
     "en": "Hot Water Boost (Party)",
-    "de": "Brauchwasser Schnellladung (Party)"
+    "de": "Brauchwasser Schnellladung (Party)",
+    "nl": "Warmwater snellading (party)"
   },
   "getable": true,
   "setable": true,

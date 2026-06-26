@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Hot Water Target",
-    "de": "Warmwasser Soll"
+    "de": "Warmwasser Soll",
+    "nl": "Warmwater streefwaarde"
   },
   "units": {
     "en": "°C",

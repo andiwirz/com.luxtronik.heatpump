@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Flow Temperature",
-    "de": "Vorlauftemperatur"
+    "de": "Vorlauftemperatur",
+    "nl": "Aanvoertemperatuur"
   },
   "units": {
     "en": "°C",

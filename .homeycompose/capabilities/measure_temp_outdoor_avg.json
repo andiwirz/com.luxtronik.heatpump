@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Outdoor Avg. Temperature",
-    "de": "Mittlere Aussentemperatur"
+    "de": "Mittlere Aussentemperatur",
+    "nl": "Gemiddelde buitentemperatuur"
   },
   "units": {
     "en": "°C",

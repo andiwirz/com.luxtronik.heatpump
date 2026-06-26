@@ -2,7 +2,8 @@
   "type": "string",
   "title": {
     "en": "Heat Pump State",
-    "de": "Wärmepumpen Status"
+    "de": "Wärmepumpen Status",
+    "nl": "Warmtepompstatus"
   },
   "getable": true,
   "setable": false,

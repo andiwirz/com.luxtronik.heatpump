@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Heating Setback Delta",
-    "de": "Absenkung Heizung Delta"
+    "de": "Absenkung Heizung Delta",
+    "nl": "Verlaging verwarming delta"
   },
   "units": {
     "en": "K",

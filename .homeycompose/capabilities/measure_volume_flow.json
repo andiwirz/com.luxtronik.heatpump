@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Volume Flow",
-    "de": "Volumenstrom"
+    "de": "Volumenstrom",
+    "nl": "Volumestroom"
   },
   "units": {
     "en": "l/h",

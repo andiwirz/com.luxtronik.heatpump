@@ -2,7 +2,8 @@
   "type": "boolean",
   "title": {
     "en": "Error",
-    "de": "Fehler"
+    "de": "Fehler",
+    "nl": "Fout"
   },
   "getable": true,
   "setable": false,
