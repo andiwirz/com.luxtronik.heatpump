@@ -2,42 +2,48 @@
   "type": "enum",
   "title": {
     "en": "Heating Operation Mode",
-    "de": "Heizung Betriebsart"
+    "de": "Heizung Betriebsart",
+    "nl": "Verwarming bedrijfsmodus"
   },
   "values": [
     {
       "id": "0",
       "title": {
         "en": "Automatic",
-        "de": "Automatik"
+        "de": "Automatik",
+        "nl": "Automatisch"
       }
     },
     {
       "id": "1",
       "title": {
         "en": "Second Heat Source",
-        "de": "Zuheizer"
+        "de": "Zuheizer",
+        "nl": "Bijverwarming"
       }
     },
     {
       "id": "2",
       "title": {
         "en": "Party",
-        "de": "Party"
+        "de": "Party",
+        "nl": "Party"
       }
     },
     {
       "id": "3",
       "title": {
         "en": "Holidays",
-        "de": "Ferien"
+        "de": "Ferien",
+        "nl": "Vakantie"
       }
     },
     {
       "id": "4",
       "title": {
         "en": "Off",
-        "de": "Aus"
+        "de": "Aus",
+        "nl": "Uit"
       }
     }
   ],

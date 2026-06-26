@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "ZWE Enable Temperature",
-    "de": "ZWE Freigabe-Temperatur"
+    "de": "ZWE Freigabe-Temperatur",
+    "nl": "ZWE vrijgavetemperatuur"
   },
   "units": {
     "en": "°C",

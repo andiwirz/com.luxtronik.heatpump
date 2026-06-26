@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Energy Total",
-    "de": "Energie Gesamt"
+    "de": "Energie Gesamt",
+    "nl": "Energie totaal"
   },
   "units": {
     "en": "kWh",

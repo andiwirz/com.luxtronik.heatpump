@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Heat Source Inlet",
-    "de": "Wärmequelle Eingang"
+    "de": "Wärmequelle Eingang",
+    "nl": "Warmtebron ingang"
   },
   "units": {
     "en": "°C",

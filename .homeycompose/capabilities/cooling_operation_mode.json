@@ -2,21 +2,24 @@
   "type": "enum",
   "title": {
     "en": "Cooling Operation Mode",
-    "de": "Kühlbetrieb Betriebsart"
+    "de": "Kühlbetrieb Betriebsart",
+    "nl": "Koeling bedrijfsmodus"
   },
   "values": [
     {
       "id": "0",
       "title": {
         "en": "Off",
-        "de": "Aus"
+        "de": "Aus",
+        "nl": "Uit"
       }
     },
     {
       "id": "1",
       "title": {
         "en": "Automatic",
-        "de": "Automatik"
+        "de": "Automatik",
+        "nl": "Automatisch"
       }
     }
   ],

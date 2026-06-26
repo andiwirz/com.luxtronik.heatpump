@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Heating Temperature Correction",
-    "de": "Heizung Temperaturkorrektur"
+    "de": "Heizung Temperaturkorrektur",
+    "nl": "Verwarming temperatuurcorrectie"
   },
   "units": {
     "en": "°C",

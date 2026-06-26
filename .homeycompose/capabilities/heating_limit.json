@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Heating Limit",
-    "de": "Heizgrenze"
+    "de": "Heizgrenze",
+    "nl": "Verwarmingsgrens"
   },
   "units": {
     "en": "°C",

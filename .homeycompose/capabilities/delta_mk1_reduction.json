@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "MK1 Setback Delta",
-    "de": "Absenkung MK1 Delta"
+    "de": "Absenkung MK1 Delta",
+    "nl": "Verlaging MK1 delta"
   },
   "units": {
     "en": "K",

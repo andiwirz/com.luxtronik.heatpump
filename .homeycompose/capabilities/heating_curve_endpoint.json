@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Heating Curve Endpoint",
-    "de": "Heizkurve Endpunkt"
+    "de": "Heizkurve Endpunkt",
+    "nl": "Stooklijn eindpunt"
   },
   "units": {
     "en": "°C",

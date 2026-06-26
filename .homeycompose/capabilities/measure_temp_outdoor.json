@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Outdoor Temperature",
-    "de": "Aussentemperatur"
+    "de": "Aussentemperatur",
+    "nl": "Buitentemperatuur"
   },
   "units": {
     "en": "°C",

@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Cooling Inlet Temperature",
-    "de": "Kühlung Einlauftemperatur"
+    "de": "Kühlung Einlauftemperatur",
+    "nl": "Koeling inlaattemperatuur"
   },
   "units": {
     "en": "°C",

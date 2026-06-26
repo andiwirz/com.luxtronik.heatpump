@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Hot Water Hysteresis",
-    "de": "Warmwasser-Hysterese"
+    "de": "Warmwasser-Hysterese",
+    "nl": "Warmwater hysterese"
   },
   "units": {
     "en": "K",

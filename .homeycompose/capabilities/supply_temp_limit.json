@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Supply Temperature Limit",
-    "de": "Vorlauftemperatur-Grenze"
+    "de": "Vorlauftemperatur-Grenze",
+    "nl": "Aanvoertemperatuur grens"
   },
   "units": {
     "en": "°C",

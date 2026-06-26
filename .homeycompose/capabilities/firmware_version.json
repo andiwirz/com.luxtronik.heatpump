@@ -2,7 +2,8 @@
   "type": "string",
   "title": {
     "en": "Firmware Version",
-    "de": "Firmware Version"
+    "de": "Firmware Version",
+    "nl": "Firmwareversie"
   },
   "getable": true,
   "setable": false,

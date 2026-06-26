@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Thermal Disinfection Setpoint (TDI)",
-    "de": "Thermische Desinfektion Soll (TDI)"
+    "de": "Thermische Desinfektion Soll (TDI)",
+    "nl": "Thermische desinfectie streefwaarde (TDI)"
   },
   "units": {
     "en": "°C",

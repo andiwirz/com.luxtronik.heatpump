@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Heating Hours",
-    "de": "Betriebsstunden Heizung"
+    "de": "Betriebsstunden Heizung",
+    "nl": "Bedrijfsuren verwarming"
   },
   "units": {
     "en": "h",

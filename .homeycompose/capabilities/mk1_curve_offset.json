@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "MK1 Curve Offset",
-    "de": "MK1 Kurve Parallelverschiebung"
+    "de": "MK1 Kurve Parallelverschiebung",
+    "nl": "MK1 stooklijn parallelverschuiving"
   },
   "units": {
     "en": "°C",

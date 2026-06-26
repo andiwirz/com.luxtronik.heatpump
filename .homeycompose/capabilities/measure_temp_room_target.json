@@ -2,7 +2,8 @@
   "type": "number",
   "title": {
     "en": "Room Target Temperature",
-    "de": "Raumtemperatur Soll"
+    "de": "Raumtemperatur Soll",
+    "nl": "Gewenste ruimtetemperatuur"
   },
   "units": {
     "en": "°C",
