@@ -297,8 +297,6 @@ class LuxtronikHeatpumpDevice extends Device {
     this.homey.flow.getConditionCard('hotwater_boost_is_active')
       .registerRunListener(() => this.getCapabilityValue('hotwater_boost') === true);
 
-    this.homey.flow.getConditionCard('hotwater_boost_party_is_active')
-
     this.homey.flow.getConditionCard('device_is_available')
       .registerRunListener(() => this.getAvailable());
 
