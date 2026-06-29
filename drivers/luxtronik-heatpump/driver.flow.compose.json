@@ -4,11 +4,9 @@
       "id": "heating_operation_mode_changed",
       "title": {
         "en": "Heating mode changed",
-        "de": "Heizungs-Betriebsart geändert"
-      },
-      "titleFormatted": {
-        "en": "Heating mode changed to [[mode]]",
-        "de": "Heizungs-Betriebsart geändert auf [[mode]]"
+        "de": "Heizungs-Betriebsart geändert",
+        "nl": "Verwarmingsmodus gewijzigd",
+        "fr": "Mode chauffage modifié"
       },
       "tokens": [
         {
@@ -16,7 +14,9 @@
           "type": "string",
           "title": {
             "en": "Mode",
-            "de": "Betriebsart"
+            "de": "Betriebsart",
+            "nl": "Modus",
+            "fr": "Mode"
           }
         }
       ],
@@ -26,11 +26,9 @@
       "id": "warmwater_operation_mode_changed",
       "title": {
         "en": "Hot water mode changed",
-        "de": "Brauchwasser-Betriebsart geändert"
-      },
-      "titleFormatted": {
-        "en": "Hot water mode changed to [[mode]]",
-        "de": "Brauchwasser-Betriebsart geändert auf [[mode]]"
+        "de": "Brauchwasser-Betriebsart geändert",
+        "nl": "Warmwatermodus gewijzigd",
+        "fr": "Mode eau chaude modifié"
       },
       "tokens": [
         {
@@ -38,7 +36,9 @@
           "type": "string",
           "title": {
             "en": "Mode",
-            "de": "Betriebsart"
+            "de": "Betriebsart",
+            "nl": "Modus",
+            "fr": "Mode"
           }
         }
       ],
@@ -48,11 +48,9 @@
       "id": "heatpump_state_changed",
       "title": {
         "en": "Heat pump state changed",
-        "de": "Wärmepumpen-Status geändert"
-      },
-      "titleFormatted": {
-        "en": "Heat pump state changed to [[state]]",
-        "de": "Wärmepumpen-Status geändert auf [[state]]"
+        "de": "Wärmepumpen-Status geändert",
+        "nl": "Warmtepompstatus gewijzigd",
+        "fr": "État pompe à chaleur modifié"
       },
       "tokens": [
         {
@@ -60,7 +58,9 @@
           "type": "string",
           "title": {
             "en": "State",
-            "de": "Status"
+            "de": "Status",
+            "nl": "Status",
+            "fr": "État"
           }
         }
       ],
@@ -70,7 +70,9 @@
       "id": "error_occurred",
       "title": {
         "en": "Error occurred",
-        "de": "Fehler aufgetreten"
+        "de": "Fehler aufgetreten",
+        "nl": "Fout opgetreden",
+        "fr": "Erreur survenue"
       },
       "tokens": [
         {
@@ -78,7 +80,9 @@
           "type": "string",
           "title": {
             "en": "Error",
-            "de": "Fehler"
+            "de": "Fehler",
+            "nl": "Fout",
+            "fr": "Erreur"
           }
         }
       ],
@@ -88,7 +92,9 @@
       "id": "hotwater_boost_ended",
       "title": {
         "en": "Hot Water Boost (Auxiliary Heating) ended",
-        "de": "Brauchwasser Schnellladung (Zuheizung) beendet"
+        "de": "Brauchwasser Schnellladung (Zuheizung) beendet",
+        "nl": "Warmwater boost (bijverwarming) beëindigd",
+        "fr": "Boost eau chaude (auxiliaire) terminé"
       },
       "args": []
     },
@@ -96,7 +102,9 @@
       "id": "hotwater_boost_party_ended",
       "title": {
         "en": "Hot Water Boost (Party) ended",
-        "de": "Brauchwasser Schnellladung (Party) beendet"
+        "de": "Brauchwasser Schnellladung (Party) beendet",
+        "nl": "Warmwater boost (feest) beëindigd",
+        "fr": "Boost eau chaude (fête) terminé"
       },
       "args": []
     },
@@ -104,11 +112,15 @@
       "id": "device_unavailable",
       "title": {
         "en": "Device became unavailable",
-        "de": "Gerät nicht erreichbar"
+        "de": "Gerät nicht erreichbar",
+        "nl": "Apparaat niet bereikbaar",
+        "fr": "Appareil indisponible"
       },
       "titleFormatted": {
         "en": "Device became unavailable",
-        "de": "Gerät nicht erreichbar"
+        "de": "Gerät nicht erreichbar",
+        "nl": "Apparaat niet bereikbaar",
+        "fr": "Appareil indisponible"
       },
       "args": []
     },
@@ -116,11 +128,15 @@
       "id": "device_available",
       "title": {
         "en": "Device became available again",
-        "de": "Gerät wieder erreichbar"
+        "de": "Gerät wieder erreichbar",
+        "nl": "Apparaat weer bereikbaar",
+        "fr": "Appareil disponible à nouveau"
       },
       "titleFormatted": {
         "en": "Device became available again",
-        "de": "Gerät wieder erreichbar"
+        "de": "Gerät wieder erreichbar",
+        "nl": "Apparaat weer bereikbaar",
+        "fr": "Appareil disponible à nouveau"
       },
       "args": []
     },
@@ -128,11 +144,15 @@
       "id": "thermal_disinfection_ended",
       "title": {
         "en": "Thermal Disinfection ended",
-        "de": "Thermische Desinfektion beendet"
+        "de": "Thermische Desinfektion beendet",
+        "nl": "Thermische desinfectie beëindigd",
+        "fr": "Désinfection thermique terminée"
       },
       "titleFormatted": {
         "en": "Thermal Disinfection ended",
-        "de": "Thermische Desinfektion beendet"
+        "de": "Thermische Desinfektion beendet",
+        "nl": "Thermische desinfectie beëindigd",
+        "fr": "Désinfection thermique terminée"
       },
       "args": []
     },
@@ -140,11 +160,15 @@
       "id": "error_cleared",
       "title": {
         "en": "Error cleared",
-        "de": "Fehler quittiert"
+        "de": "Fehler quittiert",
+        "nl": "Fout opgelost",
+        "fr": "Erreur effacée"
       },
       "titleFormatted": {
         "en": "Error cleared",
-        "de": "Fehler quittiert"
+        "de": "Fehler quittiert",
+        "nl": "Fout opgelost",
+        "fr": "Erreur effacée"
       },
       "args": []
     },
@@ -152,11 +176,15 @@
       "id": "outdoor_temp_dropped_below",
       "title": {
         "en": "Outdoor temperature dropped below",
-        "de": "Aussentemperatur fiel unter"
+        "de": "Aussentemperatur fiel unter",
+        "nl": "Buitentemperatuur daalde onder",
+        "fr": "Température extérieure descendue sous"
       },
       "titleFormatted": {
         "en": "Outdoor temperature dropped below [[temperature]] °C",
-        "de": "Aussentemperatur fiel unter [[temperature]] °C"
+        "de": "Aussentemperatur fiel unter [[temperature]] °C",
+        "nl": "Buitentemperatuur daalde onder [[temperature]] °C",
+        "fr": "Température extérieure descendue sous [[temperature]] °C"
       },
       "args": [
         {
@@ -164,11 +192,15 @@
           "type": "number",
           "title": {
             "en": "Temperature (°C)",
-            "de": "Temperatur (°C)"
+            "de": "Temperatur (°C)",
+            "nl": "Temperatuur (°C)",
+            "fr": "Température (°C)"
           },
           "placeholder": {
             "en": "e.g. 0",
-            "de": "z.B. 0"
+            "de": "z.B. 0",
+            "nl": "bijv. 0",
+            "fr": "ex. 0"
           }
         }
       ]
@@ -177,11 +209,15 @@
       "id": "outdoor_temp_rose_above",
       "title": {
         "en": "Outdoor temperature rose above",
-        "de": "Aussentemperatur stieg über"
+        "de": "Aussentemperatur stieg über",
+        "nl": "Buitentemperatuur steeg boven",
+        "fr": "Température extérieure montée au-dessus de"
       },
       "titleFormatted": {
         "en": "Outdoor temperature rose above [[temperature]] °C",
-        "de": "Aussentemperatur stieg über [[temperature]] °C"
+        "de": "Aussentemperatur stieg über [[temperature]] °C",
+        "nl": "Buitentemperatuur steeg boven [[temperature]] °C",
+        "fr": "Température extérieure montée au-dessus de [[temperature]] °C"
       },
       "args": [
         {
@@ -189,11 +225,15 @@
           "type": "number",
           "title": {
             "en": "Temperature (°C)",
-            "de": "Temperatur (°C)"
+            "de": "Temperatur (°C)",
+            "nl": "Temperatuur (°C)",
+            "fr": "Température (°C)"
           },
           "placeholder": {
             "en": "e.g. 20",
-            "de": "z.B. 20"
+            "de": "z.B. 20",
+            "nl": "bijv. 20",
+            "fr": "ex. 20"
           }
         }
       ]
@@ -203,12 +243,14 @@
       "title": {
         "en": "Room temperature dropped below",
         "de": "Raumtemperatur fiel unter",
-        "nl": "Ruimtetemperatuur daalde onder"
+        "nl": "Ruimtetemperatuur daalde onder",
+        "fr": "Température ambiante descendue sous"
       },
       "titleFormatted": {
         "en": "Room temperature dropped below [[temperature]] °C",
         "de": "Raumtemperatur fiel unter [[temperature]] °C",
-        "nl": "Ruimtetemperatuur daalde onder [[temperature]] °C"
+        "nl": "Ruimtetemperatuur daalde onder [[temperature]] °C",
+        "fr": "Température ambiante descendue sous [[temperature]] °C"
       },
       "args": [
         {
@@ -217,12 +259,14 @@
           "title": {
             "en": "Temperature (°C)",
             "de": "Temperatur (°C)",
-            "nl": "Temperatuur (°C)"
+            "nl": "Temperatuur (°C)",
+            "fr": "Température (°C)"
           },
           "placeholder": {
             "en": "e.g. 18",
             "de": "z.B. 18",
-            "nl": "bijv. 18"
+            "nl": "bijv. 18",
+            "fr": "ex. 18"
           }
         }
       ]
@@ -232,12 +276,14 @@
       "title": {
         "en": "Room temperature rose above",
         "de": "Raumtemperatur stieg über",
-        "nl": "Ruimtetemperatuur steeg boven"
+        "nl": "Ruimtetemperatuur steeg boven",
+        "fr": "Température ambiante montée au-dessus de"
       },
       "titleFormatted": {
         "en": "Room temperature rose above [[temperature]] °C",
         "de": "Raumtemperatur stieg über [[temperature]] °C",
-        "nl": "Ruimtetemperatuur steeg boven [[temperature]] °C"
+        "nl": "Ruimtetemperatuur steeg boven [[temperature]] °C",
+        "fr": "Température ambiante montée au-dessus de [[temperature]] °C"
       },
       "args": [
         {
@@ -246,12 +292,14 @@
           "title": {
             "en": "Temperature (°C)",
             "de": "Temperatur (°C)",
-            "nl": "Temperatuur (°C)"
+            "nl": "Temperatuur (°C)",
+            "fr": "Température (°C)"
           },
           "placeholder": {
             "en": "e.g. 22",
             "de": "z.B. 22",
-            "nl": "bijv. 22"
+            "nl": "bijv. 22",
+            "fr": "ex. 22"
           }
         }
       ]
@@ -262,7 +310,15 @@
       "id": "heating_operation_mode_is",
       "title": {
         "en": "Heating mode !{{is|is not}}",
-        "de": "Heizungs-Betriebsart !{{ist|ist nicht}}"
+        "de": "Heizungs-Betriebsart !{{ist|ist nicht}}",
+        "nl": "Verwarmingsmodus !{{is|is niet}}",
+        "fr": "Mode chauffage !{{est|n'est pas}}"
+      },
+      "titleFormatted": {
+        "en": "The heating mode is [[mode]]",
+        "de": "Die Heizungs-Betriebsart ist [[mode]]",
+        "nl": "De verwarmingsmodus is [[mode]]",
+        "fr": "Le mode chauffage est [[mode]]"
       },
       "args": [
         {
@@ -270,57 +326,73 @@
           "type": "dropdown",
           "title": {
             "en": "Mode",
-            "de": "Betriebsart"
+            "de": "Betriebsart",
+            "nl": "Modus",
+            "fr": "Mode"
           },
           "values": [
             {
               "id": "0",
               "label": {
                 "en": "Automatic",
-                "de": "Automatik"
+                "de": "Automatik",
+                "nl": "Automatisch",
+                "fr": "Automatique"
               }
             },
             {
               "id": "1",
               "label": {
                 "en": "Second Heat Source",
-                "de": "Zuheizer"
+                "de": "Zuheizer",
+                "nl": "Tweede warmtebron",
+                "fr": "Source secondaire"
               }
             },
             {
               "id": "2",
               "label": {
                 "en": "Party",
-                "de": "Party"
+                "de": "Party",
+                "nl": "Feest",
+                "fr": "Fête"
               }
             },
             {
               "id": "3",
               "label": {
                 "en": "Holidays",
-                "de": "Ferien"
+                "de": "Ferien",
+                "nl": "Vakantie",
+                "fr": "Vacances"
               }
             },
             {
               "id": "4",
               "label": {
                 "en": "Off",
-                "de": "Aus"
+                "de": "Aus",
+                "nl": "Uit",
+                "fr": "Arrêt"
               }
             }
           ]
         }
-      ],
-      "titleFormatted": {
-        "en": "The heating mode is [[mode]]",
-        "de": "Die Heizungs-Betriebsart ist [[mode]]"
-      }
+      ]
     },
     {
       "id": "warmwater_operation_mode_is",
       "title": {
         "en": "Hot water mode !{{is|is not}}",
-        "de": "Brauchwasser-Betriebsart !{{ist|ist nicht}}"
+        "de": "Brauchwasser-Betriebsart !{{ist|ist nicht}}",
+        "nl": "Warmwatermodus !{{is|is niet}}",
+        "fr": "Mode eau chaude !{{est|n'est pas}}"
+      },
+      "titleFormatted": {
+        "en": "The hot water mode is [[mode]]",
+        "de": "Die Brauchwasser-Betriebsart ist [[mode]]",
+        "nl": "De warmwatermodus is [[mode]]",
+        "fr": "Le mode eau chaude est [[mode]]"
       },
       "args": [
         {
@@ -328,57 +400,73 @@
           "type": "dropdown",
           "title": {
             "en": "Mode",
-            "de": "Betriebsart"
+            "de": "Betriebsart",
+            "nl": "Modus",
+            "fr": "Mode"
           },
           "values": [
             {
               "id": "0",
               "label": {
                 "en": "Automatic",
-                "de": "Automatik"
+                "de": "Automatik",
+                "nl": "Automatisch",
+                "fr": "Automatique"
               }
             },
             {
               "id": "1",
               "label": {
                 "en": "Second Heat Source",
-                "de": "Zuheizer"
+                "de": "Zuheizer",
+                "nl": "Tweede warmtebron",
+                "fr": "Source secondaire"
               }
             },
             {
               "id": "2",
               "label": {
                 "en": "Party",
-                "de": "Party"
+                "de": "Party",
+                "nl": "Feest",
+                "fr": "Fête"
               }
             },
             {
               "id": "3",
               "label": {
                 "en": "Holidays",
-                "de": "Ferien"
+                "de": "Ferien",
+                "nl": "Vakantie",
+                "fr": "Vacances"
               }
             },
             {
               "id": "4",
               "label": {
                 "en": "Off",
-                "de": "Aus"
+                "de": "Aus",
+                "nl": "Uit",
+                "fr": "Arrêt"
               }
             }
           ]
         }
-      ],
-      "titleFormatted": {
-        "en": "The hot water mode is [[mode]]",
-        "de": "Die Brauchwasser-Betriebsart ist [[mode]]"
-      }
+      ]
     },
     {
       "id": "heatpump_state_is",
       "title": {
         "en": "Heat pump state !{{is|is not}}",
-        "de": "Wärmepumpen-Status !{{ist|ist nicht}}"
+        "de": "Wärmepumpen-Status !{{ist|ist nicht}}",
+        "nl": "Warmtepompstatus !{{is|is niet}}",
+        "fr": "État pompe à chaleur !{{est|n'est pas}}"
+      },
+      "titleFormatted": {
+        "en": "The heat pump state is [[state]]",
+        "de": "Der Wärmepumpen-Status ist [[state]]",
+        "nl": "De warmtepompstatus is [[state]]",
+        "fr": "L'état de la pompe à chaleur est [[state]]"
       },
       "args": [
         {
@@ -386,89 +474,109 @@
           "type": "dropdown",
           "title": {
             "en": "State",
-            "de": "Status"
+            "de": "Status",
+            "nl": "Status",
+            "fr": "État"
           },
           "values": [
             {
               "id": "heating",
               "label": {
                 "en": "Heating",
-                "de": "Heizen"
+                "de": "Heizen",
+                "nl": "Verwarmen",
+                "fr": "Chauffage"
               }
             },
             {
               "id": "hotwater",
               "label": {
                 "en": "Hot Water",
-                "de": "Warmwasser"
+                "de": "Warmwasser",
+                "nl": "Warmwater",
+                "fr": "Eau chaude"
               }
             },
             {
               "id": "swimming",
               "label": {
                 "en": "Swimming Pool",
-                "de": "Schwimmbad"
+                "de": "Schwimmbad",
+                "nl": "Zwembad",
+                "fr": "Piscine"
               }
             },
             {
               "id": "provider_lock",
               "label": {
                 "en": "EVU Lock",
-                "de": "EVU-Sperre"
+                "de": "EVU-Sperre",
+                "nl": "EVU-blokkering",
+                "fr": "Blocage EVU"
               }
             },
             {
               "id": "defrost",
               "label": {
                 "en": "Defrost",
-                "de": "Abtauen"
+                "de": "Abtauen",
+                "nl": "Ontdooien",
+                "fr": "Dégivrage"
               }
             },
             {
               "id": "off",
               "label": {
                 "en": "Off",
-                "de": "Aus"
+                "de": "Aus",
+                "nl": "Uit",
+                "fr": "Arrêt"
               }
             },
             {
               "id": "external",
               "label": {
                 "en": "External",
-                "de": "Extern"
+                "de": "Extern",
+                "nl": "Extern",
+                "fr": "Externe"
               }
             },
             {
               "id": "cooling",
               "label": {
                 "en": "Cooling",
-                "de": "Kühlen"
+                "de": "Kühlen",
+                "nl": "Koelen",
+                "fr": "Refroidissement"
               }
             },
             {
               "id": "standby",
               "label": {
                 "en": "Standby",
-                "de": "Standby"
+                "de": "Standby",
+                "nl": "Stand-by",
+                "fr": "Veille"
               }
             }
           ]
         }
-      ],
-      "titleFormatted": {
-        "en": "The heat pump state is [[state]]",
-        "de": "Der Wärmepumpen-Status ist [[state]]"
-      }
+      ]
     },
     {
       "id": "thermal_disinfection_is_active",
       "title": {
         "en": "Thermal disinfection !{{is|is not}} active",
-        "de": "Thermische Desinfektion !{{ist|ist nicht}} aktiv"
+        "de": "Thermische Desinfektion !{{ist|ist nicht}} aktiv",
+        "nl": "Thermische desinfectie !{{is|is niet}} actief",
+        "fr": "Désinfection thermique !{{est|n'est pas}} active"
       },
       "titleFormatted": {
         "en": "Thermal disinfection is active",
-        "de": "Thermische Desinfektion ist aktiv"
+        "de": "Thermische Desinfektion ist aktiv",
+        "nl": "Thermische desinfectie is actief",
+        "fr": "Désinfection thermique est active"
       },
       "args": []
     },
@@ -476,11 +584,15 @@
       "id": "hotwater_boost_is_active",
       "title": {
         "en": "Hot water boost (auxiliary heating) !{{is|is not}} active",
-        "de": "Brauchwasser Schnellladung (Zuheizung) !{{ist|ist nicht}} aktiv"
+        "de": "Brauchwasser Schnellladung (Zuheizung) !{{ist|ist nicht}} aktiv",
+        "nl": "Warmwater boost (bijverwarming) !{{is|is niet}} actief",
+        "fr": "Boost eau chaude (auxiliaire) !{{est|n'est pas}} actif"
       },
       "titleFormatted": {
         "en": "Hot water boost (auxiliary heating) is active",
-        "de": "Brauchwasser Schnellladung (Zuheizung) ist aktiv"
+        "de": "Brauchwasser Schnellladung (Zuheizung) ist aktiv",
+        "nl": "Warmwater boost (bijverwarming) is actief",
+        "fr": "Boost eau chaude (auxiliaire) est actif"
       },
       "args": []
     },
@@ -488,11 +600,15 @@
       "id": "hotwater_boost_party_is_active",
       "title": {
         "en": "Hot water boost (party) !{{is|is not}} active",
-        "de": "Brauchwasser Schnellladung (Party) !{{ist|ist nicht}} aktiv"
+        "de": "Brauchwasser Schnellladung (Party) !{{ist|ist nicht}} aktiv",
+        "nl": "Warmwater boost (feest) !{{is|is niet}} actief",
+        "fr": "Boost eau chaude (fête) !{{est|n'est pas}} actif"
       },
       "titleFormatted": {
         "en": "Hot water boost (party) is active",
-        "de": "Brauchwasser Schnellladung (Party) ist aktiv"
+        "de": "Brauchwasser Schnellladung (Party) ist aktiv",
+        "nl": "Warmwater boost (feest) is actief",
+        "fr": "Boost eau chaude (fête) est actif"
       },
       "args": []
     },
@@ -500,11 +616,15 @@
       "id": "device_is_available",
       "title": {
         "en": "Device is available",
-        "de": "Gerät ist erreichbar"
+        "de": "Gerät ist erreichbar",
+        "nl": "Apparaat is beschikbaar",
+        "fr": "Appareil est disponible"
       },
       "titleFormatted": {
         "en": "Device !{{is|is not}} available",
-        "de": "Gerät ist !{{erreichbar|nicht erreichbar}}"
+        "de": "Gerät ist !{{erreichbar|nicht erreichbar}}",
+        "nl": "Apparaat is !{{beschikbaar|niet beschikbaar}}",
+        "fr": "Appareil !{{est|n'est pas}} disponible"
       },
       "args": []
     },
@@ -512,11 +632,15 @@
       "id": "heating_state_is",
       "title": {
         "en": "Heating status is",
-        "de": "Heizung Status ist"
+        "de": "Heizung Status ist",
+        "nl": "Verwarmingsstatus is",
+        "fr": "Statut chauffage est"
       },
       "titleFormatted": {
         "en": "Heating status !{{is|is not}} [[state]]",
-        "de": "Heizung Status ist !{{|nicht}} [[state]]"
+        "de": "Heizung Status ist !{{|nicht}} [[state]]",
+        "nl": "Verwarmingsstatus !{{is|is niet}} [[state]]",
+        "fr": "Statut chauffage !{{est|n'est pas}} [[state]]"
       },
       "args": [
         {
@@ -524,11 +648,15 @@
           "type": "text",
           "title": {
             "en": "Status",
-            "de": "Status"
+            "de": "Status",
+            "nl": "Status",
+            "fr": "Statut"
           },
           "placeholder": {
             "en": "e.g. Heating",
-            "de": "z.B. Heizbetrieb"
+            "de": "z.B. Heizbetrieb",
+            "nl": "bijv. Verwarmen",
+            "fr": "ex. Chauffage"
           }
         }
       ]
@@ -537,11 +665,15 @@
       "id": "hotwater_state_is",
       "title": {
         "en": "Hot water status is",
-        "de": "Warmwasser Status ist"
+        "de": "Warmwasser Status ist",
+        "nl": "Warmwaterstatus is",
+        "fr": "Statut eau chaude est"
       },
       "titleFormatted": {
         "en": "Hot water status !{{is|is not}} [[state]]",
-        "de": "Warmwasser Status ist !{{|nicht}} [[state]]"
+        "de": "Warmwasser Status ist !{{|nicht}} [[state]]",
+        "nl": "Warmwaterstatus !{{is|is niet}} [[state]]",
+        "fr": "Statut eau chaude !{{est|n'est pas}} [[state]]"
       },
       "args": [
         {
@@ -549,35 +681,45 @@
           "type": "dropdown",
           "title": {
             "en": "Status",
-            "de": "Status"
+            "de": "Status",
+            "nl": "Status",
+            "fr": "Statut"
           },
           "values": [
             {
               "id": "Sperrzeit",
               "label": {
                 "en": "Blocked",
-                "de": "Sperrzeit"
+                "de": "Sperrzeit",
+                "nl": "Geblokkeerd",
+                "fr": "Bloqué"
               }
             },
             {
               "id": "Aufheizen",
               "label": {
                 "en": "Heating",
-                "de": "Aufheizen"
+                "de": "Aufheizen",
+                "nl": "Opwarmen",
+                "fr": "Chauffe"
               }
             },
             {
               "id": "Temp. OK",
               "label": {
                 "en": "Temp. OK",
-                "de": "Temp. OK"
+                "de": "Temp. OK",
+                "nl": "Temp. OK",
+                "fr": "Temp. OK"
               }
             },
             {
               "id": "Aus",
               "label": {
                 "en": "Off",
-                "de": "Aus"
+                "de": "Aus",
+                "nl": "Uit",
+                "fr": "Arrêt"
               }
             }
           ]
@@ -588,11 +730,15 @@
       "id": "outdoor_temp_above",
       "title": {
         "en": "Outdoor temperature is above",
-        "de": "Aussentemperatur ist über"
+        "de": "Aussentemperatur ist über",
+        "nl": "Buitentemperatuur is boven",
+        "fr": "Température extérieure est au-dessus de"
       },
       "titleFormatted": {
         "en": "Outdoor temperature !{{is|is not}} above [[temperature]] °C",
-        "de": "Aussentemperatur ist !{{über|nicht über}} [[temperature]] °C"
+        "de": "Aussentemperatur ist !{{über|nicht über}} [[temperature]] °C",
+        "nl": "Buitentemperatuur is !{{boven|niet boven}} [[temperature]] °C",
+        "fr": "Température extérieure !{{est|n'est pas}} au-dessus de [[temperature]] °C"
       },
       "args": [
         {
@@ -600,11 +746,15 @@
           "type": "number",
           "title": {
             "en": "Temperature (°C)",
-            "de": "Temperatur (°C)"
+            "de": "Temperatur (°C)",
+            "nl": "Temperatuur (°C)",
+            "fr": "Température (°C)"
           },
           "placeholder": {
             "en": "e.g. 0",
-            "de": "z.B. 0"
+            "de": "z.B. 0",
+            "nl": "bijv. 0",
+            "fr": "ex. 0"
           }
         }
       ]
@@ -613,11 +763,15 @@
       "id": "outdoor_temp_below",
       "title": {
         "en": "Outdoor temperature is below",
-        "de": "Aussentemperatur ist unter"
+        "de": "Aussentemperatur ist unter",
+        "nl": "Buitentemperatuur is onder",
+        "fr": "Température extérieure est sous"
       },
       "titleFormatted": {
         "en": "Outdoor temperature !{{is|is not}} below [[temperature]] °C",
-        "de": "Aussentemperatur ist !{{unter|nicht unter}} [[temperature]] °C"
+        "de": "Aussentemperatur ist !{{unter|nicht unter}} [[temperature]] °C",
+        "nl": "Buitentemperatuur is !{{onder|niet onder}} [[temperature]] °C",
+        "fr": "Température extérieure !{{est|n'est pas}} sous [[temperature]] °C"
       },
       "args": [
         {
@@ -625,11 +779,15 @@
           "type": "number",
           "title": {
             "en": "Temperature (°C)",
-            "de": "Temperatur (°C)"
+            "de": "Temperatur (°C)",
+            "nl": "Temperatuur (°C)",
+            "fr": "Température (°C)"
           },
           "placeholder": {
             "en": "e.g. 0",
-            "de": "z.B. 0"
+            "de": "z.B. 0",
+            "nl": "bijv. 0",
+            "fr": "ex. 0"
           }
         }
       ]
@@ -639,12 +797,14 @@
       "title": {
         "en": "Room temperature is above",
         "de": "Raumtemperatur ist über",
-        "nl": "Ruimtetemperatuur is boven"
+        "nl": "Ruimtetemperatuur is boven",
+        "fr": "Température ambiante est au-dessus de"
       },
       "titleFormatted": {
         "en": "Room temperature !{{is|is not}} above [[temperature]] °C",
         "de": "Raumtemperatur ist !{{über|nicht über}} [[temperature]] °C",
-        "nl": "Ruimtetemperatuur is !{{boven|niet boven}} [[temperature]] °C"
+        "nl": "Ruimtetemperatuur is !{{boven|niet boven}} [[temperature]] °C",
+        "fr": "Température ambiante !{{est|n'est pas}} au-dessus de [[temperature]] °C"
       },
       "args": [
         {
@@ -653,12 +813,14 @@
           "title": {
             "en": "Temperature (°C)",
             "de": "Temperatur (°C)",
-            "nl": "Temperatuur (°C)"
+            "nl": "Temperatuur (°C)",
+            "fr": "Température (°C)"
           },
           "placeholder": {
             "en": "e.g. 21",
             "de": "z.B. 21",
-            "nl": "bijv. 21"
+            "nl": "bijv. 21",
+            "fr": "ex. 21"
           }
         }
       ]
@@ -668,12 +830,14 @@
       "title": {
         "en": "Room temperature is below",
         "de": "Raumtemperatur ist unter",
-        "nl": "Ruimtetemperatuur is onder"
+        "nl": "Ruimtetemperatuur is onder",
+        "fr": "Température ambiante est sous"
       },
       "titleFormatted": {
         "en": "Room temperature !{{is|is not}} below [[temperature]] °C",
         "de": "Raumtemperatur ist !{{unter|nicht unter}} [[temperature]] °C",
-        "nl": "Ruimtetemperatuur is !{{onder|niet onder}} [[temperature]] °C"
+        "nl": "Ruimtetemperatuur is !{{onder|niet onder}} [[temperature]] °C",
+        "fr": "Température ambiante !{{est|n'est pas}} sous [[temperature]] °C"
       },
       "args": [
         {
@@ -682,12 +846,14 @@
           "title": {
             "en": "Temperature (°C)",
             "de": "Temperatur (°C)",
-            "nl": "Temperatuur (°C)"
+            "nl": "Temperatuur (°C)",
+            "fr": "Température (°C)"
           },
           "placeholder": {
             "en": "e.g. 21",
             "de": "z.B. 21",
-            "nl": "bijv. 21"
+            "nl": "bijv. 21",
+            "fr": "ex. 21"
           }
         }
       ]
@@ -698,7 +864,15 @@
       "id": "set_heating_operation_mode",
       "title": {
         "en": "Set heating mode",
-        "de": "Heizungs-Betriebsart setzen"
+        "de": "Heizungs-Betriebsart setzen",
+        "nl": "Verwarmingsmodus instellen",
+        "fr": "Définir le mode chauffage"
+      },
+      "titleFormatted": {
+        "en": "Set heating mode to [[mode]]",
+        "de": "Heizungs-Betriebsart auf [[mode]] setzen",
+        "nl": "Verwarmingsmodus instellen op [[mode]]",
+        "fr": "Définir le mode chauffage sur [[mode]]"
       },
       "args": [
         {
@@ -706,57 +880,73 @@
           "type": "dropdown",
           "title": {
             "en": "Mode",
-            "de": "Betriebsart"
+            "de": "Betriebsart",
+            "nl": "Modus",
+            "fr": "Mode"
           },
           "values": [
             {
               "id": "0",
               "label": {
                 "en": "Automatic",
-                "de": "Automatik"
+                "de": "Automatik",
+                "nl": "Automatisch",
+                "fr": "Automatique"
               }
             },
             {
               "id": "1",
               "label": {
                 "en": "Second Heat Source",
-                "de": "Zuheizer"
+                "de": "Zuheizer",
+                "nl": "Tweede warmtebron",
+                "fr": "Source secondaire"
               }
             },
             {
               "id": "2",
               "label": {
                 "en": "Party",
-                "de": "Party"
+                "de": "Party",
+                "nl": "Feest",
+                "fr": "Fête"
               }
             },
             {
               "id": "3",
               "label": {
                 "en": "Holidays",
-                "de": "Ferien"
+                "de": "Ferien",
+                "nl": "Vakantie",
+                "fr": "Vacances"
               }
             },
             {
               "id": "4",
               "label": {
                 "en": "Off",
-                "de": "Aus"
+                "de": "Aus",
+                "nl": "Uit",
+                "fr": "Arrêt"
               }
             }
           ]
         }
-      ],
-      "titleFormatted": {
-        "en": "Set heating mode to [[mode]]",
-        "de": "Heizungs-Betriebsart auf [[mode]] setzen"
-      }
+      ]
     },
     {
       "id": "set_warmwater_operation_mode",
       "title": {
         "en": "Set hot water mode",
-        "de": "Brauchwasser-Betriebsart setzen"
+        "de": "Brauchwasser-Betriebsart setzen",
+        "nl": "Warmwatermodus instellen",
+        "fr": "Définir le mode eau chaude"
+      },
+      "titleFormatted": {
+        "en": "Set hot water mode to [[mode]]",
+        "de": "Brauchwasser-Betriebsart auf [[mode]] setzen",
+        "nl": "Warmwatermodus instellen op [[mode]]",
+        "fr": "Définir le mode eau chaude sur [[mode]]"
       },
       "args": [
         {
@@ -764,57 +954,79 @@
           "type": "dropdown",
           "title": {
             "en": "Mode",
-            "de": "Betriebsart"
+            "de": "Betriebsart",
+            "nl": "Modus",
+            "fr": "Mode"
           },
           "values": [
             {
               "id": "0",
               "label": {
                 "en": "Automatic",
-                "de": "Automatik"
+                "de": "Automatik",
+                "nl": "Automatisch",
+                "fr": "Automatique"
               }
             },
             {
               "id": "1",
               "label": {
                 "en": "Second Heat Source",
-                "de": "Zuheizer"
+                "de": "Zuheizer",
+                "nl": "Tweede warmtebron",
+                "fr": "Source secondaire"
               }
             },
             {
               "id": "2",
               "label": {
                 "en": "Party",
-                "de": "Party"
+                "de": "Party",
+                "nl": "Feest",
+                "fr": "Fête"
               }
             },
             {
               "id": "3",
               "label": {
                 "en": "Holidays",
-                "de": "Ferien"
+                "de": "Ferien",
+                "nl": "Vakantie",
+                "fr": "Vacances"
               }
             },
             {
               "id": "4",
               "label": {
                 "en": "Off",
-                "de": "Aus"
+                "de": "Aus",
+                "nl": "Uit",
+                "fr": "Arrêt"
               }
             }
           ]
         }
-      ],
-      "titleFormatted": {
-        "en": "Set hot water mode to [[mode]]",
-        "de": "Brauchwasser-Betriebsart auf [[mode]] setzen"
-      }
+      ]
     },
     {
       "id": "set_heating_temperature_correction",
       "title": {
         "en": "Set heating temperature correction",
-        "de": "Heizungs-Temperaturkorrektur setzen"
+        "de": "Heizungs-Temperaturkorrektur setzen",
+        "nl": "Verwarmingstemperatuurcorrectie instellen",
+        "fr": "Définir la correction de température"
+      },
+      "titleFormatted": {
+        "en": "Set heating temperature correction to [[value]] °C",
+        "de": "Heizungs-Temperaturkorrektur auf [[value]] °C setzen",
+        "nl": "Verwarmingstemperatuurcorrectie instellen op [[value]] °C",
+        "fr": "Définir la correction de température sur [[value]] °C"
+      },
+      "hint": {
+        "en": "Shifts the heating curve up or down. Positive values increase the flow temperature (warmer), negative values decrease it (cooler). Does not change the heating mode.",
+        "de": "Verschiebt die Heizkurve nach oben oder unten. Positive Werte erhöhen die Vorlauftemperatur (wärmer), negative senken sie (kühler). Ändert nicht die Betriebsart.",
+        "nl": "Verschuift de stooklijn omhoog of omlaag. Positieve waarden verhogen de aanvoertemperatuur (warmer), negatieve verlagen deze (koeler).",
+        "fr": "Décale la courbe de chauffe. Les valeurs positives augmentent la température de départ (plus chaud), les négatives la diminuent (plus froid)."
       },
       "args": [
         {
@@ -822,27 +1034,35 @@
           "type": "number",
           "title": {
             "en": "Correction °C (−5 to +5)",
-            "de": "Korrektur °C (−5 bis +5)"
+            "de": "Korrektur °C (−5 bis +5)",
+            "nl": "Correctie °C (−5 tot +5)",
+            "fr": "Correction °C (−5 à +5)"
           },
           "placeholder": {
             "en": "e.g. 0.5",
-            "de": "z.B. 0.5"
+            "de": "z.B. 0.5",
+            "nl": "bijv. 0,5",
+            "fr": "ex. 0,5"
           },
           "min": -5,
           "max": 5,
           "step": 0.5
         }
-      ],
-      "titleFormatted": {
-        "en": "Set heating temperature correction to [[value]] °C",
-        "de": "Heizungs-Temperaturkorrektur auf [[value]] °C setzen"
-      }
+      ]
     },
     {
       "id": "set_warmwater_target_temperature",
       "title": {
         "en": "Set hot water target temperature",
-        "de": "Brauchwasser Soll-Temperatur setzen"
+        "de": "Brauchwasser Soll-Temperatur setzen",
+        "nl": "Warmwater doeltemperatuur instellen",
+        "fr": "Définir la température cible eau chaude"
+      },
+      "titleFormatted": {
+        "en": "Set hot water target temperature to [[value]] °C",
+        "de": "Brauchwasser Soll-Temperatur auf [[value]] °C setzen",
+        "nl": "Warmwater doeltemperatuur instellen op [[value]] °C",
+        "fr": "Définir la température cible eau chaude sur [[value]] °C"
       },
       "args": [
         {
@@ -850,31 +1070,35 @@
           "type": "number",
           "title": {
             "en": "Temperature °C (30 to 65)",
-            "de": "Temperatur °C (30 bis 65)"
+            "de": "Temperatur °C (30 bis 65)",
+            "nl": "Temperatuur °C (30 tot 65)",
+            "fr": "Température °C (30 à 65)"
           },
           "placeholder": {
             "en": "e.g. 50",
-            "de": "z.B. 50"
+            "de": "z.B. 50",
+            "nl": "bijv. 50",
+            "fr": "ex. 50"
           },
           "min": 30,
           "max": 65,
           "step": 0.5
         }
-      ],
-      "titleFormatted": {
-        "en": "Set hot water target temperature to [[value]] °C",
-        "de": "Brauchwasser Soll-Temperatur auf [[value]] °C setzen"
-      }
+      ]
     },
     {
       "id": "start_hotwater_boost",
       "title": {
         "en": "Start Hot Water Boost (Auxiliary Heating)",
-        "de": "Brauchwasser Schnellladung (Zuheizung) starten"
+        "de": "Brauchwasser Schnellladung (Zuheizung) starten",
+        "nl": "Warmwater boost (bijverwarming) starten",
+        "fr": "Démarrer le boost eau chaude (auxiliaire)"
       },
       "titleFormatted": {
         "en": "Start Hot Water Boost (Auxiliary Heating) for [[duration]] minutes",
-        "de": "Brauchwasser Schnellladung (Zuheizung) für [[duration]] Minuten starten"
+        "de": "Brauchwasser Schnellladung (Zuheizung) für [[duration]] Minuten starten",
+        "nl": "Warmwater boost (bijverwarming) starten voor [[duration]] minuten",
+        "fr": "Démarrer le boost eau chaude (auxiliaire) pour [[duration]] minutes"
       },
       "args": [
         {
@@ -882,11 +1106,15 @@
           "type": "number",
           "title": {
             "en": "Duration (minutes)",
-            "de": "Dauer (Minuten)"
+            "de": "Dauer (Minuten)",
+            "nl": "Duur (minuten)",
+            "fr": "Durée (minutes)"
           },
           "placeholder": {
             "en": "e.g. 60",
-            "de": "z.B. 60"
+            "de": "z.B. 60",
+            "nl": "bijv. 60",
+            "fr": "ex. 60"
           },
           "min": 5,
           "max": 480,
@@ -898,11 +1126,15 @@
       "id": "stop_hotwater_boost",
       "title": {
         "en": "Stop Hot Water Boost (Auxiliary Heating)",
-        "de": "Brauchwasser Schnellladung (Zuheizung) stoppen"
+        "de": "Brauchwasser Schnellladung (Zuheizung) stoppen",
+        "nl": "Warmwater boost (bijverwarming) stoppen",
+        "fr": "Arrêter le boost eau chaude (auxiliaire)"
       },
       "titleFormatted": {
         "en": "Stop Hot Water Boost (Auxiliary Heating)",
-        "de": "Brauchwasser Schnellladung (Zuheizung) stoppen"
+        "de": "Brauchwasser Schnellladung (Zuheizung) stoppen",
+        "nl": "Warmwater boost (bijverwarming) stoppen",
+        "fr": "Arrêter le boost eau chaude (auxiliaire)"
       },
       "args": []
     },
@@ -910,11 +1142,15 @@
       "id": "start_hotwater_boost_party",
       "title": {
         "en": "Start Hot Water Boost (Party)",
-        "de": "Brauchwasser Schnellladung (Party) starten"
+        "de": "Brauchwasser Schnellladung (Party) starten",
+        "nl": "Warmwater boost (feest) starten",
+        "fr": "Démarrer le boost eau chaude (fête)"
       },
       "titleFormatted": {
         "en": "Start Hot Water Boost (Party) for [[duration]] minutes",
-        "de": "Brauchwasser Schnellladung (Party) für [[duration]] Minuten starten"
+        "de": "Brauchwasser Schnellladung (Party) für [[duration]] Minuten starten",
+        "nl": "Warmwater boost (feest) starten voor [[duration]] minuten",
+        "fr": "Démarrer le boost eau chaude (fête) pour [[duration]] minutes"
       },
       "args": [
         {
@@ -922,11 +1158,15 @@
           "type": "number",
           "title": {
             "en": "Duration (minutes)",
-            "de": "Dauer (Minuten)"
+            "de": "Dauer (Minuten)",
+            "nl": "Duur (minuten)",
+            "fr": "Durée (minutes)"
           },
           "placeholder": {
             "en": "e.g. 60",
-            "de": "z.B. 60"
+            "de": "z.B. 60",
+            "nl": "bijv. 60",
+            "fr": "ex. 60"
           },
           "min": 5,
           "max": 480,
@@ -938,11 +1178,15 @@
       "id": "stop_hotwater_boost_party",
       "title": {
         "en": "Stop Hot Water Boost (Party)",
-        "de": "Brauchwasser Schnellladung (Party) stoppen"
+        "de": "Brauchwasser Schnellladung (Party) stoppen",
+        "nl": "Warmwater boost (feest) stoppen",
+        "fr": "Arrêter le boost eau chaude (fête)"
       },
       "titleFormatted": {
         "en": "Stop Hot Water Boost (Party)",
-        "de": "Brauchwasser Schnellladung (Party) stoppen"
+        "de": "Brauchwasser Schnellladung (Party) stoppen",
+        "nl": "Warmwater boost (feest) stoppen",
+        "fr": "Arrêter le boost eau chaude (fête)"
       },
       "args": []
     },
@@ -950,7 +1194,15 @@
       "id": "set_outdoor_temp_max",
       "title": {
         "en": "Set max. outdoor temperature",
-        "de": "Max. Aussentemperatur setzen"
+        "de": "Max. Aussentemperatur setzen",
+        "nl": "Max. buitentemperatuur instellen",
+        "fr": "Définir la température extérieure max."
+      },
+      "titleFormatted": {
+        "en": "Set max. outdoor temperature to [[value]] °C",
+        "de": "Max. Aussentemperatur auf [[value]] °C setzen",
+        "nl": "Max. buitentemperatuur instellen op [[value]] °C",
+        "fr": "Définir la température extérieure max. sur [[value]] °C"
       },
       "args": [
         {
@@ -958,27 +1210,35 @@
           "type": "number",
           "title": {
             "en": "Temperature °C (10 to 45)",
-            "de": "Temperatur °C (10 bis 45)"
+            "de": "Temperatur °C (10 bis 45)",
+            "nl": "Temperatuur °C (10 tot 45)",
+            "fr": "Température °C (10 à 45)"
           },
           "placeholder": {
             "en": "e.g. 35",
-            "de": "z.B. 35"
+            "de": "z.B. 35",
+            "nl": "bijv. 35",
+            "fr": "ex. 35"
           },
           "min": 10,
           "max": 45,
           "step": 0.5
         }
-      ],
-      "titleFormatted": {
-        "en": "Set max. outdoor temperature to [[value]] °C",
-        "de": "Max. Aussentemperatur auf [[value]] °C setzen"
-      }
+      ]
     },
     {
       "id": "set_heating_limit",
       "title": {
         "en": "Set heating limit",
-        "de": "Heizgrenze setzen"
+        "de": "Heizgrenze setzen",
+        "nl": "Verwarmingsgrens instellen",
+        "fr": "Définir la limite de chauffage"
+      },
+      "titleFormatted": {
+        "en": "Set heating limit to [[value]] °C",
+        "de": "Heizgrenze auf [[value]] °C setzen",
+        "nl": "Verwarmingsgrens instellen op [[value]] °C",
+        "fr": "Définir la limite de chauffage sur [[value]] °C"
       },
       "args": [
         {
@@ -986,27 +1246,41 @@
           "type": "number",
           "title": {
             "en": "Temperature °C (5 to 30)",
-            "de": "Temperatur °C (5 bis 30)"
+            "de": "Temperatur °C (5 bis 30)",
+            "nl": "Temperatuur °C (5 tot 30)",
+            "fr": "Température °C (5 à 30)"
           },
           "placeholder": {
             "en": "e.g. 15",
-            "de": "z.B. 15"
+            "de": "z.B. 15",
+            "nl": "bijv. 15",
+            "fr": "ex. 15"
           },
           "min": 5,
           "max": 30,
           "step": 0.5
         }
-      ],
-      "titleFormatted": {
-        "en": "Set heating limit to [[value]] °C",
-        "de": "Heizgrenze auf [[value]] °C setzen"
-      }
+      ]
     },
     {
       "id": "set_return_temp_hysteresis",
       "title": {
         "en": "Set return temperature hysteresis",
-        "de": "Rücklauf-Hysterese setzen"
+        "de": "Rücklauf-Hysterese setzen",
+        "nl": "Retourtemperatuur hysterese instellen",
+        "fr": "Définir l'hystérésis retour"
+      },
+      "titleFormatted": {
+        "en": "Set return temperature hysteresis to [[value]] K",
+        "de": "Rücklauf-Hysterese auf [[value]] K setzen",
+        "nl": "Retourtemperatuur hysterese instellen op [[value]] K",
+        "fr": "Définir l'hystérésis retour sur [[value]] K"
+      },
+      "hint": {
+        "en": "Controls how far the return temperature may drop below the setpoint before the heat pump restarts. A smaller value means tighter control but more frequent compressor cycles.",
+        "de": "Bestimmt, wie weit die Rücklauftemperatur unter den Sollwert fallen darf, bevor die Wärmepumpe wieder startet. Ein kleinerer Wert bedeutet genauere Regelung, aber häufigere Verdichtertakte.",
+        "nl": "Bepaalt hoever de retourtemperatuur onder het instelpunt mag dalen voordat de warmtepomp opnieuw start.",
+        "fr": "Détermine de combien la température de retour peut descendre sous la consigne avant le redémarrage de la pompe à chaleur."
       },
       "args": [
         {
@@ -1014,27 +1288,41 @@
           "type": "number",
           "title": {
             "en": "Hysteresis K (0.5 to 10)",
-            "de": "Hysterese K (0,5 bis 10)"
+            "de": "Hysterese K (0,5 bis 10)",
+            "nl": "Hysterese K (0,5 tot 10)",
+            "fr": "Hystérésis K (0,5 à 10)"
           },
           "placeholder": {
             "en": "e.g. 3",
-            "de": "z.B. 3"
+            "de": "z.B. 3",
+            "nl": "bijv. 3",
+            "fr": "ex. 3"
           },
           "min": 0.5,
           "max": 10,
           "step": 0.5
         }
-      ],
-      "titleFormatted": {
-        "en": "Set return temperature hysteresis to [[value]] K",
-        "de": "Rücklauf-Hysterese auf [[value]] K setzen"
-      }
+      ]
     },
     {
       "id": "set_hotwater_hysteresis",
       "title": {
         "en": "Set hot water hysteresis",
-        "de": "Warmwasser-Hysterese setzen"
+        "de": "Warmwasser-Hysterese setzen",
+        "nl": "Warmwater hysterese instellen",
+        "fr": "Définir l'hystérésis eau chaude"
+      },
+      "titleFormatted": {
+        "en": "Set hot water hysteresis to [[value]] K",
+        "de": "Warmwasser-Hysterese auf [[value]] K setzen",
+        "nl": "Warmwater hysterese instellen op [[value]] K",
+        "fr": "Définir l'hystérésis eau chaude sur [[value]] K"
+      },
+      "hint": {
+        "en": "Controls how far the hot water temperature may drop below the setpoint before the heat pump starts reheating. A smaller value keeps the water closer to the target but increases compressor cycles.",
+        "de": "Bestimmt, wie weit die Warmwassertemperatur unter den Sollwert fallen darf, bevor die Wärmepumpe nachheizen. Ein kleinerer Wert hält das Wasser näher am Sollwert, erhöht aber die Verdichtertakte.",
+        "nl": "Bepaalt hoever de warmwatertemperatuur onder het instelpunt mag dalen voordat de warmtepomp opnieuw verwarmt.",
+        "fr": "Détermine de combien la température de l'eau chaude peut descendre sous la consigne avant le réchauffement."
       },
       "args": [
         {
@@ -1042,31 +1330,41 @@
           "type": "number",
           "title": {
             "en": "Hysteresis K (0.5 to 10)",
-            "de": "Hysterese K (0,5 bis 10)"
+            "de": "Hysterese K (0,5 bis 10)",
+            "nl": "Hysterese K (0,5 tot 10)",
+            "fr": "Hystérésis K (0,5 à 10)"
           },
           "placeholder": {
             "en": "e.g. 5",
-            "de": "z.B. 5"
+            "de": "z.B. 5",
+            "nl": "bijv. 5",
+            "fr": "ex. 5"
           },
           "min": 0.5,
           "max": 10,
           "step": 0.5
         }
-      ],
-      "titleFormatted": {
-        "en": "Set hot water hysteresis to [[value]] K",
-        "de": "Warmwasser-Hysterese auf [[value]] K setzen"
-      }
+      ]
     },
     {
       "id": "enable_thermal_disinfection",
       "title": {
         "en": "Enable thermal disinfection",
-        "de": "Thermische Desinfektion aktivieren"
+        "de": "Thermische Desinfektion aktivieren",
+        "nl": "Thermische desinfectie activeren",
+        "fr": "Activer la désinfection thermique"
       },
       "titleFormatted": {
         "en": "Enable thermal disinfection",
-        "de": "Thermische Desinfektion aktivieren"
+        "de": "Thermische Desinfektion aktivieren",
+        "nl": "Thermische desinfectie activeren",
+        "fr": "Activer la désinfection thermique"
+      },
+      "hint": {
+        "en": "Activates continuous thermal disinfection (legionella protection). The heat pump heats the hot water tank to the disinfection setpoint (default 65 °C) and automatically deactivates once the target is reached.",
+        "de": "Aktiviert die thermische Dauerdesinfektion (Legionellenschutz). Die Wärmepumpe erhitzt den Warmwasserspeicher bis zum Desinfektions-Sollwert (Standard 65 °C) und deaktiviert sich automatisch.",
+        "nl": "Activeert continue thermische desinfectie (legionellabescherming). De warmtepomp verwarmt het warmwatervat tot het desinfectie-instelpunt en deactiveert automatisch.",
+        "fr": "Active la désinfection thermique continue (protection légionelle). La pompe à chaleur chauffe le ballon jusqu'à la consigne de désinfection et se désactive automatiquement."
       },
       "args": []
     },
@@ -1074,11 +1372,21 @@
       "id": "disable_thermal_disinfection",
       "title": {
         "en": "Disable thermal disinfection",
-        "de": "Thermische Desinfektion deaktivieren"
+        "de": "Thermische Desinfektion deaktivieren",
+        "nl": "Thermische desinfectie deactiveren",
+        "fr": "Désactiver la désinfection thermique"
       },
       "titleFormatted": {
         "en": "Disable thermal disinfection",
-        "de": "Thermische Desinfektion deaktivieren"
+        "de": "Thermische Desinfektion deaktivieren",
+        "nl": "Thermische desinfectie deactiveren",
+        "fr": "Désactiver la désinfection thermique"
+      },
+      "hint": {
+        "en": "Deactivates continuous thermal disinfection mode.",
+        "de": "Deaktiviert den thermischen Desinfektions-Dauerbetrieb.",
+        "nl": "Deactiveert de continue thermische desinfectiemodus.",
+        "fr": "Désactive le mode de désinfection thermique continue."
       },
       "args": []
     }

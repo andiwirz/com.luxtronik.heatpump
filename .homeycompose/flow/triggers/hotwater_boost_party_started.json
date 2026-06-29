@@ -2,7 +2,9 @@
   "id": "hotwater_boost_party_started",
   "title": {
     "en": "Hot Water Boost (Party) started",
-    "de": "Warmwasser Schnellladung (Party) gestartet"
+    "de": "Warmwasser Schnellladung (Party) gestartet",
+    "nl": "Warmwater boost (feest) gestart",
+    "fr": "Boost eau chaude (fête) démarré"
   },
   "args": [
     {
@@ -17,7 +19,9 @@
       "type": "number",
       "title": {
         "en": "Duration (min)",
-        "de": "Dauer (min)"
+        "de": "Dauer (min)",
+        "nl": "Duur (min)",
+        "fr": "Durée (min)"
       }
     }
   ]

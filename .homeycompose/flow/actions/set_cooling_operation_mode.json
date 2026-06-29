@@ -2,7 +2,9 @@
   "id": "set_cooling_operation_mode",
   "title": {
     "en": "Set cooling mode",
-    "de": "Kühlbetrieb-Betriebsart setzen"
+    "de": "Kühlbetrieb-Betriebsart setzen",
+    "nl": "Koelingsmodus instellen",
+    "fr": "Définir le mode refroidissement"
   },
   "args": [
     {
@@ -15,21 +17,27 @@
       "type": "dropdown",
       "title": {
         "en": "Mode",
-        "de": "Betriebsart"
+        "de": "Betriebsart",
+        "nl": "Modus",
+        "fr": "Mode"
       },
       "values": [
         {
           "id": "0",
           "label": {
             "en": "Off",
-            "de": "Aus"
+            "de": "Aus",
+            "nl": "Uit",
+            "fr": "Arrêt"
           }
         },
         {
           "id": "1",
           "label": {
             "en": "Automatic",
-            "de": "Automatik"
+            "de": "Automatik",
+            "nl": "Automatisch",
+            "fr": "Automatique"
           }
         }
       ]
@@ -37,6 +45,8 @@
   ],
   "titleFormatted": {
     "en": "Set cooling mode to [[mode]]",
-    "de": "Kühlbetrieb-Betriebsart auf [[mode]] setzen"
+    "de": "Kühlbetrieb-Betriebsart auf [[mode]] setzen",
+    "nl": "Koelingsmodus instellen op [[mode]]",
+    "fr": "Définir le mode refroidissement sur [[mode]]"
   }
 }

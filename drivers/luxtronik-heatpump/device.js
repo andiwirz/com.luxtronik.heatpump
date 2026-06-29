@@ -1245,6 +1245,7 @@ class LuxtronikHeatpumpDevice extends Device {
 
   async _setHeatingOperationMode(mode) {
     if (mode < 0 || mode > 4) throw new Error(`Ungültiger Heizungs-Modus: ${mode}`);
+    this._setWriteProtect('heating_operation_mode', 120000);
     await this._write('heating_operation_mode', mode);
     await this.setCapabilityValue('heating_operation_mode', String(mode));
     await this._triggerHeatingModeChanged.trigger(this, { mode: OPERATION_MODE_LABELS[mode] ?? String(mode) }).catch(() => {});
@@ -1252,6 +1253,7 @@ class LuxtronikHeatpumpDevice extends Device {
 
   async _setWarmwaterOperationMode(mode) {
     if (mode < 0 || mode > 4) throw new Error(`Ungültiger Brauchwasser-Modus: ${mode}`);
+    this._setWriteProtect('warmwater_operation_mode', 120000);
     await this._write('warmwater_operation_mode', mode);
     await this.setCapabilityValue('warmwater_operation_mode', String(mode));
     await this._triggerWarmwaterModeChanged.trigger(this, { mode: OPERATION_MODE_LABELS[mode] ?? String(mode) }).catch(() => {});
@@ -1260,6 +1262,7 @@ class LuxtronikHeatpumpDevice extends Device {
   async _setCoolingOperationMode(mode) {
     if (mode !== 0 && mode !== 1) throw new Error(`Ungültiger Kühlbetrieb-Modus: ${mode}`);
     this.log(`Setze Kühlbetrieb-Betriebsart: ${mode} (${mode === 1 ? 'Automatik' : 'Aus'})`);
+    this._setWriteProtect('cooling_operation_mode', 120000);
     await this._write('cooling_operation_mode', mode);
     await this.setCapabilityValue('cooling_operation_mode', String(mode)).catch(() => {});
     const label = mode === 1 ? 'Automatic' : 'Off';

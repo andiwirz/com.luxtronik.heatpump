@@ -2,7 +2,9 @@
   "id": "hotwater_boost_started",
   "title": {
     "en": "Hot Water Boost (Auxiliary) started",
-    "de": "Warmwasser Schnellladung (Zuheizung) gestartet"
+    "de": "Warmwasser Schnellladung (Zuheizung) gestartet",
+    "nl": "Warmwater boost (bijverwarming) gestart",
+    "fr": "Boost eau chaude (auxiliaire) démarré"
   },
   "args": [
     {
@@ -17,7 +19,9 @@
       "type": "number",
       "title": {
         "en": "Duration (min)",
-        "de": "Dauer (min)"
+        "de": "Dauer (min)",
+        "nl": "Duur (min)",
+        "fr": "Durée (min)"
       }
     }
   ]
