@@ -1,6 +1,6 @@
 {
   "id": "com.luxtronik.heatpump",
-  "version": "2.0.49",
+  "version": "2.0.50",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "name": {
@@ -21,47 +21,63 @@
   "tags": {
     "en": [
       "heat pump",
+      "heating",
       "luxtronik",
+      "luxtronik 2",
       "alpha innotec",
       "novelan",
       "roth",
       "elco",
       "buderus",
       "nibe",
-      "wolf"
+      "wolf",
+      "waterkotte",
+      "ochsner"
     ],
     "de": [
       "wärmepumpe",
+      "heizung",
       "luxtronik",
+      "luxtronik 2",
       "alpha innotec",
       "novelan",
       "roth",
       "elco",
       "buderus",
       "nibe",
-      "wolf"
+      "wolf",
+      "waterkotte",
+      "ochsner"
     ],
     "nl": [
       "warmtepomp",
+      "verwarming",
       "luxtronik",
+      "luxtronik 2",
       "alpha innotec",
       "novelan",
       "roth",
       "elco",
       "buderus",
       "nibe",
-      "wolf"
+      "wolf",
+      "waterkotte",
+      "ochsner"
     ],
     "fr": [
       "pompe à chaleur",
+      "chauffage",
       "luxtronik",
+      "luxtronik 2",
       "alpha innotec",
       "novelan",
       "roth",
       "elco",
       "buderus",
       "nibe",
-      "wolf"
+      "wolf",
+      "waterkotte",
+      "ochsner"
     ]
   },
   "permissions": [],
