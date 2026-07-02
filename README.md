@@ -20,6 +20,8 @@ This app communicates with the **Luxtronik 2.0 / 2.1** controller, which is buil
 | Nibe              | AP-AW10                               |
 | Wolf Heiztechnik  | BWL/BWS                               |
 | CTA               | Aeroheat AH CI 1-16iL                 |
+| Waterkotte        | DS 5009.5 AI, EasyCon series          |
+| Ochsner           | GMLW / GMWW / Air series              |
 
 ---
 
