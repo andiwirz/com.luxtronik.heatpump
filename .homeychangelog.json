@@ -152,6 +152,12 @@
     "en": "Updated: heatpump_state_string now shows a single emoji for the current heat pump state (e.g. 🔥 Heating, ⏸️ Standby, 💧 Hot Water). Selectable as device indicator under Device → ⚙️ → Device display.",
     "de": "Aktualisiert: heatpump_state_string zeigt jetzt ein einzelnes Emoji für den aktuellen Wärmepumpenstatus (z.B. 🔥 Heizen, ⏸️ Standby, 💧 Warmwasser). Als Geräteanzeige wählbar unter Gerät → ⚙️ → Geräteanzeige."
   },
+  "2.0.51": {
+    "en": "Fixed: cooling_operation_mode capability value no longer stays null after polling. Firmware V3.x controllers may return values other than 0/1 for the cooling mode register; these are now safely clamped to the valid enum range.",
+    "de": "Behoben: cooling_operation_mode bleibt nach dem Poll nicht mehr null. Firmware V3.x Controller können im Kühlmodus-Register andere Werte als 0/1 liefern; diese werden jetzt sicher auf den gültigen Enum-Bereich begrenzt.",
+    "nl": "Opgelost: cooling_operation_mode-waarde blijft niet langer null na het pollen. Firmware V3.x controllers kunnen andere waarden dan 0/1 retourneren voor het koelmodus-register; deze worden nu veilig begrensd tot het geldige bereik.",
+    "fr": "Corrigé : la valeur cooling_operation_mode ne reste plus null après l'interrogation. Les contrôleurs firmware V3.x peuvent renvoyer des valeurs autres que 0/1 pour le registre de mode de refroidissement ; celles-ci sont maintenant limitées à la plage valide."
+  },
   "2.0.50": {
     "en": "Improved: Added search tags for additional brands using the Luxtronik 2.0 controller (Waterkotte, Ochsner) and general heating terms to improve App Store discoverability.",
     "de": "Verbessert: Weitere Marken mit Luxtronik 2.0 Controller (Waterkotte, Ochsner) sowie allgemeine Heizungs-Suchbegriffe als App-Tags ergänzt, um die Auffindbarkeit im App Store zu verbessern.",

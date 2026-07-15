@@ -965,7 +965,8 @@ class LuxtronikHeatpumpDevice extends Device {
     await this._setCapabilityConditional('cooling_release_temp_cap', this._n(p.cooling_release_temperature), showCooling);
     await this._setCapabilityConditional('cooling_inlet_temp_cap',   this._n(p.cooling_inlet_temp),          showCooling);
     if (showCooling) {
-      const coolingMode = this._int(p.cooling_operation_mode) ?? 0;
+      const coolingModeRaw = this._int(p.cooling_operation_mode);
+      const coolingMode = coolingModeRaw === 1 ? 1 : 0;
       const coolingModeStr = String(coolingMode);
       await this._setCapabilityConditional('cooling_operation_mode', coolingModeStr, true);
       if (this._lastCoolingMode !== null && this._lastCoolingMode !== coolingModeStr) {
