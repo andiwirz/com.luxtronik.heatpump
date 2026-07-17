@@ -245,12 +245,22 @@ class LuxtronikHeatpumpDevice extends Device {
 
     // ── Ende Migration ────────────────────────────────────────────────────────
 
+    // ── Einmalige Initialisierung: Restore-Wert aus aktueller Hysterese befüllen ─
+    if (!this.getSetting('hotwater_hysteresis_restore')) {
+      const synced = this.getSetting('hotwater_hysteresis_setting');
+      if (synced) {
+        try { await this.setSettings({ hotwater_hysteresis_restore: synced }); }
+        catch (e) { this.error('hotwater_hysteresis_restore init fehlgeschlagen:', e.message); }
+      }
+    }
+
     const s = this.getSettings();
     this._ip           = s.ip;
     this._port         = Number(s.port) || 8889;
     this._pollInterval = (Number(s.poll_interval) || 60) * 1000;
     this._pump         = null;
     this._timer        = null;
+    this._writeQueue   = Promise.resolve();
     this._lastState    = null;
     this._lastPollTime = null;
     this._lastHeatingMode   = null;
@@ -402,6 +412,15 @@ class LuxtronikHeatpumpDevice extends Device {
 
     this.homey.flow.getActionCard('set_hotwater_hysteresis')
       .registerRunListener(async (args) => this._setHotwaterHysteresis(parseFloat(args.value)));
+
+    this.homey.flow.getActionCard('set_hotwater_hysteresis_minimum')
+      .registerRunListener(async () => this._setHotwaterHysteresis(0.5));
+
+    this.homey.flow.getActionCard('restore_hotwater_hysteresis')
+      .registerRunListener(async () => {
+        const value = this.getSetting('hotwater_hysteresis_restore') ?? 5;
+        await this._setHotwaterHysteresis(parseFloat(value));
+      });
 
     // Capability-Listener (UI)
     this.registerCapabilityListener('heating_operation_mode',        async (v) => this._setHeatingOperationMode(parseInt(v, 10)));
@@ -1620,6 +1639,16 @@ class LuxtronikHeatpumpDevice extends Device {
   }
 
   _write(parameter, value) {
+    // Schreibvorgänge serialisieren: nie zwei parallele TCP-Verbindungen.
+    // result wird dem Aufrufer zurückgegeben (inkl. Fehler).
+    // _writeQueue bekommt nur die gecatchte Version, damit die Kette nach
+    // einem Fehler nicht abbricht und der nächste Write trotzdem ausgeführt wird.
+    const result = this._writeQueue.then(() => this._writeNow(parameter, value));
+    this._writeQueue = result.catch(() => {});
+    return result;
+  }
+
+  _writeNow(parameter, value) {
     return new Promise((resolve, reject) => {
       if (!this._pump) { reject(new Error('Nicht verbunden')); return; }
 
@@ -1627,22 +1656,32 @@ class LuxtronikHeatpumpDevice extends Device {
       this._stopPolling();
       this.log(`_write: ${parameter} = ${value} (Polling pausiert)`);
 
+      let settled = false;
+      const done = (err, res) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(writeTimeout);
+        this._startPolling();
+        this._schedulePollAfterWrite();
+        if (err) {
+          const msg = (err && err.message) ? err.message : String(err);
+          this.error(`Write-Fehler (${parameter}=${value}): ${msg}`);
+          reject(new Error(msg));
+        } else {
+          this.log(`Write OK: ${parameter}=${value}`, JSON.stringify(res));
+          resolve(res);
+        }
+      };
+
+      // Sicherheits-Timeout: wenn der Callback nie kommt, sauber abbrechen
+      const writeTimeout = setTimeout(() => {
+        this.error(`Write-Timeout (${parameter}=${value})`);
+        done(new Error(`Write-Timeout: ${parameter}`));
+      }, 8000);
+
       // Kurz warten bis eine laufende Poll-Verbindung geschlossen ist
       setTimeout(() => {
-        this._pump.write(parameter, value, (err, res) => {
-          // Polling nach dem Write immer neu starten + 3s verzögerter Bestätigungs-Poll
-          this._startPolling();
-          this._schedulePollAfterWrite();
-
-          if (err) {
-            const msg = (err && err.message) ? err.message : String(err);
-            this.error(`Write-Fehler (${parameter}=${value}): ${msg}`);
-            reject(new Error(msg));
-          } else {
-            this.log(`Write OK: ${parameter}=${value}`, JSON.stringify(res));
-            resolve(res);
-          }
-        });
+        this._pump.write(parameter, value, (err, res) => done(err, res));
       }, 1500);
     });
   }

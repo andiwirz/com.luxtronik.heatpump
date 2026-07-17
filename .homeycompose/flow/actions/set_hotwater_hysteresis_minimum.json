@@ -1,0 +1,22 @@
+{
+  "id": "set_hotwater_hysteresis_minimum",
+  "title": {
+    "en": "Minimize hot water hysteresis",
+    "de": "Warmwasser-Hysterese minimieren",
+    "nl": "Minimaliseer warmwaterhysterese",
+    "fr": "Minimiser l'hystérésis eau chaude"
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=luxtronik-heatpump"
+    }
+  ],
+  "titleFormatted": {
+    "en": "Minimize hot water hysteresis (set to 0.5 K)",
+    "de": "Warmwasser-Hysterese minimieren (auf 0,5 K setzen)",
+    "nl": "Warmwaterhysterese minimaliseren (instellen op 0,5 K)",
+    "fr": "Minimiser l'hystérésis eau chaude (régler à 0,5 K)"
+  }
+}

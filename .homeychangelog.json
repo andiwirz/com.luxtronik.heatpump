@@ -152,6 +152,12 @@
     "en": "Updated: heatpump_state_string now shows a single emoji for the current heat pump state (e.g. 🔥 Heating, ⏸️ Standby, 💧 Hot Water). Selectable as device indicator under Device → ⚙️ → Device display.",
     "de": "Aktualisiert: heatpump_state_string zeigt jetzt ein einzelnes Emoji für den aktuellen Wärmepumpenstatus (z.B. 🔥 Heizen, ⏸️ Standby, 💧 Warmwasser). Als Geräteanzeige wählbar unter Gerät → ⚙️ → Geräteanzeige."
   },
+  "2.0.52": {
+    "en": "New: Two flow actions for solar-driven hot water heating — 'Minimize hot water hysteresis' (sets to 0.5 K) and 'Restore hot water hysteresis' (restores to your configured value). A new device setting stores the restore value and is auto-initialized from the current controller hysteresis on first use.",
+    "de": "Neu: Zwei Flow-Aktionen für solargestützte Warmwasserbereitung — 'Warmwasser-Hysterese minimieren' (setzt auf 0,5 K) und 'Warmwasser-Hysterese wiederherstellen' (stellt den konfigurierten Wert wieder her). Ein neues Geräte-Setting speichert den Wiederherstellungswert und wird beim ersten Start automatisch aus der aktuellen Controller-Hysterese befüllt.",
+    "nl": "Nieuw: Twee flow-acties voor zonne-energie warmwaterverwarming — 'Warmwaterhysterese minimaliseren' (instellen op 0,5 K) en 'Warmwaterhysterese herstellen' (herstelt de geconfigureerde waarde). Een nieuwe apparaatinstelling slaat de herstelwaarde op en wordt bij eerste gebruik automatisch geïnitialiseerd vanuit de huidige controllerwaarde.",
+    "fr": "Nouveau : Deux actions de flow pour le chauffe-eau solaire — 'Minimiser l'hystérésis eau chaude' (réglage à 0,5 K) et 'Restaurer l'hystérésis eau chaude' (restaure la valeur configurée). Un nouveau paramètre d'appareil stocke la valeur de restauration et est initialisé automatiquement depuis la valeur actuelle du contrôleur."
+  },
   "2.0.51": {
     "en": "Fixed: cooling_operation_mode capability value no longer stays null after polling. Firmware V3.x controllers may return values other than 0/1 for the cooling mode register; these are now safely clamped to the valid enum range.",
     "de": "Behoben: cooling_operation_mode bleibt nach dem Poll nicht mehr null. Firmware V3.x Controller können im Kühlmodus-Register andere Werte als 0/1 liefern; diese werden jetzt sicher auf den gültigen Enum-Bereich begrenzt.",

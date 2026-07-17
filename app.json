@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.luxtronik.heatpump",
-  "version": "2.0.51",
+  "version": "2.0.52",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "name": {
@@ -1251,6 +1251,28 @@
     ],
     "actions": [
       {
+        "id": "restore_hotwater_hysteresis",
+        "title": {
+          "en": "Restore hot water hysteresis",
+          "de": "Warmwasser-Hysterese wiederherstellen",
+          "nl": "Warmwaterhysterese herstellen",
+          "fr": "Restaurer l'hystérésis eau chaude"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          }
+        ],
+        "titleFormatted": {
+          "en": "Restore hot water hysteresis to configured value",
+          "de": "Warmwasser-Hysterese auf konfigurierten Wert zurücksetzen",
+          "nl": "Warmwaterhysterese herstellen naar geconfigureerde waarde",
+          "fr": "Restaurer l'hystérésis eau chaude à la valeur configurée"
+        }
+      },
+      {
         "id": "set_cooling_operation_mode",
         "title": {
           "en": "Set cooling mode",
@@ -1300,6 +1322,28 @@
           "de": "Kühlbetrieb-Betriebsart auf [[mode]] setzen",
           "nl": "Koelingsmodus instellen op [[mode]]",
           "fr": "Définir le mode refroidissement sur [[mode]]"
+        }
+      },
+      {
+        "id": "set_hotwater_hysteresis_minimum",
+        "title": {
+          "en": "Minimize hot water hysteresis",
+          "de": "Warmwasser-Hysterese minimieren",
+          "nl": "Minimaliseer warmwaterhysterese",
+          "fr": "Minimiser l'hystérésis eau chaude"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=luxtronik-heatpump"
+          }
+        ],
+        "titleFormatted": {
+          "en": "Minimize hot water hysteresis (set to 0.5 K)",
+          "de": "Warmwasser-Hysterese minimieren (auf 0,5 K setzen)",
+          "nl": "Warmwaterhysterese minimaliseren (instellen op 0,5 K)",
+          "fr": "Minimiser l'hystérésis eau chaude (régler à 0,5 K)"
         }
       },
       {
@@ -2549,6 +2593,22 @@
               "hint": {
                 "en": "Defines how far the hot water temperature must drop below the setpoint before reheating starts (parameter 74). Example: setpoint 50 °C, hysteresis 5 K → reheating at 45 °C. Larger value = fewer compressor starts. Changing this setting writes the value directly to the controller.",
                 "de": "Legt fest, wie weit die Warmwassertemperatur unter den Sollwert fallen muss, bevor die Nachheizung startet (Parameter 74). Beispiel: Sollwert 50 °C, Hysterese 5 K → Nachheizung bei 45 °C. Grösserer Wert = weniger Verdichterstarts. Änderung wird direkt am Controller gespeichert."
+              }
+            },
+            {
+              "id": "hotwater_hysteresis_restore",
+              "type": "number",
+              "label": {
+                "en": "Hysteresis Restore Value (K)",
+                "de": "Hysterese-Wiederherstellungswert (K)"
+              },
+              "value": 0,
+              "min": 0.5,
+              "max": 10,
+              "step": 0.5,
+              "hint": {
+                "en": "Value restored by the 'Restore hot water hysteresis' flow action. Set this to your normal hysteresis (e.g. 5 K). This value is not synced from the controller.",
+                "de": "Wert, der durch die Flow-Aktion 'Warmwasser-Hysterese wiederherstellen' gesetzt wird. Hier den normalen Hysterese-Wert eintragen (z.B. 5 K). Wird nicht vom Controller synchronisiert."
               }
             }
           ]

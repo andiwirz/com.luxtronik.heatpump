@@ -1,0 +1,22 @@
+{
+  "id": "restore_hotwater_hysteresis",
+  "title": {
+    "en": "Restore hot water hysteresis",
+    "de": "Warmwasser-Hysterese wiederherstellen",
+    "nl": "Warmwaterhysterese herstellen",
+    "fr": "Restaurer l'hystérésis eau chaude"
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=luxtronik-heatpump"
+    }
+  ],
+  "titleFormatted": {
+    "en": "Restore hot water hysteresis to configured value",
+    "de": "Warmwasser-Hysterese auf konfigurierten Wert zurücksetzen",
+    "nl": "Warmwaterhysterese herstellen naar geconfigureerde waarde",
+    "fr": "Restaurer l'hystérésis eau chaude à la valeur configurée"
+  }
+}
