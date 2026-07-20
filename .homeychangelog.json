@@ -152,6 +152,12 @@
     "en": "Updated: heatpump_state_string now shows a single emoji for the current heat pump state (e.g. 🔥 Heating, ⏸️ Standby, 💧 Hot Water). Selectable as device indicator under Device → ⚙️ → Device display.",
     "de": "Aktualisiert: heatpump_state_string zeigt jetzt ein einzelnes Emoji für den aktuellen Wärmepumpenstatus (z.B. 🔥 Heizen, ⏸️ Standby, 💧 Warmwasser). Als Geräteanzeige wählbar unter Gerät → ⚙️ → Geräteanzeige."
   },
+  "2.0.53": {
+    "en": "App Store improvements: pairing and settings pages now default to English (German still available via language toggle). Updated app description and readme to better reflect the app's purpose.",
+    "de": "App Store Verbesserungen: Einrichtungs- und Einstellungsseiten sind jetzt standardmässig auf Englisch (Deutsch weiterhin per Sprachumschalter verfügbar). App-Beschreibung und Readme überarbeitet.",
+    "nl": "App Store verbeteringen: koppeling en instellingspagina's zijn nu standaard in het Engels (Duits nog steeds beschikbaar via de taalknop). App-beschrijving en readme bijgewerkt.",
+    "fr": "Améliorations App Store : les pages de couplage et de paramètres sont maintenant en anglais par défaut (allemand toujours disponible via le sélecteur de langue). Description de l'application et readme mis à jour."
+  },
   "2.0.52": {
     "en": "New: Two flow actions for solar-driven hot water heating — 'Minimize hot water hysteresis' (sets to 0.5 K) and 'Restore hot water hysteresis' (restores to your configured value). A new device setting stores the restore value and is auto-initialized from the current controller hysteresis on first use.",
     "de": "Neu: Zwei Flow-Aktionen für solargestützte Warmwasserbereitung — 'Warmwasser-Hysterese minimieren' (setzt auf 0,5 K) und 'Warmwasser-Hysterese wiederherstellen' (stellt den konfigurierten Wert wieder her). Ein neues Geräte-Setting speichert den Wiederherstellungswert und wird beim ersten Start automatisch aus der aktuellen Controller-Hysterese befüllt.",
