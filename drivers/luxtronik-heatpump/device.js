@@ -1161,13 +1161,11 @@ class LuxtronikHeatpumpDevice extends Device {
     // Mirror → target_temperature.heating (Thermostat-Widget Heizung Soll)
     await this._setIfValid('target_temperature.heating', heatingCorr);
 
-    // Brauchwasser-Solltemperatur:
-    // Parameter 105 (temperature_hot_water_target) = echter WW-Sollwert auf allen Firmware-Varianten
-    // Parameter 2 (warmwater_temperature) = auf manchen Firmwares (z.B. SWCV V3.92.3) = TDI-Wert, NICHT WW-Sollwert
-    // → Parameter 105 bevorzugen wenn im gültigen Bereich (30–65 °C)
-    const ww105 = this._n(p.temperature_hot_water_target);
-    const ww2   = this._n(p.warmwater_temperature);
-    const wwSetpoint = (ww105 !== null && ww105 >= 30 && ww105 <= 65) ? ww105 : ww2;
+    // Brauchwasser-Solltemperatur: primär aus Status-Werten (v) — gleiche Quelle wie measure_temp_hotwater_target
+    // und damit immer konsistent mit der angezeigten Kachel. Parameter 105/2 (p) weichen je nach Firmware ab.
+    // Fallback auf p.warmwater_temperature falls v-Wert nicht verfügbar (ältere Firmware).
+    const wwFromStatus = this._n(v.temperature_hot_water_target);
+    const wwSetpoint   = wwFromStatus ?? this._n(p.warmwater_temperature);
     await this._setIfValid('target_temperature', wwSetpoint);
 
     // Thermische Desinfektion Soll (TDI): parameter 47 = temperature_hot_water_limit

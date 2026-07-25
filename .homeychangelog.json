@@ -152,6 +152,12 @@
     "en": "Updated: heatpump_state_string now shows a single emoji for the current heat pump state (e.g. 🔥 Heating, ⏸️ Standby, 💧 Hot Water). Selectable as device indicator under Device → ⚙️ → Device display.",
     "de": "Aktualisiert: heatpump_state_string zeigt jetzt ein einzelnes Emoji für den aktuellen Wärmepumpenstatus (z.B. 🔥 Heizen, ⏸️ Standby, 💧 Warmwasser). Als Geräteanzeige wählbar unter Gerät → ⚙️ → Geräteanzeige."
   },
+  "2.0.54": {
+    "en": "Fixed: hot water setpoint in the thermostat widget could diverge from the 'Hot Water Target' tile after polling. Both now read from the same controller status value and always stay in sync.",
+    "de": "Behoben: Warmwasser-Sollwert im Thermostat-Widget konnte nach dem Poll von der 'Warmwasser Soll'-Kachel abweichen. Beide lesen jetzt aus derselben Controller-Statusquelle und bleiben immer synchron.",
+    "nl": "Opgelost: de warmwaterdoeltemperatuur in de thermostaatwidget kon na het pollen afwijken van de 'Warmwater doel'-tegel. Beide lezen nu uit dezelfde controllerstatuswaarde en blijven altijd gesynchroniseerd.",
+    "fr": "Corrigé : la consigne d'eau chaude dans le widget thermostat pouvait diverger de la tuile 'Eau chaude cible' après l'interrogation. Les deux lisent maintenant la même valeur de statut du contrôleur et restent toujours synchronisées."
+  },
   "2.0.53": {
     "en": "App Store improvements: pairing and settings pages now default to English (German still available via language toggle). Updated app description and readme to better reflect the app's purpose.",
     "de": "App Store Verbesserungen: Einrichtungs- und Einstellungsseiten sind jetzt standardmässig auf Englisch (Deutsch weiterhin per Sprachumschalter verfügbar). App-Beschreibung und Readme überarbeitet.",
