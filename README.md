@@ -247,6 +247,7 @@ Homey automatically uses the language matching the user's Homey interface langua
 | Enable Power Sensor                  | Off      | Activates estimated watt sensor per heat pump state                |
 | Heating / Hot Water / Standby (W)    | 0        | Required for the automatic kWh energy meter                        |
 | Cooling Capabilities Visibility      | Auto     | Auto / Always show / Always hide — controls cooling capabilities   |
+| Hysteresis Restore Value (K)         | 0 (auto) | Value restored by "Restore Hot Water Hysteresis" flow action. Auto-initialized from current controller value on first start. |
 
 ---
 
@@ -307,6 +308,12 @@ Homey automatically uses the language matching the user's Homey interface langua
 | Stop Hot Water Boost (Party)                       | –                              |
 | Enable Thermal Disinfection                        | –                              |
 | Disable Thermal Disinfection                       | –                              |
+| Minimize Hot Water Hysteresis                      | Sets hysteresis to 0.5 K (solar boost) |
+| Restore Hot Water Hysteresis                       | Restores hysteresis to configured value |
+| Set Hot Water Hysteresis                           | Number: 0.5 … 10 K             |
+| Set Return Temperature Hysteresis                  | Number: 0.5 … 10 K             |
+| Set Outdoor Temperature Max                        | Number °C                      |
+| Set Heating Limit                                  | Number °C                      |
 
 ---
 
