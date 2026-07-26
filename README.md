@@ -146,6 +146,21 @@ Changes are applied immediately. On some controllers (e.g. MSW2-6S), the heat pu
 
 ---
 
+## Solar-Driven Hot Water Heating
+
+Two flow actions make it easy to maximize hot water production when solar surplus is available:
+
+| Action | Effect |
+|--------|--------|
+| **Minimize Hot Water Hysteresis** | Sets the hysteresis to 0.5 K — the heat pump reheats as soon as the temperature drops by 0.5 K, keeping the tank as full as possible |
+| **Restore Hot Water Hysteresis** | Restores the hysteresis to the value configured in device settings (see *Hysteresis Restore Value*) |
+
+**Typical flow:** When solar surplus detected → Minimize hysteresis → when solar surplus ends → Restore hysteresis.
+
+The restore value is stored in the device setting **Hysteresis Restore Value (K)** and is automatically initialized from the current controller value on first app start. Adjust it to match your normal operating hysteresis if needed.
+
+---
+
 ## Estimated Power Sensor
 
 An optional estimated power sensor (`measure_power`) can be activated in the device settings. It reports the estimated power consumption in watts based on the current heat pump state (Heating, Hot Water, Standby, etc.).
@@ -213,7 +228,7 @@ The app is fully translated into the following languages:
 | Dutch      | `nl` | ✅     | ✅         | ✅      |
 | French     | `fr` | ✅     | ✅         | ✅      |
 
-Homey automatically uses the language matching the user's Homey interface language.
+The pairing view and device settings page default to **English**. German is available via the language toggle (DE/EN) in the settings header. Flow card titles and capability labels follow the Homey interface language automatically.
 
 ---
 
@@ -351,6 +366,7 @@ Homey automatically uses the language matching the user's Homey interface langua
 
 - The thermostat correction (`target_temperature.heating`) shifts the heating curve by the set value. Positive values → warmer, negative values → cooler.
 - All write operations are sent to the controller immediately. A confirmation poll is automatically triggered 3 seconds after each write to reflect the updated values without waiting for the next poll interval.
+- Write operations are serialized — if two flow actions trigger writes simultaneously (e.g. "Restore hysteresis" + "Set operation mode"), they are queued and executed one after the other to avoid TCP conflicts.
 - Write protection prevents polling cycles from immediately overwriting manually set values (120s protection window).
 - The cooling mode capability visibility is configurable: Auto (based on `FreigabKuehl`), Always show, or Always hide.
 - Room temperature capabilities (`measure_temp_room`, `measure_temp_room_target`) are only populated when an RBE room display is physically connected to the controller.
