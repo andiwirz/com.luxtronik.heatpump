@@ -216,31 +216,36 @@ class LuxtronikHeatpumpDevice extends Device {
     }
 
 
-    // ── Capability-Titel korrigieren (wurden beim ersten addCapability() in der alten
-    //    App-Version ggf. auf Deutsch gespeichert; setCapabilityOptions() überschreibt
-    //    den in Homey gespeicherten Titel für bereits vorhandene Capabilities) ─────────
-    for (const [cap, options] of Object.entries(CAPABILITY_TITLE_FIXES)) {
-      if (this.hasCapability(cap)) {
-        try { await this.setCapabilityOptions(cap, options); }
-        catch (e) { this.error(`setCapabilityOptions ${cap} fehlgeschlagen:`, e.message); }
-      }
-    }
+    // ── Capability-Titel einmalig pro App-Version synchronisieren ───────────────
+    // setCapabilityOptions() bei jedem Start aufzurufen führt zu Problemen (Rate-Limit).
+    // Deshalb nur ausführen wenn sich die App-Version geändert hat.
+    const currentVersion = this.homey.manifest && this.homey.manifest.version;
+    const syncedVersion  = this.getSetting('_cap_titles_synced_version');
+    if (currentVersion && syncedVersion !== currentVersion) {
+      this.log(`Capability-Titel-Sync (${syncedVersion ?? 'neu'} → ${currentVersion})`);
 
-    // ── Alle Capability-Titel aus dem App-Manifest erzwingen ────────────────────
-    // Homey speichert den Titel pro Gerät beim Hinzufügen und aktualisiert ihn
-    // NICHT bei App-Updates. Damit Übersetzungen (z.B. NL) auf bereits gekoppelten
-    // Geräten ankommen, hier den aktuellen Manifest-Titel setzen, falls abweichend.
-    const manifestCaps = (this.homey.manifest && this.homey.manifest.capabilities) || {};
-    for (const cap of this.getCapabilities()) {
-      const def = manifestCaps[cap];
-      if (!def || !def.title) continue;
-      let current = null;
-      try { current = this.getCapabilityOptions(cap); } catch (e) { current = null; }
-      const curTitle = current && current.title ? JSON.stringify(current.title) : null;
-      if (curTitle !== JSON.stringify(def.title)) {
-        try { await this.setCapabilityOptions(cap, { ...(current || {}), title: def.title }); }
-        catch (e) { this.error(`Titel-Sync ${cap} fehlgeschlagen:`, e.message); }
+      for (const [cap, options] of Object.entries(CAPABILITY_TITLE_FIXES)) {
+        if (this.hasCapability(cap)) {
+          try { await this.setCapabilityOptions(cap, options); }
+          catch (e) { this.error(`setCapabilityOptions ${cap} fehlgeschlagen:`, e.message); }
+        }
       }
+
+      const manifestCaps = (this.homey.manifest && this.homey.manifest.capabilities) || {};
+      for (const cap of this.getCapabilities()) {
+        const def = manifestCaps[cap];
+        if (!def || !def.title) continue;
+        let current = null;
+        try { current = this.getCapabilityOptions(cap); } catch (e) { current = null; }
+        const curTitle = current && current.title ? JSON.stringify(current.title) : null;
+        if (curTitle !== JSON.stringify(def.title)) {
+          try { await this.setCapabilityOptions(cap, { ...(current || {}), title: def.title }); }
+          catch (e) { this.error(`Titel-Sync ${cap} fehlgeschlagen:`, e.message); }
+        }
+      }
+
+      try { await this.setSettings({ _cap_titles_synced_version: currentVersion }); }
+      catch (e) { this.error('Versions-Stempel setzen fehlgeschlagen:', e.message); }
     }
 
     // ── Ende Migration ────────────────────────────────────────────────────────
