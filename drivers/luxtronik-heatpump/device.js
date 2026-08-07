@@ -286,6 +286,8 @@ class LuxtronikHeatpumpDevice extends Device {
     this._lastSuccessfulPoll = null;
     this._watchdogTimer      = null;
     this._pollTimeout        = null;
+    // Verhindert überlappende Polls (parallele TCP-Verbindungen)
+    this._polling            = false;
 
     // Flow-Trigger
     this._triggerHeatingModeChanged  = this.homey.flow.getDeviceTriggerCard('heating_operation_mode_changed');
@@ -785,27 +787,48 @@ class LuxtronikHeatpumpDevice extends Device {
   }
 
   async _doPoll() {
+    // Überlappende Polls verhindern: das Luxtronik-Protokoll verträgt keine parallelen
+    // TCP-Verbindungen. Antwortet der Controller langsamer als das Poll-Intervall,
+    // würde der Timer sonst eine zweite Verbindung öffnen.
+    if (this._polling) {
+      this.log('Poll übersprungen — vorheriger Poll läuft noch');
+      return;
+    }
     if (!this._pump) { this._connectPump(); if (!this._pump) return; }
 
-    // Poll-Timeout: wenn keine Antwort nach 30s → Fehler
-    if (this._pollTimeout) { clearTimeout(this._pollTimeout); }
-    const timeoutSec = Number((await this.getSettings()).watchdog_timeout) || 30;
-    this._pollTimeout = setTimeout(() => {
-      this._pollTimeout = null;
-      this.error(`Poll-Timeout: Keine Antwort von der Wärmepumpe nach ${timeoutSec}s`);
-      this.setUnavailable(this.homey.__('errors.timeout') || `Keine Antwort (Timeout nach ${timeoutSec}s)`).catch(() => {});
-    }, timeoutSec * 1000);
+    this._polling = true;
+    const timeoutSec = Number(this.getSettings().watchdog_timeout) || 30;
 
     return new Promise((resolve) => {
+      let settled = false;
+      // Gibt den Poll auf jedem Pfad frei — sonst bliebe _polling nach einem
+      // ausbleibenden Callback dauerhaft true und das Polling wäre tot.
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        if (this._pollTimeout) { clearTimeout(this._pollTimeout); this._pollTimeout = null; }
+        this._polling = false;
+        resolve();
+      };
+
+      // Poll-Timeout: wenn keine Antwort nach timeoutSec → Fehler und Poll freigeben
+      if (this._pollTimeout) clearTimeout(this._pollTimeout);
+      this._pollTimeout = setTimeout(() => {
+        this._pollTimeout = null;
+        this.error(`Poll-Timeout: Keine Antwort von der Wärmepumpe nach ${timeoutSec}s`);
+        this.setUnavailable(this.homey.__('errors.timeout') || `Keine Antwort (Timeout nach ${timeoutSec}s)`).catch(() => {});
+        finish();
+      }, timeoutSec * 1000);
+
       this._pump.read((err, data) => {
         if (err) {
           this.error('Poll-Fehler:', err.message || err);
           const wasAvail = this.getAvailable();
-      this.setUnavailable(err.message || 'Verbindungsfehler').catch(() => {});
-      if (wasAvail) {
-        this._triggerDeviceUnavailable.trigger(this, {}).catch(() => {});
-      }
-          resolve();
+          this.setUnavailable(err.message || 'Verbindungsfehler').catch(() => {});
+          if (wasAvail) {
+            this._triggerDeviceUnavailable.trigger(this, {}).catch(() => {});
+          }
+          finish();
           return;
         }
         const wasUnavail = !this.getAvailable();
@@ -813,9 +836,8 @@ class LuxtronikHeatpumpDevice extends Device {
         if (wasUnavail) {
           this._triggerDeviceAvailable.trigger(this, {}).catch(() => {});
         }
-        // Watchdog: Zeitstempel aktualisieren und Timeout zurücksetzen
+        // Watchdog: Zeitstempel aktualisieren
         this._lastSuccessfulPoll = new Date();
-        if (this._pollTimeout) { clearTimeout(this._pollTimeout); this._pollTimeout = null; }
         const tz = this.homey.clock.getTimezone();
         const timeStr = this._lastSuccessfulPoll.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: tz, hour12: false });
         this._setIfValid('last_poll', timeStr).catch(() => {});
@@ -825,10 +847,10 @@ class LuxtronikHeatpumpDevice extends Device {
             this._firstPollDone = true;
             this.log('Erster Poll abgeschlossen — onSettings-Schreibsperre aufgehoben');
           }
-          resolve();
+          finish();
         }).catch((e) => {
           this.error('Fehler bei Datenverarbeitung:', e.message);
-          resolve();
+          finish();
         });
       });
     });
@@ -894,7 +916,9 @@ class LuxtronikHeatpumpDevice extends Device {
     // Brauchwasser Schnellladung (Zuheizung): automatisch beenden wenn Zieltemperatur erreicht
     if (this._boostTimer && this.getCapabilityValue('hotwater_boost') === true) {
       const currentTemp = this._n(v.temperature_hot_water);
-      const targetTemp  = this.hasCapability('warmwater_target_temperature') ? this.getCapabilityValue('warmwater_target_temperature') : this.getCapabilityValue('target_temperature');
+      // Für "Speicher voll?" den momentanen Zielwert des Reglers verwenden (values[18]),
+      // nicht den konfigurierten Sollwert — sonst läuft der Boost bei Sperrzeit ins Leere.
+      const targetTemp  = this._n(v.temperature_hot_water_target) ?? this.getCapabilityValue('target_temperature');
       if (currentTemp !== null && targetTemp !== null && currentTemp >= targetTemp) {
         this.log(`Schnelladung: Zieltemperatur ${targetTemp}°C erreicht (${currentTemp}°C) — beende automatisch`);
         await this._stopHotwaterBoost();
@@ -904,7 +928,7 @@ class LuxtronikHeatpumpDevice extends Device {
     // Brauchwasser Schnellladung (Party): automatisch beenden wenn Zieltemperatur erreicht
     if (this._boostPartyTimer && this.getCapabilityValue('hotwater_boost_party') === true) {
       const currentTempP = this._n(v.temperature_hot_water);
-      const targetTempP  = this.hasCapability('warmwater_target_temperature') ? this.getCapabilityValue('warmwater_target_temperature') : this.getCapabilityValue('target_temperature');
+      const targetTempP  = this._n(v.temperature_hot_water_target) ?? this.getCapabilityValue('target_temperature');
       if (currentTempP !== null && targetTempP !== null && currentTempP >= targetTempP) {
         this.log(`Schnellladung (Party): Zieltemperatur ${targetTempP}°C erreicht (${currentTempP}°C) — beende automatisch`);
         await this._stopHotwaterBoostParty();
@@ -1062,7 +1086,15 @@ class LuxtronikHeatpumpDevice extends Device {
       }
       const now = Date.now();
       if (this._lastPollTime !== null) {
-        const elapsedHours = (now - this._lastPollTime) / 3600000;
+        // Lücke deckeln: nach einem Verbindungsausfall ist der Betriebszustand während
+        // der Lücke unbekannt. Ohne Deckel würde eine 6h-Unterbrechung "6h × aktuelle Watt"
+        // in den Zähler schreiben und das Energie-Dashboard dauerhaft verfälschen.
+        const maxGapMs     = this._pollInterval * 2;
+        const elapsedMs    = Math.min(now - this._lastPollTime, maxGapMs);
+        if (now - this._lastPollTime > maxGapMs) {
+          this.log(`Energiezähler: Lücke von ${Math.round((now - this._lastPollTime) / 60000)} min auf ${Math.round(maxGapMs / 60000)} min begrenzt`);
+        }
+        const elapsedHours = elapsedMs / 3600000;
         const watts        = Number(this.getSetting(`power_${stateSlug}`)) || 0;
         const kwhIncrement = watts * elapsedHours / 1000;
         const currentKwh   = (await this.getStoreValue('meter_power_kwh')) || 0;
@@ -1166,11 +1198,14 @@ class LuxtronikHeatpumpDevice extends Device {
     // Mirror → target_temperature.heating (Thermostat-Widget Heizung Soll)
     await this._setIfValid('target_temperature.heating', heatingCorr);
 
-    // Brauchwasser-Solltemperatur: primär aus Status-Werten (v) — gleiche Quelle wie measure_temp_hotwater_target
-    // und damit immer konsistent mit der angezeigten Kachel. Parameter 105/2 (p) weichen je nach Firmware ab.
-    // Fallback auf p.warmwater_temperature falls v-Wert nicht verfügbar (ältere Firmware).
-    const wwFromStatus = this._n(v.temperature_hot_water_target);
-    const wwSetpoint   = wwFromStatus ?? this._n(p.warmwater_temperature);
+    // Brauchwasser-Solltemperatur: MUSS aus den Parametern kommen (symmetrisch zum Schreiben).
+    // Achtung Namenskollision in luxtronik2: v.temperature_hot_water_target (values[18], Kalkulation #25)
+    // ist der MOMENTANE Zielwert des Reglers und sinkt bei Sperrzeit, WW-Zeitprogramm (Parameter 405–505)
+    // oder Betriebsart "Aus" — als Thermostat-Sollwert unbrauchbar.
+    // Parameter 105 bevorzugen; auf manchen Firmwares enthält Parameter 2 den TDI-Wert statt des WW-Sollwerts.
+    const ww105 = this._n(p.temperature_hot_water_target);   // Parameter 105
+    const ww2   = this._n(p.warmwater_temperature);          // Parameter 2
+    const wwSetpoint = (ww105 !== null && ww105 >= 30 && ww105 <= 65) ? ww105 : ww2;
     await this._setIfValid('target_temperature', wwSetpoint);
 
     // Thermische Desinfektion Soll (TDI): parameter 47 = temperature_hot_water_limit

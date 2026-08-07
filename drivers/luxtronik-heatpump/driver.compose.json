@@ -98,8 +98,10 @@
     },
     "measure_temp_hotwater_target": {
       "title": {
-        "en": "Hot Water Target",
-        "de": "Warmwasser Soll"
+        "en": "Hot Water Target (current)",
+        "de": "Warmwasser Ziel (aktuell)",
+        "nl": "Warmwater doel (actueel)",
+        "fr": "Cible eau chaude (actuelle)"
       }
     },
     "measure_temp_source_in": {

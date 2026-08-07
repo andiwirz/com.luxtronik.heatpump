@@ -1,10 +1,10 @@
 {
   "type": "number",
   "title": {
-    "en": "Hot Water Target",
-    "de": "Warmwasser Soll",
-    "nl": "Warmwater streefwaarde",
-    "fr": "Consigne eau chaude"
+    "en": "Hot Water Target (current)",
+    "de": "Warmwasser Ziel (aktuell)",
+    "nl": "Warmwater doel (actueel)",
+    "fr": "Cible eau chaude (actuelle)"
   },
   "units": {
     "en": "°C",
