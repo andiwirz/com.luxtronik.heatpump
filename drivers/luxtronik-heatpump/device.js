@@ -63,6 +63,11 @@ const HEATING_STATE_MAP = {
   'Durchflussueberwachung':         { en: 'Flow Monitoring',            de: 'Durchflussüberwachung',       nl: 'Doorstroombewaking' },
   'Elektrische Zusatzheizung':      { en: 'Electric Auxiliary Heating', de: 'Elektrische Zusatzheizung',   nl: 'Elektrische bijverwarming' },
   'Warmw. Nachheizung':             { en: 'DHW Reheating',              de: 'Warmwasser Nachheizung',      nl: 'Warmwater naverwarming' },
+  // state3=15: in luxtronik2, python-luxtronik und der HA-Integration undokumentiert.
+  // Beobachtet gemeinsam mit Fehler 718 "Max. Aussentemp." → Wärmepumpe ausserhalb der
+  // Einsatzgrenzen. Label bewusst neutral, da unklar ist ob 15 spezifisch die
+  // Aussentemperatur-Grenze meint oder generisch "wegen Störung gesperrt".
+  'Unknown [15]':                   { en: 'Operating Limit',            de: 'Einsatzgrenze / Sperre',      nl: 'Bedrijfsgrens / blokkering' },
   'Unknown [18]':                   { en: 'Compressor Heating Up',      de: 'Verdichter heizt auf',        nl: 'Compressor warmt op' },
   // state3=7: Library konkateniert Basisstring + Subtyp ohne Leerzeichen
   'AbtauenAbtauen (Kreisumkehr)':  { en: 'Defrost (Reverse Cycle)',    de: 'Abtauen (Kreisumkehr)',       nl: 'Ontdooien (kringomkering)' },
