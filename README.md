@@ -2,7 +2,10 @@
 
 **App ID:** `com.luxtronik.heatpump`  
 **SDK:** Homey SDK 3  
-**Compatible with:** Homey Pro (Early 2023), Homey Pro (2019), Homey Bridge (Firmware >= 11.0.0)
+**Compatibility:** Homey firmware `>= 5.0.0`  
+**Device class:** `heater`
+
+The app talks to the controller over the local network (TCP), so it needs a Homey that runs apps locally — Homey Pro.
 
 ---
 
@@ -40,7 +43,7 @@ This app communicates with the **Luxtronik 2.0 / 2.1** controller, which is buil
 | <img src="assets/capabilities/return_temp.svg" width="24"> | Return Temperature | Heating circuit return + setpoint |
 | <img src="assets/capabilities/temperature.svg" width="24"> | Hot Gas Temperature | Compressor outlet |
 | <img src="assets/capabilities/measure_temp_hotwater.svg" width="24"> | Hot Water Temperature | Actual temperature |
-| <img src="assets/capabilities/target_temperature_level.svg" width="24"> | Hot Water Target Temperature (read) | Setpoint read from the controller |
+| <img src="assets/capabilities/target_temperature_level.svg" width="24"> | Hot Water Target (current) | The controller's **momentary** control value — "Deckung WP". Not the same as the thermostat setpoint, see below |
 | <img src="assets/capabilities/temperature.svg" width="24"> | Heat Source Inlet / Outlet | Brine / air temperature |
 | <img src="assets/capabilities/measure_temp_outdoor.svg" width="24"> | Suction Air Temperature | Air-source heat pumps only |
 | <img src="assets/capabilities/measure_temperature.svg" width="24"> | Room Temperature Actual / Target | Only with connected RBE room display |
@@ -57,6 +60,8 @@ This app communicates with the **Luxtronik 2.0 / 2.1** controller, which is buil
 | <img src="assets/capabilities/return_temp.svg" width="24"> | Return Temperature Hysteresis | Hysteresis for return temperature control |
 | <img src="assets/capabilities/water.svg" width="24"> | Hot Water Hysteresis | Hysteresis for hot water control |
 | <img src="assets/capabilities/temp_zwe_enable.svg" width="24"> | ZWE Enable Temperature | Enable temperature for 2nd heat source |
+| <img src="assets/capabilities/temperature.svg" width="24"> | 2nd Compressor Heating / Hot Water Temp. | Thresholds for engaging the 2nd compressor |
+| <img src="assets/capabilities/temperature.svg" width="24"> | Cooling Release / Inlet Temperature | Cooling circuit setpoints (only with cooling support) |
 | <img src="assets/capabilities/alarm.svg" width="24"> | Error Alarm | Error active: Yes / No |
 | <img src="assets/capabilities/last_poll.svg" width="24"> | Last Poll | Time of last successful poll (local time) |
 | <img src="assets/capabilities/firmware_version.svg" width="24"> | Firmware Version | Controller software version |
@@ -73,8 +78,9 @@ This app communicates with the **Luxtronik 2.0 / 2.1** controller, which is buil
 | **Hot Water Boost (Auxiliary)**    | Toggle – auxiliary mode, automatic stop                      |
 | **Hot Water Boost (Party)**        | Toggle – party mode, automatic stop                          |
 | **Thermal Disinfection**           | Toggle – continuous mode, auto-stop at target temperature    |
-| **TDI Setpoint**                   | Target temperature for thermal disinfection: 50–80 °C        |
 | **Refresh** *(optional)*           | Button – triggers an immediate poll (enable in device settings) |
+
+The **TDI Setpoint** (`tdi_target_temperature`) is read-only on the tile — it shows parameter 47 as reported by the controller. Change it under *Device Settings → Hot Water* (50–80 °C, default 65).
 
 ### Device Indicator
 
@@ -94,6 +100,21 @@ The `heatpump_state_string` capability shows the current heat pump state as an e
 | External        | ⚡    |
 | Off             | ⭕    |
 | Unknown         | ❓    |
+
+---
+
+## Hot Water: Setpoint vs. "Target (current)"
+
+These are two different values, and the difference matters:
+
+| Value | What it is |
+|-------|------------|
+| **Hot water setpoint** (thermostat) | Your desired value, read from the configured controller parameter. It stays where you put it. |
+| **Hot Water Target (current)** (tile) | The controller's momentary control value — called **"Deckung WP"** in the Luxtronik manual. |
+
+When the heat pump cannot reach the desired value — for example when the outdoor temperature is outside its operating limits — the controller lowers "Deckung WP" by 1 K at a time and keeps heating to that reduced value. The manual is explicit that the configured desired value stays untouched.
+
+The app therefore reads the thermostat setpoint from the controller parameter (symmetric with what it writes), and shows the momentary value separately on its own tile. Hot water boost stops based on the momentary value, since that is what the controller is actually regulating to.
 
 ---
 
@@ -118,7 +139,7 @@ Both variants:
 Activates continuous operation (parameter 27) for legionella protection:
 
 - After each hot water heating cycle, thermal disinfection follows automatically
-- Stops automatically when the hot water temperature ≥ TDI setpoint − 1 °C (adjustable via the "Thermal Disinfection Setpoint" thermostat slider, 50–80 °C)
+- Stops automatically when the hot water temperature ≥ TDI setpoint − 1 °C (set under *Device Settings → Hot Water*, 50–80 °C)
 - Manual stop possible at any time
 - Fires the flow trigger "Thermal Disinfection Ended"
 - Creates a **Timeline entry** when completed
@@ -169,6 +190,8 @@ Each state can be configured separately with a typical watt value for your insta
 
 **Automatic energy meter (kWh):** If Heating, Hot Water, and Standby watts are all set to a value > 0, a cumulative energy meter (`meter_power`) is activated automatically. The device then appears as a consumer in the **Homey Energy dashboard**. The kWh value is calculated from the time between polls and the configured watt value, and is stored persistently across app restarts.
 
+After a connection loss the operating state during the gap is unknown, so the counted gap is capped at twice the poll interval. Without that cap a six-hour outage would book "6 h × current watts" into the meter and permanently skew the energy dashboard.
+
 ---
 
 ## Homey Timeline
@@ -196,24 +219,32 @@ Timeline entries are written in the Homey interface language (German or English)
 - **Watchdog Timer:** Checks periodically whether the last successful poll is too far in the past (threshold: 3× polling interval, configurable)
 - **Last Poll:** Capability shows the time of the last successful poll in local time
 - Device is automatically marked as available again as soon as the controller responds
+- A poll that is still running blocks the next one. The controller does not tolerate parallel TCP connections, so the app never opens more than one at a time.
 
 ---
 
 ## App Settings
 
-### Debug Page
+The app settings page is a reference for the whole app, reachable via the burger menu. It opens with a loading screen while the Homey SDK completes its handshake, and has a DE/EN toggle in the header (English is the default).
 
-The app settings include a **Debug** tab that shows all raw values and parameters read from the Luxtronik controller:
+| Tab | Contents |
+|-----|----------|
+| **Sensors** | Every readable value, grouped by topic |
+| **Controls** | Every writable value and read-only controller parameter, each with its Luxtronik parameter number and where to configure it |
+| **Functions** | Hot water boost, thermal disinfection, solar-driven hot water heating, connection watchdog |
+| **Flows** | All 17 triggers, 14 conditions and 17 actions with their value ranges |
+| **Power** | How the estimated power sensor works, plus typical watt values per state |
+| **Settings** | Connection and watchdog settings, an overview of all device settings groups with their controller parameters, and the compatibility list |
+| **Debug** | All raw values and parameters read from the controller |
+| **Version** | App version, SDK, compatibility, protocol, library version, device class, author, GitHub link |
+
+### Debug Tab
 
 - Live filter across all keys and values
 - Capability mapping: shows which Homey capability each key is mapped to
 - Entry count for values and parameters
 - App version and poll timestamp
 - **Copy Log** button – exports all data as formatted text for troubleshooting
-
-### Version Info
-
-The **Version** tab in the app settings shows the current app version, SDK, compatibility, protocol, library, author and GitHub link.
 
 ---
 
@@ -264,6 +295,20 @@ The pairing view and device settings page default to **English**. German is avai
 | Cooling Capabilities Visibility      | Auto     | Auto / Always show / Always hide — controls cooling capabilities   |
 | Hysteresis Restore Value (K)         | 0 (auto) | Value restored by "Restore Hot Water Hysteresis" flow action. Auto-initialized from current controller value on first start. |
 
+Beyond the table above, the device settings hold groups of **controller parameters that are written straight to the Luxtronik**:
+
+| Group | Parameters |
+|-------|-----------|
+| Heating Curve | Endpoint and parallel offset for the heating circuit and MK1 (11, 12, 14, 15) |
+| Outdoor Temperature Limits | Heating limit, max./min. outdoor temperature, setback limit (700, 91, 92, 111) |
+| Heating Circuit Limits | Return hysteresis, supply/return limit, return minimum (88, 149, 87, 979) |
+| Setback | Delta for heating and MK1 (13, 16) |
+| Hot Water | TDI setpoint, hysteresis, hysteresis restore value (47, 74) |
+| Auxiliary Heater / 2nd Compressor | ZWE release, 2nd compressor heating and hot water (90, 95, 96) |
+| Cooling | Release and inlet temperature (110, 132) |
+
+Not every controller supports every parameter. When a value is not reported, the matching capability stays hidden and writing to it has no effect.
+
 ---
 
 ## Flow Cards
@@ -278,7 +323,9 @@ The pairing view and device settings page default to **English**. German is avai
 | Heat Pump Status Changed                   | `state`    | New status as text                            |
 | Error Occurred                             | `error`    | Error message as text                         |
 | Error Cleared                              | –          | When the error disappears                     |
+| Hot Water Boost (Auxiliary) Started        | `duration` | Duration in minutes                           |
 | Hot Water Boost (Auxiliary) Ended          | –          | On automatic stop                             |
+| Hot Water Boost (Party) Started            | `duration` | Duration in minutes                           |
 | Hot Water Boost (Party) Ended              | –          | On automatic stop                             |
 | Thermal Disinfection Ended                 | –          | On automatic stop                             |
 | Device Unavailable                         | –          | When watchdog triggers                        |
@@ -314,9 +361,8 @@ The pairing view and device settings page default to **English**. German is avai
 | Set Heating Operation Mode                         | Dropdown (Automatic … Off)     |
 | Set Hot Water Operation Mode                       | Dropdown (Automatic … Off)     |
 | Set Cooling Operation Mode                         | Dropdown (Off / Automatic)     |
-| Set Heating Temperature Correction                 | Number: −5 … +5 °C             |
-| Set Hot Water Target Temperature                   | Number: 30 … 65 °C             |
-| Adjust Hot Water Target Temperature (relative)     | Offset: −20 … +20 °C           |
+| Set Heating Temperature Correction                 | Number: −5 … +5 °C (0.5 K)     |
+| Set Hot Water Target Temperature                   | Number: 30 … 65 °C (0.5 K)     |
 | Start Hot Water Boost (Auxiliary)                  | Duration in minutes (5–480)    |
 | Stop Hot Water Boost (Auxiliary)                   | –                              |
 | Start Hot Water Boost (Party)                      | Duration in minutes (5–480)    |
@@ -327,8 +373,10 @@ The pairing view and device settings page default to **English**. German is avai
 | Restore Hot Water Hysteresis                       | Restores hysteresis to configured value |
 | Set Hot Water Hysteresis                           | Number: 0.5 … 10 K             |
 | Set Return Temperature Hysteresis                  | Number: 0.5 … 10 K             |
-| Set Outdoor Temperature Max                        | Number °C                      |
-| Set Heating Limit                                  | Number °C                      |
+| Set Outdoor Temperature Max                        | Number: 10 … 45 °C             |
+| Set Heating Limit                                  | Number: 5 … 30 °C              |
+
+**17 triggers, 14 conditions, 17 actions.** All writing actions are serialized — see *Notes & Warnings*.
 
 ---
 
@@ -358,6 +406,15 @@ The pairing view and device settings page default to **English**. German is avai
 | `cooling`       | Cooling                       |
 | `standby`       | Standby                       |
 
+### Heating Status Codes
+
+The detailed heating status (`heating_state_string`) comes from the controller. Two codes are undocumented in every reference implementation (`luxtronik2`, `python-luxtronik`, the Home Assistant integration) and are mapped by this app:
+
+| Code | Shown as | Notes |
+|------|----------|-------|
+| 15   | Operating Limit | Observed together with error 718 "Max. Aussentemp." — the heat pump is outside its operating limits. The label is deliberately neutral: it is unclear whether 15 means specifically the outdoor temperature limit or generically "blocked due to fault". |
+| 18   | Compressor Heating Up | Compressor warm-up phase |
+
 ---
 
 ## Notes & Warnings
@@ -370,6 +427,14 @@ The pairing view and device settings page default to **English**. German is avai
 - Write protection prevents polling cycles from immediately overwriting manually set values (120s protection window).
 - The cooling mode capability visibility is configurable: Auto (based on `FreigabKuehl`), Always show, or Always hide.
 - Room temperature capabilities (`measure_temp_room`, `measure_temp_room_target`) are only populated when an RBE room display is physically connected to the controller.
+- Polling pauses for the duration of a write, and a poll that is still running blocks the next one — the app never opens two connections to the controller at the same time.
+- Capability titles are synced once per app version rather than on every restart, to stay clear of Homey's `setCapabilityOptions` rate limit.
+
+---
+
+## Known Issues
+
+**Library crash on controllers reporting few parameters.** `luxtronik2` reads `heatpumpParameters[874]` and `[875]` unguarded when building the serial number. Controllers that report fewer parameters yield `undefined` and the library throws `TypeError: Cannot read properties of undefined (reading 'toString')`. This cannot be worked around from the app: the array is an `Int32Array` (so patching it from `onProcessParameters` is a silent no-op), and the parse runs via `process.nextTick`, which makes it an uncaught exception rather than a callback error. Fixing it requires patching or forking the library.
 
 ---
 

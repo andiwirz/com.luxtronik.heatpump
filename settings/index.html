@@ -124,9 +124,57 @@
     .log-modal-actions button { padding:7px 16px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; border:1px solid var(--border); }
     .btn-copy  { background:var(--accent); color:#fff; border-color:var(--accent); }
     .btn-close { background:var(--surface); color:var(--text); }
+
+    /* ── Boot splash ── */
+    /* The page itself is static, but homey.js still has to finish its handshake
+       before any Homey.get() can run, and on a busy Homey that gap is long enough
+       that the page looks finished while it is not yet interactive. The splash
+       covers it, and the bar advances on real milestones — page painted, SDK ready,
+       app info returned — never on a timer, so it never claims progress it lacks. */
+    #boot-splash { position: fixed; inset: 0; z-index: 2000; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; transition: opacity .35s ease; }
+    #boot-splash.done { opacity: 0; pointer-events: none; }
+    /* Blue, not the page accent: this is the app's brandColor (#1b5e8c) and the
+       backdrop the logo already sits on everywhere else the user sees it. */
+    .boot-badge { width: 78px; height: 78px; border-radius: 20px; background: linear-gradient(140deg, #2a76ab 0%, #164e75 100%); color: #fff; display: flex; align-items: center; justify-content: center; animation: boot-pulse 1.8s ease-in-out infinite; }
+    /* viewBox is cropped to the artwork's measured bounding box, so this width is
+       the real drawn width — no invisible padding baked into the icon file. */
+    .boot-badge svg { width: 40px; height: auto; display: block; }
+    @keyframes boot-pulse {
+      0%, 100% { transform: scale(1);    box-shadow: 0 6px 18px rgba(27,94,140,.26); }
+      50%      { transform: scale(1.06); box-shadow: 0 9px 26px rgba(27,94,140,.38); }
+    }
+    .boot-title  { font-size: 15px; font-weight: 600; color: var(--text); }
+    .boot-status { font-size: 12px; color: var(--muted); min-height: 15px; }
+    .boot-track  { width: 190px; height: 4px; border-radius: 2px; background: rgba(0,0,0,.08); overflow: hidden; }
+    /* Orange against the blue badge: a blue bar sat too close to the brand colour
+       to read as a separate element. */
+    .boot-bar    { width: 6%; height: 100%; border-radius: 2px; background: var(--accent); transition: width .45s cubic-bezier(.22,.61,.36,1); }
+    @media (prefers-reduced-motion: reduce) {
+      #boot-splash { transition: none; }
+      .boot-badge  { animation: none; }
+      .boot-bar    { transition: none; }
+    }
   </style>
 </head>
 <body class="lang-en">
+
+<!-- Boot splash — hidden by bootFinish() once the page, the SDK and the app info
+     have landed. Inlined copy of /assets/icon.svg (wordmark dropped): the settings
+     page is served from a different root than the app assets, so it cannot link
+     to the file. -->
+<div id="boot-splash">
+  <div class="boot-badge">
+    <svg viewBox="23 0 95 141" xmlns="http://www.w3.org/2000/svg" fill="currentColor" fill-rule="evenodd" aria-hidden="true"><g transform="scale(0.14583)">
+    <path d="m332.033896 1.30834997 433.631097 8.482395c21.782591.42571333 39.2184 18.20561233 39.2184 39.99236303v838.978216c0 21.000622-16.240471 38.425394-37.189178 39.901119-.184367.012988-.338633.023855-.492285.034679l-.115585.008142c-.75654.053294-1.673671.117901-6.167616.434476-7.904734.556846-7.904734.556846-20.326458 1.431891-11.615118.818224-18.963459 1.335875-26.075447 1.836877l-.947218.066726c-.315509.022226-.630904.044444-.946541.066679l-1.161697.081836-.676316.047642-.665505.046882c-10.895805.767551-23.155915 1.631211-50.833106 3.580922-126.475737 8.909545-126.475737 8.909545-325.223323 22.910258-4.969941.350106-9.961549-.231357-14.717942-1.714466l-130.041556-40.548733c-16.711086-5.210745-28.092879-20.682018-28.092879-38.186653v-805.46065c0-18.4108752 12.566902-34.4439468 30.444761-38.8419544 1.3546-.3332356 1.3546-.3332356 8.127597-1.9994135 3.403866-.8373613 5.585831-1.3741313 7.673804-1.8877789l.892379-.219528.448039-.110219.406102-.0999025c3.200079-.7872289 6.900084-1.6974415 14.962468-3.6808123 12.954139-3.1867576 21.483942-5.2851149 29.475045-7.2509505l.996364-.2451084c.331373-.0815188.662092-.1628767.992438-.2441429l1.391379-.3422836c14.139083-3.4782571 28.318489-6.966434 64.67594-15.9104773 2.897882-.71288777 5.864913-1.09886291 8.845609-1.15802973zm432.848845 880.94700003.648837-.041022c-41.736993 2.711034-74.709217 4.852751-101.928566 6.620788l-7.623018.495155c-46.025553 2.989597-75.119536 4.879402-103.702116 6.735989l-5.35725.347981c-29.178271 1.89528-58.893077 3.82541-106.612372 6.925025-28.8184 1.871904-40.922128 2.658104-52.174927 3.389032l-1.161698.075458c-7.733088.502304-15.321632.995219-27.969206 1.816745-10.906593.708439-12.236917.794851-17.749862 1.152945l.005759 8.830017c282.416714-19.894759 423.625071-29.842139 423.625071-29.842139zm-563.670325-10.025486-.001675 6.529737 120.041 37.429749.00076-8.324607c-.293915-.087251-.616673-.183065-.973637-.289032-2.880667-.85515-4.886195-1.450507-6.700237-1.98902l-.449917-.133562-.444311-.131897c-.147434-.043767-.294329-.087374-.441081-.130939l-.440224-.130684c-3.451261-1.024535-7.042111-2.090508-15.907021-4.722129-14.792227-4.391193-23.815486-7.069821-32.855227-9.753342l-1.39164-.41312c-13.325237-3.955705-27.328427-8.112666-60.43679-17.941154zm563.670325-359.472514-113.31 4.271.907002 291.17117c.016301.790546-.060113 1.562617-.219484 2.30547-.017596.082016-.036203.163677-.055808.244966-.005556.020448-.010572.040973-.015651.061473l-.020611.084048c-.009226.035864-.018646.071654-.02826.107368-.009815.034324-.019158.068329-.028675.102263-.086618.310615-.188615.615672-.30457.913992-.013388.033637-.026661.067265-.040111.100804-.016487.041816-.03342.083199-.050623.124447-.014972.035301-.030051.070897-.04533.106389-.05617.130924-.11515.260134-.176777.387869-.055625.115089-.113288.229011-.173046.341669-.016578.031339-.033461.062748-.050506.094058-.024334.044654-.048862.088918-.073716.132976-.017126.030361-.034466.060718-.051961.090976-.025687.044461-.0517.088677-.078043.132676-.022697.037846-.045693.075674-.068932.113339-.0226.036716-.045343.073058-.068313.109243-.102722.161699-.20999.320407-.32163.475829-.089585.124856-.18208.247573-.2773.36806-.028532.035994-.057388.071999-.086488.107802-.028768.035489-.057751.070651-.086969.105611-.017848.021276-.035879.042672-.053998.063992-.205313.241603-.4218.473156-.648813.694062-.029393.028704-.058935.057109-.088651.085336-.093996.089137-.189727.176582-.287148.26217-.032584.028834-.065486.057372-.098577.0857-.039335.033435-.07878.066667-.118486.099599-.244054.202751-.498322.394148-.761745.573359-.01919.012624-.038291.025518-.057439.038348-.181845.122322-.368199.238553-.558603.348714-.042832.024265-.085979.048797-.129327.073017-.041263.023582-.082764.046386-.124446.068905-.028691.014966-.057408.030297-.086209.045492-.440934.23319-.901916.434043-1.379936.599841l-.04855.016747c-.304053.101105-.614821.188086-.931569.260133l-.071757.015758c-.047367.01069-.094346.020654-.141451.03029-.052005.010393-.104464.020699-.157074.030595l-.035159.006769c-.072631.013177-.145875.025846-.219396.03772l-.129939.020264-.130075.018241c-.148885.020164-.299107.036974-.450361.05045l-.10566.008821c-.071842.005675-.143334.01053-.215044.014638l-.040976.002262-.021027.001101-.031042.001541-.013684-.000581-171.773105 9.167197c-.421071.031162-.847119.035664-1.275982.012183l-.070418-.004729c-.060514-.003117-.121548-.007453-.18263-.012358l-.115794-.009794-.103587-.010264c-1.281914-.127496-2.495157-.499093-3.591418-1.068268l-.187331-.099157-.04275-.024144c-.972952-.534938-1.835423-1.22262-2.56377-2.023574l-.113793-.128137-.052357-.059225-.026424-.031257-.112427-.132837-.020439-.024767-.125087-.154771-.031286-.040228c-.972117-1.239091-1.658713-2.714923-1.957658-4.330218-.124408-.662866-.181983-1.343618-.167565-2.033174l-.000179-293.147478-119.183 4.492.001284 361.005919c4.503691-.292538 6.45367-.419199 16.453029-1.06871 12.015195-.780449 19.464616-1.264327 26.809676-1.741427l1.159529-.075317c.695978-.045208 1.393127-.090491 2.09524-.136097l.703908-.045722.708061-.045993c10.656267-.692179 22.998492-1.493871 49.829416-3.236678 48.06078-3.121796 77.858464-5.05731 107.238705-6.965709l4.638118-.30127c46.398528-3.013824 94.097948-6.112149 213.3465-13.857959.217281-.014114.433392-.021177.648108-.021388zm-563.672-16.04.0004 355.078075c.940863.000429 1.897503.134706 2.845434.416107 59.60238 17.693453 59.60238 17.693453 97.531167 28.952923 8.86491 2.631621 12.45576 3.697594 15.907021 4.722129l.440224.130684c1.049997.3117 2.107309.625572 3.316846.984633l-.000092-360.108551zm370.253029 177.753771c-35.240061 1.880288-65.308445 45.278343-88.035509 132.397641l148.509541-7.919657c-2.742161-42.840975-9.438535-74.823046-19.844222-95.752761-10.259049-20.63477-23.436421-29.642603-40.62981-28.725223zm60.110971-156.688771-151.14 5.697-.000004 226.04395c23.032945-60.984026 52.652146-93.03297 89.963417-95.023771 25.779027-1.37548 46.012983 12.456118 59.604176 39.79307.730056 1.468415 1.442582 2.977896 2.137636 4.528489zm-290.323-444.88v435.809l119.183-4.492v-429.937zm-20.797075 2.5273704-1.71917.3819447c-22.939235 5.096365-35.040196 7.7848117-45.901818 10.1979168l-.802442.178277-.197059.2659485-1.393526.3095967c-3.246704.7213139-6.472168 1.437909-9.944017 2.2092429l-3.042453.6759357c-5.711338 1.2688768-12.219918 2.7148753-20.564251 4.5687194-1.201249.266879-2.305656.512243-3.325996.7389301l-.854288.1897954c-6.118173 1.3592624-9.059082 2.0126385-11.995474 2.6650109l-.451926.1004035c-2.112809.4693986-4.307036.9568858-7.755108 1.7229371-2.133494.4739939-3.594938.7986799-4.638366 1.0304969l-.332675.07391c-1.377526.306042-1.941788.431403-2.458376.546172l-.118715.026375-.119113.026463-.124124.027576c-.105134.023358-.215282.047829-.336228.074699-.726975.161511-1.453045.239433-2.168172.240154l-.000438 374.723683c.804578.00062 1.622071.099056 2.437769.304107l117.603041 29.562335.000264-431.0177727c-.267193.0593617-.532968.1184084-.797339.1771431zm159.980892 7.0199781-.000817 421.0156515 151.077-5.694-1.258868-404.415545c-14.621994 11.290011-34.136343 16.799188-58.073517 16.531124-29.962319-.335537-60.559983-9.5326-91.743798-27.4372305zm169.763183-5.9703485 1.311 420.538 112.996986-4.258989c.126063-.004751.251668-.007148.376774-.00723l.000326-414.9444676zm-332.061848 28.542335v381.384595c0 6.43838-5.995605 11.198998-12.266443 9.739776l-89.916308-20.923491c-4.528713-1.05383-7.733558-5.090067-7.733558-9.739776v-342.394487c0-4.76346 3.359978-8.865701 8.030101-9.804055l.345166-.069353.106611-.021421c.266527-.053553.54295-.109094 1.051925-.21136l.335073-.067326.191805-.038538.519704-.104423c.473988-.095237 1.065249-.214037 1.81673-.36503l.594323-.119416c.208569-.041907.427823-.085961.658432-.132296 2.432518-.488759 3.962537-.796181 5.451075-1.095269l.557939-.112105c.466131-.093658.938722-.188615 1.444049-.290148l.909154-.182674c1.903228-.38241 4.375927-.879242 8.497091-1.707295 26.22559-5.26943 26.22559-5.26943 67.437231-13.5499631 6.190379-1.2438145 11.9699 3.4899543 11.9699 9.8040551zm-20.000309 12.209-.22341.045082c-15.653973 3.145307-23.685746 4.759107-31.319184 6.292871l-.726021.145878-.961745.19324c-6.09219 1.224086-12.270939 2.465563-22.236663 4.467947-4.00274.804259-6.450392 1.296058-8.331583 1.67404l-.630076.126599-.444586.08933c-1.670736.335696-2.983629.599492-4.888341.9822l-.154391.030813v326.264l69.916 16.269zm313.049748 207.297807v95.652276c0 5.42155-4.32023 9.855629-9.739946 9.996618l-69.376195 1.80476c-5.62279.146272-10.260054-4.371927-10.260054-9.996618v-95.652276c0-5.421551 4.32023-9.855629 9.739947-9.996618l69.376195-1.80476c5.62279-.146272 10.260053 4.371926 10.260053 9.996618zm-20.000195 10.263-49.376 1.285v75.645l49.376-1.285zm20.000195-193.614373v87.546151c0 5.430111-4.3334 9.867915-9.761972 9.997167l-69.376195 1.651814c-5.614451.133677-10.238028-4.381124-10.238028-9.997167v-87.546151c0-5.43011 4.333401-9.867915 9.761973-9.997166l69.376195-1.651814c5.614451-.133678 10.238027 4.381124 10.238027 9.997166zm-20.000195 10.241-49.376 1.175v67.54l49.376-1.176zm-18.782823-61.5299359c20.617366.2308861 36.178532-4.338144 47.249083-13.702762l-110.096169-1.232373c21.54757 9.7522592 42.489095 14.7071535 62.847086 14.935135zm-371.192573-16.5892321-.000309 8.1353855c.606923-.1348387 1.443046-.3205986 2.690267-.5976912l.494368-.1098328c.772376-.1715972 1.685953-.3745648 2.77447-.6163986 3.694363-.8207692 5.949363-1.3217583 8.207034-1.8233406l.451997-.1004193c3.396654-.7546279 7.015621-1.5586467 15.723761-3.4933171 3.165092-.7031823 6.066062-1.3476852 8.759587-1.9461002l1.448962-.3219132c3.810856-.8466503 7.204619-1.600636 10.355702-2.300706l2.294616-.5097903c4.152399-.9225303 7.932883-1.762433 11.785155-2.6182847l.926151-.2057611c9.125171-2.0273214 18.847874-4.1873952 35.000258-7.7759388l2.529568-.5619892c4.91147-1.0911716 10.396237-2.3097114 16.599368-3.687849l-.000605-10.9963436c-80.0269 19.6868601-120.04035 29.5302902-120.04035 29.5302902zm140.041-31.796601v11.399l423.631 4.904.000652-8.022242z" fill-rule="nonzero"/>
+    <path d="m230.405678 146.05501v294.307159l71 13.747303v-321.103106c-47.333333 8.699096-71 13.048644-71 13.048644z"/>
+    <path d="m547.498235 157.695261 40-1.651814v23.125398l-40 1.651814z"/>
+    <ellipse cx="566.497799" cy="199.771965" rx="13.214513" ry="14.04042"/>
+  </g></svg>
+  </div>
+  <div class="boot-title">Luxtronik Heat Pump</div>
+  <div class="boot-status" id="boot-status"><span data-lang="de">Starte…</span><span data-lang="en">Starting…</span></div>
+  <div class="boot-track"><div class="boot-bar" id="boot-bar"></div></div>
+</div>
 
 <!-- ── Header ── -->
 <div class="header">
@@ -218,7 +266,13 @@
 
     <div class="card">
       <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Temperaturen</span><span data-lang="en">Temperatures</span></span></div>
-      <div class="card-desc"><span data-lang="de">Aussen (aktuell + 24h Mittel) · Vorlauf · Rücklauf + Soll · Heissgas · Warmwasser Ist/Soll · Wärmequelle Ein/Aus · Ansaugluft (Luft-WP) · Raum Ist/Soll (RBE)</span><span data-lang="en">Outdoor (current + 24h avg) · Flow · Return + target · Hot gas · Hot water actual/target · Heat source in/out · Suction air (air-source) · Room actual/target (RBE)</span></div>
+      <div class="card-desc"><span data-lang="de">Aussen (aktuell + 24 h Mittel) · Vorlauf · Rücklauf + Soll · Heissgas · Warmwasser Ist · Warmwasser Ziel (aktuell) · Wärmequelle Ein/Aus · Ansaugluft (Luft-WP) · Raum Ist/Soll (RBE)</span><span data-lang="en">Outdoor (current + 24 h avg) · Flow · Return + target · Hot gas · Hot water actual · Hot water target (current) · Heat source in/out · Suction air (air-source) · Room actual/target (RBE)</span></div>
+    </div>
+
+    <div class="infobox">
+      <strong><span data-lang="de">Warmwasser: Soll vs. „Warmwasser Ziel (aktuell)"</span><span data-lang="en">Hot water: setpoint vs. "Hot Water Target (current)"</span></strong><br>
+      <span data-lang="de">Das sind zwei verschiedene Werte. Der <strong>Sollwert</strong> am Thermostat ist dein Wunschwert und bleibt stehen. <strong>Warmwasser Ziel (aktuell)</strong> ist der Regelwert des Controllers — in der Luxtronik-Anleitung „Deckung WP". Erreicht die WP den Wunschwert nicht (z.B. ausserhalb der Einsatzgrenzen), senkt der Regler diesen Wert um je 1 K ab. Der Wunschwert bleibt davon unberührt.</span>
+      <span data-lang="en">These are two different values. The <strong>setpoint</strong> on the thermostat is your desired value and stays put. <strong>Hot Water Target (current)</strong> is the controller's control value — "Deckung WP" in the Luxtronik manual. If the heat pump cannot reach the desired value (e.g. outside its operating limits), the controller lowers this value by 1 K at a time. The desired value is not affected.</span>
     </div>
 
     <div class="card">
@@ -250,7 +304,7 @@
 
     <div class="card">
       <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Thermische Desinfektion Soll (TDI)</span><span data-lang="en">Thermal Disinfection Setpoint (TDI)</span></span></div>
-      <div class="card-desc"><span data-lang="de">Sensor (°C) · Zeigt den aktuellen Wert direkt vom Controller (Parameter 47). Dient als Abschaltgrenze für den Dauerbetrieb (TDI-Soll − 1 °C). Einstellbar unter <strong>Geräteeinstellungen → Temperatur-Einstellungen</strong>.</span><span data-lang="en">Sensor (°C) · Shows the current value read directly from the controller (parameter 47). Used as shutoff threshold for continuous mode (TDI setpoint − 1 °C). Configurable under <strong>Device Settings → Temperature Settings</strong>.</span></div>
+      <div class="card-desc"><span data-lang="de">Sensor (°C) · Zeigt den aktuellen Wert direkt vom Controller (Parameter 47). Dient als Abschaltgrenze für den Dauerbetrieb (TDI-Soll − 1 °C). Einstellbar unter <strong>Geräteeinstellungen → Warmwasser</strong>.</span><span data-lang="en">Sensor (°C) · Shows the current value read directly from the controller (parameter 47). Used as shutoff threshold for continuous mode (TDI setpoint − 1 °C). Configurable under <strong>Device Settings → Hot Water</strong>.</span></div>
     </div>
 
     <div class="card">
@@ -271,24 +325,24 @@
     <div class="card">
       <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Heizgrenze</span><span data-lang="en">Heating Limit</span></span></div>
       <div class="card-desc">
-        <span data-lang="de">Sensor (°C) · Zeigt den aktuellen Wert direkt vom Controller (Parameter 700). Aussentemperatur, oberhalb derer der Heizbetrieb abschaltet — Warmwasser läuft weiter. Beispiel: 15 °C → WP heizt nur wenn Aussentemperatur &lt; 15 °C. Verhindert unnötiges Heizen bei warmen Aussentemperaturen. Typisch: 15–18 °C (FBH) · 16–20 °C (Radiatoren) · 12–15 °C (gut gedämmt). Einstellbar unter <strong>Geräteeinstellungen → Temperatur-Einstellungen</strong>.</span>
-        <span data-lang="en">Sensor (°C) · Shows the current value read directly from the controller (parameter 700). Outdoor temperature above which heating is switched off — hot water continues. Example: 15 °C → heat pump heats only when outdoor temp &lt; 15 °C. Prevents unnecessary heating in mild weather. Typical: 15–18 °C (underfloor) · 16–20 °C (radiators) · 12–15 °C (well-insulated). Configurable under <strong>Device Settings → Temperature Settings</strong>.</span>
+        <span data-lang="de">Sensor (°C) · Zeigt den aktuellen Wert direkt vom Controller (Parameter 700). Aussentemperatur, oberhalb derer der Heizbetrieb abschaltet — Warmwasser läuft weiter. Beispiel: 15 °C → WP heizt nur wenn Aussentemperatur &lt; 15 °C. Verhindert unnötiges Heizen bei warmen Aussentemperaturen. Typisch: 15–18 °C (FBH) · 16–20 °C (Radiatoren) · 12–15 °C (gut gedämmt). Einstellbar unter <strong>Geräteeinstellungen → Betriebsgrenzen Aussentemperatur</strong>.</span>
+        <span data-lang="en">Sensor (°C) · Shows the current value read directly from the controller (parameter 700). Outdoor temperature above which heating is switched off — hot water continues. Example: 15 °C → heat pump heats only when outdoor temp &lt; 15 °C. Prevents unnecessary heating in mild weather. Typical: 15–18 °C (underfloor) · 16–20 °C (radiators) · 12–15 °C (well-insulated). Configurable under <strong>Device Settings → Outdoor Temperature Limits</strong>.</span>
       </div>
     </div>
 
     <div class="card">
       <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Max. Aussentemperatur</span><span data-lang="en">Max. Outdoor Temperature</span></span></div>
       <div class="card-desc">
-        <span data-lang="de">Sensor (°C) · Konfigurierter Maximalwert der Aussentemperatur am Controller (Parameter 91). Oberhalb dieses Werts wechselt die WP in einen definierten Betriebszustand (z.B. kein Heizen, Kühlfreigabe). Einstellbar unter <strong>Geräteeinstellungen → Temperatur-Einstellungen</strong>.</span>
-        <span data-lang="en">Sensor (°C) · Configured maximum outdoor temperature value on the controller (parameter 91). Above this value the heat pump switches to a defined operating state (e.g. no heating, cooling release). Configurable under <strong>Device Settings → Temperature Settings</strong>.</span>
+        <span data-lang="de">Sensor (°C) · Konfigurierter Maximalwert der Aussentemperatur am Controller (Parameter 91). Oberhalb dieses Werts wechselt die WP in einen definierten Betriebszustand (z.B. kein Heizen, Kühlfreigabe). Einstellbar unter <strong>Geräteeinstellungen → Betriebsgrenzen Aussentemperatur</strong>.</span>
+        <span data-lang="en">Sensor (°C) · Configured maximum outdoor temperature value on the controller (parameter 91). Above this value the heat pump switches to a defined operating state (e.g. no heating, cooling release). Configurable under <strong>Device Settings → Outdoor Temperature Limits</strong>.</span>
       </div>
     </div>
 
     <div class="card">
       <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Warmwasser-Hysterese</span><span data-lang="en">Hot Water Hysteresis</span></span></div>
       <div class="card-desc">
-        <span data-lang="de">Sensor (K) · Zeigt den aktuellen Wert direkt vom Controller (Parameter 74). Legt fest, wie weit die Warmwassertemperatur unter den Sollwert fallen muss, bevor die Nachheizung erneut startet. Beispiel: Sollwert 50 °C, Hysterese 5 K → Nachheizung beginnt bei 45 °C. Einstellbar unter <strong>Geräteeinstellungen → Temperatur-Einstellungen</strong>.</span>
-        <span data-lang="en">Sensor (K) · Shows the current value read directly from the controller (parameter 74). Defines how far the hot water temperature must drop below the setpoint before reheating restarts. Example: setpoint 50 °C, hysteresis 5 K → reheating starts at 45 °C. Configurable under <strong>Device Settings → Temperature Settings</strong>.</span>
+        <span data-lang="de">Sensor (K) · Zeigt den aktuellen Wert direkt vom Controller (Parameter 74). Legt fest, wie weit die Warmwassertemperatur unter den Sollwert fallen muss, bevor die Nachheizung erneut startet. Beispiel: Sollwert 50 °C, Hysterese 5 K → Nachheizung beginnt bei 45 °C. Einstellbar unter <strong>Geräteeinstellungen → Warmwasser</strong> oder per Flow-Aktion. Dort steht auch der <strong>Wiederherstellungswert</strong> für die solargeführte Warmwasserbereitung.</span>
+        <span data-lang="en">Sensor (K) · Shows the current value read directly from the controller (parameter 74). Defines how far the hot water temperature must drop below the setpoint before reheating restarts. Example: setpoint 50 °C, hysteresis 5 K → reheating starts at 45 °C. Configurable under <strong>Device Settings → Hot Water</strong> or via flow action. The <strong>restore value</strong> for solar-driven hot water heating lives there too.</span>
       </div>
     </div>
 
@@ -470,13 +524,28 @@
     </div>
 
     <div class="func-card">
+      <div class="func-head"><span class="func-head-icon">☀️</span><span class="func-head-title"><span data-lang="de">Solargeführte Warmwasserbereitung</span><span data-lang="en">Solar-Driven Hot Water Heating</span></span></div>
+      <div class="func-body">
+        <p><span data-lang="de">Zwei Flow-Aktionen, die die Warmwasser-Hysterese umschalten. Bei Solarüberschuss lädt die WP schon bei kleinster Abweichung nach, sonst erst nach dem normalen Temperaturabfall.</span><span data-lang="en">Two flow actions that switch the hot water hysteresis. On solar surplus the heat pump reheats at the smallest deviation, otherwise only after the normal temperature drop.</span></p>
+        <ul class="func-steps">
+          <li><span class="step-num">1</span><span data-lang="de">Bei Solarüberschuss: <strong>Hysterese minimieren</strong> → 0,5 K, WP heizt fast durchgehend nach</span><span data-lang="en">On solar surplus: <strong>Minimize hysteresis</strong> → 0.5 K, the heat pump reheats almost continuously</span></li>
+          <li><span class="step-num">2</span><span data-lang="de">Bei Netzbezug: <strong>Hysterese wiederherstellen</strong> → zurück auf den hinterlegten Wert</span><span data-lang="en">On grid import: <strong>Restore hysteresis</strong> → back to the stored value</span></li>
+          <li><span class="step-num">3</span><span data-lang="de">Der Wiederherstellungswert steht unter <strong>Geräteeinstellungen → Warmwasser</strong></span><span data-lang="en">The restore value lives under <strong>Device Settings → Hot Water</strong></span></li>
+        </ul>
+        <div class="infobox"><strong><span data-lang="de">Wiederherstellungswert:</span><span data-lang="en">Restore value:</span></strong> <span data-lang="de">Wird beim ersten Start automatisch aus der aktuellen Warmwasser-Hysterese übernommen. Ist gar nichts hinterlegt, greift ein Rückfallwert von 5 K.</span><span data-lang="en">Taken automatically from the current hot water hysteresis on first start. If nothing is stored at all, a fallback of 5 K applies.</span></div>
+      </div>
+    </div>
+
+    <div class="func-card">
       <div class="func-head"><span class="func-head-icon">🔒</span><span class="func-head-title"><span data-lang="de">Verbindungs-Watchdog</span><span data-lang="en">Connection Watchdog</span></span></div>
       <div class="func-body">
         <ul class="func-steps">
-          <li><span class="step-num">1</span><span data-lang="de"><strong>Poll-Timeout (30s):</strong> Keine Antwort → Gerät sofort unavailable</span><span data-lang="en"><strong>Poll timeout (30s):</strong> No response → device immediately unavailable</span></li>
-          <li><span class="step-num">2</span><span data-lang="de"><strong>Watchdog-Timer:</strong> Prüft ob letzter Poll zu lange zurückliegt (3× Intervall)</span><span data-lang="en"><strong>Watchdog timer:</strong> Checks if last poll was too long ago (3× interval)</span></li>
-          <li><span class="step-num">3</span><span data-lang="de">Gerät wird automatisch wieder available wenn Controller antwortet</span><span data-lang="en">Device automatically becomes available again when controller responds</span></li>
+          <li><span class="step-num">1</span><span data-lang="de"><strong>Poll-Timeout (Standard 30 s):</strong> Keine Antwort → Gerät sofort unavailable</span><span data-lang="en"><strong>Poll timeout (default 30 s):</strong> No response → device immediately unavailable</span></li>
+          <li><span class="step-num">2</span><span data-lang="de"><strong>Watchdog-Timer:</strong> Prüft alle 60 s, ob der letzte Poll zu lange zurückliegt (3× Intervall)</span><span data-lang="en"><strong>Watchdog timer:</strong> Checks every 60 s whether the last poll is too old (3× interval)</span></li>
+          <li><span class="step-num">3</span><span data-lang="de">Gerät wird automatisch wieder available wenn der Controller antwortet</span><span data-lang="en">Device automatically becomes available again when the controller responds</span></li>
+          <li><span class="step-num">4</span><span data-lang="de">Ein laufender Poll blockiert den nächsten — es wird nie mehr als eine Verbindung gleichzeitig geöffnet</span><span data-lang="en">A running poll blocks the next one — never more than one connection at a time</span></li>
         </ul>
+        <div class="infobox"><span data-lang="de">Alle drei Zeitwerte sind unter <strong>Geräteeinstellungen → Verbindung</strong> anpassbar.</span><span data-lang="en">All three timings are adjustable under <strong>Device Settings → Connection</strong>.</span></div>
       </div>
     </div>
   </div>
@@ -485,42 +554,52 @@
 <!-- ══ FLOWS ══ -->
 <div id="tab-flows" class="tab-content">
   <div class="section">
-    <div class="section-title">🔵 <span data-lang="de">Auslöser (Wenn)</span><span data-lang="en">Triggers (When)</span></div>
+    <div class="section-title">🔵 <span data-lang="de">Auslöser (Wenn) — 17</span><span data-lang="en">Triggers (When) — 17</span></div>
     <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Heizungs-Betriebsart geändert</span><span data-lang="en">Heating mode changed</span></div><div class="flow-desc"><span data-lang="de">Token: neue Betriebsart</span><span data-lang="en">Token: new mode</span></div></div></div>
     <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Brauchwasser-Betriebsart geändert</span><span data-lang="en">Hot water mode changed</span></div><div class="flow-desc"><span data-lang="de">Token: neue Betriebsart</span><span data-lang="en">Token: new mode</span></div></div></div>
     <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Kühlbetrieb-Betriebsart geändert</span><span data-lang="en">Cooling mode changed</span></div><div class="flow-desc"><span data-lang="de">Token: neue Betriebsart · nur bei freigegebener Kühlung</span><span data-lang="en">Token: new mode · only if cooling enabled</span></div></div></div>
     <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Wärmepumpen-Status geändert</span><span data-lang="en">Heat pump state changed</span></div><div class="flow-desc"><span data-lang="de">Token: neuer Status</span><span data-lang="en">Token: new state</span></div></div></div>
-    <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Fehler aufgetreten / quittiert</span><span data-lang="en">Error occurred / cleared</span></div></div></div>
-    <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Schnellladung (Zuheizung/Party) beendet</span><span data-lang="en">Hot Water Boost (Auxiliary/Party) ended</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Fehler aufgetreten / Fehler quittiert</span><span data-lang="en">Error occurred / Error cleared</span></div><div class="flow-desc"><span data-lang="de">2 Karten · „aufgetreten" liefert den Fehlertext als Token</span><span data-lang="en">2 cards · "occurred" provides the error text as a token</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Schnellladung (Zuheizung) gestartet / beendet</span><span data-lang="en">Hot Water Boost (Auxiliary) started / ended</span></div><div class="flow-desc"><span data-lang="de">2 Karten · „gestartet" liefert die Dauer als Token</span><span data-lang="en">2 cards · "started" provides the duration as a token</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Schnellladung (Party) gestartet / beendet</span><span data-lang="en">Hot Water Boost (Party) started / ended</span></div><div class="flow-desc"><span data-lang="de">2 Karten · „gestartet" liefert die Dauer als Token</span><span data-lang="en">2 cards · "started" provides the duration as a token</span></div></div></div>
     <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Thermische Desinfektion beendet</span><span data-lang="en">Thermal Disinfection ended</span></div></div></div>
-    <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Gerät nicht erreichbar / wieder erreichbar</span><span data-lang="en">Device unavailable / available again</span></div></div></div>
-    <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Aussentemperatur fiel unter / stieg über … °C</span><span data-lang="en">Outdoor temp dropped below / rose above … °C</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Gerät nicht erreichbar / wieder erreichbar</span><span data-lang="en">Device unavailable / available again</span></div><div class="flow-desc"><span data-lang="de">2 Karten</span><span data-lang="en">2 cards</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Aussentemperatur fiel unter / stieg über … °C</span><span data-lang="en">Outdoor temperature dropped below / rose above … °C</span></div><div class="flow-desc"><span data-lang="de">2 Karten · Schwellwert frei wählbar</span><span data-lang="en">2 cards · free threshold</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Raumtemperatur fiel unter / stieg über … °C</span><span data-lang="en">Room temperature dropped below / rose above … °C</span></div><div class="flow-desc"><span data-lang="de">2 Karten · benötigt eine Raumbedieneinheit (RBE)</span><span data-lang="en">2 cards · requires a room control unit (RBE)</span></div></div></div>
   </div>
 
   <div class="section">
-    <div class="section-title">🟣 <span data-lang="de">Bedingungen (Und)</span><span data-lang="en">Conditions (And)</span></div>
-    <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Heizungs-Betriebsart ist …</span><span data-lang="en">Heating mode is …</span></div></div></div>
-    <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Brauchwasser-Betriebsart ist …</span><span data-lang="en">Hot water mode is …</span></div></div></div>
-    <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Kühlbetrieb-Betriebsart ist …</span><span data-lang="en">Cooling mode is …</span></div><div class="flow-desc">Aus / Automatik</div></div></div>
+    <div class="section-title">🟣 <span data-lang="de">Bedingungen (Und) — 14</span><span data-lang="en">Conditions (And) — 14</span></div>
+    <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Heizungs-Betriebsart ist …</span><span data-lang="en">Heating mode is …</span></div><div class="flow-desc"><span data-lang="de">Automatik · Zuheizer · Party · Ferien · Aus</span><span data-lang="en">Automatic · Auxiliary · Party · Holiday · Off</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Brauchwasser-Betriebsart ist …</span><span data-lang="en">Hot water mode is …</span></div><div class="flow-desc"><span data-lang="de">Automatik · Zuheizer · Party · Ferien · Aus</span><span data-lang="en">Automatic · Auxiliary · Party · Holiday · Off</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Kühlbetrieb-Betriebsart ist …</span><span data-lang="en">Cooling mode is …</span></div><div class="flow-desc"><span data-lang="de">Aus · Automatik</span><span data-lang="en">Off · Automatic</span></div></div></div>
     <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Wärmepumpen-Status ist …</span><span data-lang="en">Heat pump state is …</span></div></div></div>
-    <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Heizung Status / Warmwasser Status ist …</span><span data-lang="en">Heating status / Hot water status is …</span></div></div></div>
-    <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Warmwasser- / Aussentemperatur über / unter … °C</span><span data-lang="en">Hot water / outdoor temperature above / below … °C</span></div></div></div>
-    <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Thermische Desinfektion / Schnellladung ist aktiv</span><span data-lang="en">Thermal disinfection / Boost is active</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Heizung Status ist …</span><span data-lang="en">Heating status is …</span></div><div class="flow-desc"><span data-lang="de">Freitext — vergleicht den Status-Text des Controllers</span><span data-lang="en">Free text — compares the controller's status text</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Warmwasser Status ist …</span><span data-lang="en">Hot water status is …</span></div><div class="flow-desc"><span data-lang="de">Sperrzeit · Aufheizen · Temp. OK · Aus</span><span data-lang="en">Lock Period · Heating Up · Temp. OK · Off</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Aussentemperatur ist über / unter … °C</span><span data-lang="en">Outdoor temperature is above / below … °C</span></div><div class="flow-desc"><span data-lang="de">2 Karten</span><span data-lang="en">2 cards</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Raumtemperatur ist über / unter … °C</span><span data-lang="en">Room temperature is above / below … °C</span></div><div class="flow-desc"><span data-lang="de">2 Karten · benötigt eine Raumbedieneinheit (RBE)</span><span data-lang="en">2 cards · requires a room control unit (RBE)</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Thermische Desinfektion ist aktiv</span><span data-lang="en">Thermal disinfection is active</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Schnellladung (Zuheizung) / (Party) ist aktiv</span><span data-lang="en">Hot water boost (auxiliary) / (party) is active</span></div><div class="flow-desc"><span data-lang="de">2 Karten</span><span data-lang="en">2 cards</span></div></div></div>
     <div class="flow-item"><div class="flow-dot dot-condition"></div><div><div class="flow-name"><span data-lang="de">Gerät ist erreichbar</span><span data-lang="en">Device is available</span></div></div></div>
   </div>
 
   <div class="section">
-    <div class="section-title">🟢 <span data-lang="de">Aktionen (Dann)</span><span data-lang="en">Actions (Then)</span></div>
-    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Heizungs- / Brauchwasser- / Kühlbetrieb-Betriebsart setzen</span><span data-lang="en">Set heating / hot water / cooling mode</span></div></div></div>
-    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Heizungs-Temperaturkorrektur setzen</span><span data-lang="en">Set heating temperature correction</span></div><div class="flow-desc">−5 … +5 °C</div></div></div>
-    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Brauchwasser Soll-Temperatur setzen / anpassen</span><span data-lang="en">Set / adjust hot water target temperature</span></div><div class="flow-desc"><span data-lang="de">Absolut 30–65 °C oder Offset ±20 °C</span><span data-lang="en">Absolute 30–65 °C or offset ±20 °C</span></div></div></div>
-    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Schnellladung (Zuheizung/Party) starten / stoppen</span><span data-lang="en">Start / stop Hot Water Boost (Auxiliary/Party)</span></div><div class="flow-desc"><span data-lang="de">Dauer 5–480 Min.</span><span data-lang="en">Duration 5–480 min</span></div></div></div>
-    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Thermische Desinfektion aktivieren / deaktivieren</span><span data-lang="en">Enable / disable Thermal Disinfection</span></div></div></div>
-    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Max. Aussentemperatur setzen</span><span data-lang="en">Set max. outdoor temperature</span></div><div class="flow-desc"><span data-lang="de">10–45 °C · alternativ via Geräteeinstellungen</span><span data-lang="en">10–45 °C · alternatively via Device Settings</span></div></div></div>
-    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Heizgrenze setzen</span><span data-lang="en">Set heating limit</span></div><div class="flow-desc"><span data-lang="de">5–30 °C · alternativ via Geräteeinstellungen</span><span data-lang="en">5–30 °C · alternatively via Device Settings</span></div></div></div>
-    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Warmwasser-Hysterese setzen</span><span data-lang="en">Set hot water hysteresis</span></div><div class="flow-desc">0,5–10 K</div></div></div>
+    <div class="section-title">🟢 <span data-lang="de">Aktionen (Dann) — 17</span><span data-lang="en">Actions (Then) — 17</span></div>
+    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Heizungs- / Brauchwasser- / Kühlbetrieb-Betriebsart setzen</span><span data-lang="en">Set heating / hot water / cooling mode</span></div><div class="flow-desc"><span data-lang="de">3 Karten</span><span data-lang="en">3 cards</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Heizungs-Temperaturkorrektur setzen</span><span data-lang="en">Set heating temperature correction</span></div><div class="flow-desc">−5 … +5 °C · 0,5 K</div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Brauchwasser Soll-Temperatur setzen</span><span data-lang="en">Set hot water target temperature</span></div><div class="flow-desc"><span data-lang="de">30–65 °C · 0,5 K</span><span data-lang="en">30–65 °C · 0.5 K</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Schnellladung (Zuheizung) starten / stoppen</span><span data-lang="en">Start / stop Hot Water Boost (Auxiliary)</span></div><div class="flow-desc"><span data-lang="de">2 Karten · Dauer 5–480 Min.</span><span data-lang="en">2 cards · duration 5–480 min</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Schnellladung (Party) starten / stoppen</span><span data-lang="en">Start / stop Hot Water Boost (Party)</span></div><div class="flow-desc"><span data-lang="de">2 Karten · Dauer 5–480 Min.</span><span data-lang="en">2 cards · duration 5–480 min</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Thermische Desinfektion aktivieren / deaktivieren</span><span data-lang="en">Enable / disable Thermal Disinfection</span></div><div class="flow-desc"><span data-lang="de">2 Karten</span><span data-lang="en">2 cards</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Warmwasser-Hysterese setzen</span><span data-lang="en">Set hot water hysteresis</span></div><div class="flow-desc"><span data-lang="de">0,5–10 K · alternativ via Geräteeinstellungen</span><span data-lang="en">0.5–10 K · alternatively via Device Settings</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Warmwasser-Hysterese minimieren</span><span data-lang="en">Minimize hot water hysteresis</span></div><div class="flow-desc"><span data-lang="de">Setzt fest auf 0,5 K — kein Argument. Für solargeführte Warmwasserbereitung.</span><span data-lang="en">Sets a fixed 0.5 K — no argument. For solar-driven hot water heating.</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Warmwasser-Hysterese wiederherstellen</span><span data-lang="en">Restore hot water hysteresis</span></div><div class="flow-desc"><span data-lang="de">Setzt den in den Geräteeinstellungen hinterlegten Wiederherstellungswert zurück.</span><span data-lang="en">Restores the value stored in Device Settings.</span></div></div></div>
     <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Rücklauf-Hysterese setzen</span><span data-lang="en">Set return temperature hysteresis</span></div><div class="flow-desc"><span data-lang="de">0,5–10 K · nur wenn Controller-Unterstützung vorhanden · alternativ via Geräteeinstellungen</span><span data-lang="en">0.5–10 K · only if controller supports it · alternatively via Device Settings</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Heizgrenze setzen</span><span data-lang="en">Set heating limit</span></div><div class="flow-desc"><span data-lang="de">5–30 °C · alternativ via Geräteeinstellungen</span><span data-lang="en">5–30 °C · alternatively via Device Settings</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Max. Aussentemperatur setzen</span><span data-lang="en">Set max. outdoor temperature</span></div><div class="flow-desc"><span data-lang="de">10–45 °C · alternativ via Geräteeinstellungen</span><span data-lang="en">10–45 °C · alternatively via Device Settings</span></div></div></div>
   </div>
+
+  <div class="infobox"><strong><span data-lang="de">Schreibvorgänge:</span><span data-lang="en">Writes:</span></strong> <span data-lang="de">Der Controller verträgt keine parallelen Verbindungen. Alle schreibenden Aktionen werden deshalb serialisiert — mehrere Karten in einem Flow laufen nacheinander, nicht gleichzeitig. Während eines Schreibvorgangs pausiert die App das Polling.</span><span data-lang="en">The controller does not tolerate parallel connections. All writing actions are therefore serialised — several cards in one flow run one after another, not simultaneously. Polling is paused for the duration of a write.</span></div>
 </div>
 
 <!-- ══ LEISTUNG ══ -->
@@ -538,7 +617,7 @@
           <li><span class="step-num">3</span><span data-lang="de">Wenn <strong>Heizen, Warmwasser &amp; Standby alle &gt; 0 W</strong>: kumulierter <strong>Energiezähler (kWh)</strong> wird automatisch aktiviert</span><span data-lang="en">If <strong>Heating, Hot Water &amp; Standby all &gt; 0 W</strong>: cumulative <strong>energy meter (kWh)</strong> activates automatically</span></li>
           <li><span class="step-num">4</span><span data-lang="de">Gerät erscheint als <strong>Verbraucher im Homey Energie-Dashboard</strong></span><span data-lang="en">Device appears as <strong>consumer in Homey Energy dashboard</strong></span></li>
         </ul>
-        <div class="infobox"><strong><span data-lang="de">Hinweis:</span><span data-lang="en">Note:</span></strong> <span data-lang="de">Der kWh-Zähler wird persistent gespeichert und überlebt App-Neustarts.</span><span data-lang="en">The kWh counter is stored persistently and survives app restarts.</span></div>
+        <div class="infobox"><strong><span data-lang="de">Hinweis:</span><span data-lang="en">Note:</span></strong> <span data-lang="de">Der kWh-Zähler wird persistent gespeichert und überlebt App-Neustarts. Nach einem Verbindungsausfall ist unbekannt, in welchem Zustand die WP war — die angerechnete Lücke wird deshalb auf das doppelte Abfrageintervall begrenzt, statt die ganze Ausfallzeit hochzurechnen.</span><span data-lang="en">The kWh counter is stored persistently and survives app restarts. After a connection loss the operating state during the gap is unknown, so the counted gap is capped at twice the poll interval instead of extrapolating over the whole outage.</span></div>
       </div>
     </div>
 
@@ -555,6 +634,7 @@
           <tr><td class="key"><span data-lang="de">Schwimmbad</span><span data-lang="en">Pool</span></td><td class="default">800–3000 W</td><td>—</td></tr>
           <tr><td class="key"><span data-lang="de">Extern (Zuheizer)</span><span data-lang="en">External (Boiler)</span></td><td class="default">10–100 W</td><td>—</td></tr>
           <tr><td class="key"><span data-lang="de">Aus</span><span data-lang="en">Off</span></td><td class="default">10–25 W</td><td>—</td></tr>
+          <tr><td class="key"><span data-lang="de">Unbekannt</span><span data-lang="en">Unknown</span></td><td class="default">10–25 W</td><td>—</td></tr>
         </tbody>
       </table>
     </div>
@@ -572,12 +652,39 @@
         <tbody>
           <tr><td class="key"><span data-lang="de">IP-Adresse</span><span data-lang="en">IP Address</span></td><td class="default">—</td><td><span data-lang="de">IP des Controllers</span><span data-lang="en">Controller IP</span></td></tr>
           <tr><td class="key">Port</td><td class="default">8889</td><td><span data-lang="de">TCP-Port</span><span data-lang="en">TCP port</span></td></tr>
-          <tr><td class="key"><span data-lang="de">Abfrageintervall</span><span data-lang="en">Poll Interval</span></td><td class="default">60 s</td><td><span data-lang="de">Min. 10 s</span><span data-lang="en">Min. 10 s</span></td></tr>
-          <tr><td class="key"><span data-lang="de">Schnellladung Dauer</span><span data-lang="en">Boost Duration</span></td><td class="default">60 min</td><td><span data-lang="de">Max. Laufzeit Schnellladung</span><span data-lang="en">Max. boost duration</span></td></tr>
+          <tr><td class="key"><span data-lang="de">Abfrageintervall</span><span data-lang="en">Poll Interval</span></td><td class="default">60 s</td><td><span data-lang="de">Wie oft die WP abgefragt wird · min. 10 s</span><span data-lang="en">How often the heat pump is queried · min. 10 s</span></td></tr>
+          <tr><td class="key"><span data-lang="de">Schnellladung Dauer</span><span data-lang="en">Boost Duration</span></td><td class="default">60 min</td><td><span data-lang="de">Laufzeit, wenn die Schnellladung über die Kachel gestartet wird</span><span data-lang="en">Run time when the boost is started from the device tile</span></td></tr>
+          <tr><td class="key"><span data-lang="de">Poll-Timeout</span><span data-lang="en">Poll Timeout</span></td><td class="default">30 s</td><td><span data-lang="de">Keine Antwort innerhalb dieser Zeit → Gerät unavailable · 10–120 s</span><span data-lang="en">No response within this time → device unavailable · 10–120 s</span></td></tr>
+          <tr><td class="key"><span data-lang="de">Watchdog-Schwelle</span><span data-lang="en">Watchdog Threshold</span></td><td class="default">3×</td><td><span data-lang="de">Vielfaches des Abfrageintervalls, ab dem der Watchdog anschlägt · 2–10</span><span data-lang="en">Multiple of the poll interval at which the watchdog trips · 2–10</span></td></tr>
+          <tr><td class="key"><span data-lang="de">Watchdog-Prüfintervall</span><span data-lang="en">Watchdog Check Interval</span></td><td class="default">60 s</td><td><span data-lang="de">Wie oft der Watchdog prüft · 10–300 s</span><span data-lang="en">How often the watchdog checks · 10–300 s</span></td></tr>
+          <tr><td class="key"><span data-lang="de">Aktualisieren-Knopf zeigen</span><span data-lang="en">Show Refresh button</span></td><td class="default"><span data-lang="de">aus</span><span data-lang="en">off</span></td><td><span data-lang="de">Blendet einen manuellen Abfrage-Knopf auf der Kachel ein (Gruppe „Allgemein")</span><span data-lang="en">Adds a manual poll button to the device tile (group "General")</span></td></tr>
         </tbody>
       </table>
     </div>
     <div class="infobox"><strong><span data-lang="de">Tipp:</span><span data-lang="en">Tip:</span></strong> <span data-lang="de">DHCP-Reservierung im Router einrichten für eine stabile IP-Adresse.</span><span data-lang="en">Set up a DHCP reservation in your router for a stable IP address.</span></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title"><span data-lang="de">Geräteeinstellungen — Gruppen</span><span data-lang="en">Device Settings — Groups</span></div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:8px;padding-left:2px;"><span data-lang="de">Werte in diesen Gruppen werden <strong>direkt auf den Controller geschrieben</strong>. Sie stehen unter <em>Gerät → Einstellungen</em>, nicht hier.</span><span data-lang="en">Values in these groups are <strong>written directly to the controller</strong>. They live under <em>Device → Settings</em>, not here.</span></p>
+    <div class="table-wrap">
+      <table class="settings-table">
+        <thead><tr><th><span data-lang="de">Gruppe</span><span data-lang="en">Group</span></th><th><span data-lang="de">Inhalt</span><span data-lang="en">Contents</span></th></tr></thead>
+        <tbody>
+          <tr><td class="key"><span data-lang="de">Allgemein</span><span data-lang="en">General</span></td><td><span data-lang="de">Aktualisieren-Knopf ein-/ausblenden</span><span data-lang="en">Show / hide the Refresh button</span></td></tr>
+          <tr><td class="key"><span data-lang="de">Verbindung</span><span data-lang="en">Connection</span></td><td><span data-lang="de">IP · Port · Abfrageintervall · Schnellladung-Dauer · Watchdog (3 Werte)</span><span data-lang="en">IP · port · poll interval · boost duration · watchdog (3 values)</span></td></tr>
+          <tr><td class="key">Heizkurve</td><td><span data-lang="de">Endpunkt &amp; Parallelverschiebung — Heizkreis und MK1 (Parameter 11, 12, 14, 15)</span><span data-lang="en">Endpoint &amp; parallel offset — heating circuit and MK1 (parameters 11, 12, 14, 15)</span></td></tr>
+          <tr><td class="key"><span data-lang="de">Betriebsgrenzen Aussentemperatur</span><span data-lang="en">Outdoor Temperature Limits</span></td><td><span data-lang="de">Heizgrenze · max./min. Aussentemperatur · Absenk-Grenze (Parameter 700, 91, 92, 111)</span><span data-lang="en">Heating limit · max./min. outdoor temperature · setback limit (parameters 700, 91, 92, 111)</span></td></tr>
+          <tr><td class="key"><span data-lang="de">Heizkreis-Temperaturgrenzen</span><span data-lang="en">Heating Circuit Limits</span></td><td><span data-lang="de">Rücklauf-Hysterese · Vorlauf-/Rücklaufgrenze · Rücklauf min. (Parameter 88, 149, 87, 979)</span><span data-lang="en">Return hysteresis · supply/return limit · return min. (parameters 88, 149, 87, 979)</span></td></tr>
+          <tr><td class="key"><span data-lang="de">Absenkung</span><span data-lang="en">Setback</span></td><td><span data-lang="de">Delta Heizung und MK1 (Parameter 13, 16)</span><span data-lang="en">Delta for heating and MK1 (parameters 13, 16)</span></td></tr>
+          <tr><td class="key"><span data-lang="de">Warmwasser</span><span data-lang="en">Hot Water</span></td><td><span data-lang="de">TDI-Sollwert · Hysterese · Hysterese-Wiederherstellungswert (Parameter 47, 74)</span><span data-lang="en">TDI setpoint · hysteresis · hysteresis restore value (parameters 47, 74)</span></td></tr>
+          <tr><td class="key">Zuheizer / 2. Verdichter</td><td><span data-lang="de">ZWE-Freigabe · 2. Verdichter Heizen und Warmwasser (Parameter 90, 95, 96)</span><span data-lang="en">ZWE release · 2nd compressor heating and hot water (parameters 90, 95, 96)</span></td></tr>
+          <tr><td class="key"><span data-lang="de">Kühlung</span><span data-lang="en">Cooling</span></td><td><span data-lang="de">Sichtbarkeit der Kühl-Capabilities · Freigabe- und Einlauftemperatur (Parameter 110, 132)</span><span data-lang="en">Visibility of the cooling capabilities · release and inlet temperature (parameters 110, 132)</span></td></tr>
+          <tr><td class="key"><span data-lang="de">Leistungssensor</span><span data-lang="en">Power Sensor</span></td><td><span data-lang="de">Ein/Aus plus 10 Watt-Werte — siehe Tab <em>Leistung</em></span><span data-lang="en">On/off plus 10 watt values — see the <em>Power</em> tab</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="warnbox"><strong><span data-lang="de">Achtung:</span><span data-lang="en">Warning:</span></strong> <span data-lang="de">Nicht jeder Controller unterstützt jeden Parameter. Wird ein Wert vom Controller nicht gemeldet, bleibt die zugehörige Capability ausgeblendet und ein Schreibversuch bleibt wirkungslos.</span><span data-lang="en">Not every controller supports every parameter. If a value is not reported by the controller, the matching capability stays hidden and a write has no effect.</span></div>
   </div>
 
   <div class="section">
@@ -586,7 +693,7 @@
       <div class="card-desc">
         <span data-lang="de"><strong>Luxtronik 2.0 / 2.1</strong> Controller in Wärmepumpen von:</span>
         <span data-lang="en"><strong>Luxtronik 2.0 / 2.1</strong> controllers in heat pumps from:</span><br><br>
-        Alpha Innotec · Siemens Novelan · Roth · Elco · Buderus · Nibe · Wolf Heiztechnik · CTA Aeroheat
+        Alpha Innotec · Siemens Novelan · Roth · Elco · Buderus · Nibe · Wolf Heiztechnik · Waterkotte · Ochsner · CTA Aeroheat
       </div>
     </div>
     <div class="warnbox"><strong><span data-lang="de">Achtung:</span><span data-lang="en">Warning:</span></strong> <span data-lang="de">Falsche Einstellungen können die Wärmepumpe in einen Fehlerzustand versetzen.</span><span data-lang="en">Incorrect settings may put the heat pump into an error state.</span></div>
@@ -666,7 +773,8 @@
           <tr><td class="key">SDK</td><td style="font-family:monospace;font-size:12px;">Homey SDK v3</td></tr>
           <tr><td class="key"><span data-lang="de">Kompatibilität</span><span data-lang="en">Compatibility</span></td><td style="font-family:monospace;font-size:12px;">Homey ≥ 5.0.0</td></tr>
           <tr><td class="key"><span data-lang="de">Protokoll</span><span data-lang="en">Protocol</span></td><td style="font-family:monospace;font-size:12px;">Luxtronik 2.0 / 2.1 (TCP 8889)</td></tr>
-          <tr><td class="key"><span data-lang="de">Bibliothek</span><span data-lang="en">Library</span></td><td style="font-family:monospace;font-size:12px;">luxtronik2 npm</td></tr>
+          <tr><td class="key"><span data-lang="de">Bibliothek</span><span data-lang="en">Library</span></td><td style="font-family:monospace;font-size:12px;">luxtronik2 2.7.2 (npm)</td></tr>
+          <tr><td class="key"><span data-lang="de">Geräteklasse</span><span data-lang="en">Device class</span></td><td style="font-family:monospace;font-size:12px;">heater</td></tr>
           <tr><td class="key"><span data-lang="de">Autor</span><span data-lang="en">Author</span></td><td style="font-family:monospace;font-size:12px;">Andi Wirz</td></tr>
           <tr><td class="key">GitHub</td><td style="font-size:12px;"><a href="https://github.com/andiwirz/com.luxtronik.heatpump" target="_blank" style="color:var(--blue);">andiwirz/com.luxtronik.heatpump</a></td></tr>
         </tbody>
@@ -676,11 +784,84 @@
 </div>
 
 <div class="footer">
-  Luxtronik Heat Pump Manager · <a href="https://paypal.me/AndiWirz" target="_blank">☕ <span data-lang="de">Unterstützen</span><span data-lang="en">Support</span></a> · <a href="https://github.com/andiwirz/com.luxtronik.heatpump" target="_blank">GitHub</a>
+  Luxtronik Heat Pump Manager · <a href="https://github.com/andiwirz/com.luxtronik.heatpump" target="_blank">GitHub</a>
 </div>
 
 <script>
-  function onHomeyReady(Homey) { Homey.ready(); }
+  // ── Boot splash ────────────────────────────────────────────────────────────
+  // Every exit path must reach bootFinish(), failures included: a splash that
+  // outlives a failed load hides the whole page underneath it. That is why
+  // bootLanded() runs from the Homey.get() callback unconditionally rather than
+  // only on success, and why a timeout backstops the lot in case onHomeyReady
+  // never fires at all.
+  var _appVersion  = null;
+  var _bootDone    = false;
+  var _bootStart   = Date.now();
+  var _bootTimer   = setTimeout(function() { bootFinish(); }, 8000);
+  var BOOT_MIN_MS  = 1500;   // hold the logo this long even when everything is instant
+  var _bootPending = {
+    page: ['Seite wird aufgebaut…',   'Rendering page…'],
+    sdk:  ['Verbinde mit Homey…',     'Connecting to Homey…'],
+    info: ['Lade App-Informationen…', 'Loading app info…'],
+  };
+  var _bootTotal = Object.keys(_bootPending).length;
+
+  function bootStep(pct, de, en) {
+    if (_bootDone) return;
+    var bar = document.getElementById('boot-bar');
+    var st  = document.getElementById('boot-status');
+    if (bar) bar.style.width = pct + '%';
+    if (st && en) st.innerHTML = '<span data-lang="de">' + de + '</span><span data-lang="en">' + en + '</span>';
+  }
+
+  // Marks one milestone as landed and advances the bar. The label shown is the
+  // next pending step's, not the finished one's, so the status line always says
+  // what is still being waited for.
+  function bootLanded(key) {
+    if (_bootDone || !_bootPending[key]) return;
+    delete _bootPending[key];
+    var left = Object.keys(_bootPending);
+    if (left.length === 0) { bootFinish(); return; }
+    var next = _bootPending[left[0]];
+    bootStep(18 + ((_bootTotal - left.length) / _bootTotal) * 72, next[0], next[1]);
+  }
+
+  function bootFinish() {
+    if (_bootDone) return;
+    _bootDone = true;
+    clearTimeout(_bootTimer);
+    var el = document.getElementById('boot-splash');
+    if (!el) return;
+    // Homey.get() against local settings usually returns in well under a second,
+    // which would make the logo flash past like a rendering glitch. Hold the
+    // splash to BOOT_MIN_MS and stretch the bar's last step over the remaining
+    // time so it glides to full instead of sitting at the end looking hung.
+    var left = Math.max(0, BOOT_MIN_MS - (Date.now() - _bootStart));
+    var bar  = document.getElementById('boot-bar');
+    if (bar) {
+      if (left > 450) bar.style.transitionDuration = left + 'ms';
+      bar.style.width = '100%';
+    }
+    setTimeout(function() {
+      el.classList.add('done');
+      setTimeout(function() { el.style.display = 'none'; }, 400);
+    }, left + 200);
+  }
+
+  window.addEventListener('load', function() { bootLanded('page'); });
+
+  function onHomeyReady(Homey) {
+    Homey.ready();
+    bootLanded('sdk');
+    // Prefetched here rather than only on the Version tab, so the splash waits on
+    // a real round-trip instead of a made-up one — and the tab then renders from
+    // the cache. app_version only changes when the app restarts, which tears this
+    // page down anyway, so the cached copy cannot go stale while it is open.
+    Homey.get('app_version', function(err, ver) {
+      if (!err && ver) _appVersion = ver;
+      bootLanded('info');
+    });
+  }
 
   function setLang(lang) {
     document.body.className = 'lang-' + lang;
@@ -909,7 +1090,10 @@
   }
 
   function loadVersionData() {
+    // Prefetched during boot; only fall back to a round-trip if that one failed.
+    if (_appVersion) { document.getElementById('ver-app').textContent = _appVersion; return; }
     Homey.get('app_version', function(err, ver) {
+      if (!err && ver) _appVersion = ver;
       document.getElementById('ver-app').textContent = ver || '–';
     });
   }
