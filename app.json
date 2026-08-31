@@ -2018,7 +2018,9 @@
         "cooling_inlet_temp_cap",
         "alarm_generic",
         "last_poll",
-        "firmware_version"
+        "firmware_version",
+        "switchoff_reason",
+        "error_reason"
       ],
       "capabilitiesOptions": {
         "measure_temp_outdoor": {
@@ -3072,6 +3074,20 @@
       "insights": false,
       "icon": "/assets/capabilities/temp_setback.svg"
     },
+    "error_reason": {
+      "type": "string",
+      "title": {
+        "en": "Last Error",
+        "de": "Letzter Fehler",
+        "nl": "Laatste fout",
+        "fr": "Dernière erreur"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": false,
+      "icon": "/assets/capabilities/alarm.svg"
+    },
     "firmware_version": {
       "type": "string",
       "title": {
@@ -4015,6 +4031,20 @@
       "uiComponent": "sensor",
       "insights": true,
       "icon": "/assets/capabilities/supply_temp.svg"
+    },
+    "switchoff_reason": {
+      "type": "string",
+      "title": {
+        "en": "Switch-off Reason",
+        "de": "Abschaltgrund",
+        "nl": "Uitschakelreden",
+        "fr": "Raison de l'arrêt"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": false,
+      "icon": "/assets/capabilities/alarm.svg"
     },
     "tdi_target_temperature": {
       "type": "number",
