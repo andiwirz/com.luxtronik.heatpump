@@ -432,16 +432,11 @@ The detailed heating status (`heating_state_string`) comes from the controller. 
 
 ---
 
-## Known Issues
-
-**Library crash on controllers reporting few parameters.** `luxtronik2` reads `heatpumpParameters[874]` and `[875]` unguarded when building the serial number. Controllers that report fewer parameters yield `undefined` and the library throws `TypeError: Cannot read properties of undefined (reading 'toString')`. This cannot be worked around from the app: the array is an `Int32Array` (so patching it from `onProcessParameters` is a silent no-op), and the parse runs via `process.nextTick`, which makes it an uncaught exception rather than a callback error. Fixing it requires patching or forking the library.
-
----
-
 ## Technical Background
 
-The app communicates via TCP (port 8889) directly with the Luxtronik controller.  
-The protocol library used is [`luxtronik2`](https://www.npmjs.com/package/luxtronik2).
+The app communicates via TCP (port 8889) directly with the Luxtronik controller.
+
+The protocol library is [`luxtronik2`](https://github.com/coolchip/luxtronik2) 2.7.2 (MIT), **bundled in [`lib/luxtronik2/`](lib/luxtronik2/)** rather than pulled from npm. Upstream has published nothing since February 2024 and the issue tracker is unattended, but the library needed a fix for controllers that split their reply across TCP segments. `types.js` and `utils.js` are verbatim copies of the published tarball; `luxtronik.js` differs only by the changes documented in [`lib/luxtronik2/README.md`](lib/luxtronik2/README.md).
 
 Parameter reference:
 - [Bouni/python-luxtronik – parameters.py](https://github.com/Bouni/python-luxtronik/blob/master/luxtronik/parameters.py)

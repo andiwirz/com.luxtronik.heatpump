@@ -187,15 +187,25 @@ class LuxtronikHeatpumpDevice extends Device {
       'target_temperature', 'measure_temperature', 'heating_state_string', 'hotwater_state_string',
       'target_temperature.heating', 'measure_temperature.heating', 'last_poll',
       'tdi_target_temperature', 'hotwater_hysteresis', 'return_temp_hysteresis',
-      'heating_limit', 'outdoor_temp_max', 'heating_curve_endpoint', 'heating_curve_offset',
-      'mk1_curve_endpoint', 'mk1_curve_offset', 'outdoor_temp_min', 'temp_setback_limit',
+      'heating_limit', 'outdoor_temp_max',
+      'outdoor_temp_min', 'temp_setback_limit',
       'supply_temp_limit', 'return_temp_limit', 'return_temp_min',
       'delta_heating_reduction', 'delta_mk1_reduction',
       'temp_zwe_enable', 'temp_2nd_comp_heating', 'temp_2nd_comp_hotwater',
-      'cooling_release_temp_cap', 'cooling_inlet_temp_cap',
       'heatpump_state_string', 'measure_temp_flow',
-      // Hinweis: cooling_operation_mode, measure_temp_room, measure_temp_suction_air,
-      // measure_hours_cooling, measure_power, meter_power werden bedingt hinzugefügt
+      // Hier NICHT auflisten, was _setCapabilityConditional() verwaltet — sonst
+      // fügt diese Migration die Capability bei jedem App-Start hinzu und der
+      // erste Poll entfernt sie sofort wieder. Genau das passierte mit
+      // cooling_release_temp_cap und cooling_inlet_temp_cap auf Anlagen ohne
+      // Kühlfreigabe: vier Capability-Operationen bei jedem Start, dauerhaft.
+      // _setCapabilityConditional() legt die Capability selbst an, sobald ein
+      // Wert vorliegt — die Migration ist hier also nicht nur schädlich, sondern
+      // auch überflüssig.
+      // Bedingt verwaltet: cooling_operation_mode, cooling_release_temp_cap,
+      // cooling_inlet_temp_cap, measure_hours_cooling, measure_temp_room,
+      // measure_temp_room_target, measure_temp_suction_air, heating_curve_endpoint,
+      // heating_curve_offset, mk1_curve_endpoint, mk1_curve_offset,
+      // measure_power, meter_power
     ];
     for (const cap of NEW_CAPABILITIES) {
       if (!this.hasCapability(cap)) {
@@ -1824,9 +1834,12 @@ class LuxtronikHeatpumpDevice extends Device {
       }
       await this._setIfValid(capability, value);
     } else {
-      // Kein gültiger Wert → Capability entfernen falls vorhanden
+      // Bedingung nicht erfüllt → Capability entfernen falls vorhanden.
+      // Die Bedingung ist nicht immer "kein Wert": bei den Kühl-Capabilities
+      // liefert der Controller durchaus Werte, sie werden nur ohne Kühlfreigabe
+      // ausgeblendet. Die Meldung darf das nicht als fehlenden Wert ausgeben.
       if (this.hasCapability(capability)) {
-        this.log(`Deaktiviere Capability (kein Wert): ${capability}`);
+        this.log(`Deaktiviere Capability (Bedingung nicht erfüllt): ${capability}`);
         try { await this.removeCapability(capability); }
         catch (e) { this.error(`removeCapability ${capability} fehlgeschlagen:`, e.message); }
       }
