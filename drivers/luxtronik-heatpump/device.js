@@ -2,7 +2,9 @@
 
 const { Device } = require('homey');
 const luxtronik = require('../../lib/luxtronik2/luxtronik');
-const { switchoffReason, newestEntry } = require('../../lib/luxtronik-codes');
+const {
+  switchoffReason, newestEntry, extendedState, defrostVariant, defrostState,
+} = require('../../lib/luxtronik-codes');
 const { CALCULATIONS } = require('../../lib/luxtronik-registers');
 
 // Betriebsmodus-Bezeichnungen
@@ -45,37 +47,6 @@ const HEATPUMP_STATE_MAP = {
 };
 
 
-// Mapping: Originalstring der luxtronik2-Library → { en, de }
-// Quelle: luxtronik2/types.js → extendetStateMessages + createExtendedStateString()
-// Hinweis: state3=7 (Abtauen) konkateniert die Library ohne Leerzeichen (Bug im npm)
-const HEATING_STATE_MAP = {
-  'Heizbetrieb':                   { en: 'Heating',                    de: 'Heizbetrieb',                 nl: 'Verwarmen' },
-  'Keine Anforderung':              { en: 'No Request',                 de: 'Keine Anforderung',           nl: 'Geen warmtevraag' },
-  'Netz Einschaltverzoegerung':     { en: 'Grid Startup Delay',         de: 'Netz Einschaltverzögerung',   nl: 'Netinschakelvertraging' },
-  'Schaltspielzeit':                { en: 'Switching Cycle Time',       de: 'Schaltspielzeit',             nl: 'Schakelspeltijd' },
-  'EVU Sperrzeit':                  { en: 'EVU Lock',                   de: 'EVU Sperrzeit',               nl: 'EVU-blokkering' },
-  'Brauchwasser':                   { en: 'Hot Water',                  de: 'Brauchwasser',                nl: 'Warmwater' },
-  // Estrich Programm: dynamischer Suffix "Stufe X - Y °C" → Sonderbehandlung im Poll
-  'Pumpenvorlauf':                  { en: 'Pump Pre-run',               de: 'Pumpenvorlauf',               nl: 'Pompvoorloop' },
-  'Thermische Desinfektion':        { en: 'Thermal Disinfection',       de: 'Thermische Desinfektion',     nl: 'Thermische desinfectie' },
-  'Kuehlbetrieb':                   { en: 'Cooling',                    de: 'Kühlbetrieb',                 nl: 'Koelen' },
-  'Schwimmbad/Photovoltaik':        { en: 'Pool / Photovoltaic',        de: 'Schwimmbad / Photovoltaik',   nl: 'Zwembad / Fotovoltaïsch' },
-  'Heizen Ext.':                    { en: 'External Heating',           de: 'Heizen Ext.',                 nl: 'Externe verwarming' },
-  'Brauchwasser Ext.':              { en: 'External Hot Water',         de: 'Brauchwasser Ext.',           nl: 'Extern warmwater' },
-  'Durchflussueberwachung':         { en: 'Flow Monitoring',            de: 'Durchflussüberwachung',       nl: 'Doorstroombewaking' },
-  'Elektrische Zusatzheizung':      { en: 'Electric Auxiliary Heating', de: 'Elektrische Zusatzheizung',   nl: 'Elektrische bijverwarming' },
-  'Warmw. Nachheizung':             { en: 'DHW Reheating',              de: 'Warmwasser Nachheizung',      nl: 'Warmwater naverwarming' },
-  // state3=15: in luxtronik2, python-luxtronik und der HA-Integration undokumentiert.
-  // Beobachtet gemeinsam mit Fehler 718 "Max. Aussentemp." → Wärmepumpe ausserhalb der
-  // Einsatzgrenzen. Label bewusst neutral, da unklar ist ob 15 spezifisch die
-  // Aussentemperatur-Grenze meint oder generisch "wegen Störung gesperrt".
-  'Unknown [15]':                   { en: 'Operating Limit',            de: 'Einsatzgrenze / Sperre',      nl: 'Bedrijfsgrens / blokkering' },
-  'Unknown [18]':                   { en: 'Compressor Heating Up',      de: 'Verdichter heizt auf',        nl: 'Compressor warmt op' },
-  // state3=7: Library konkateniert Basisstring + Subtyp ohne Leerzeichen
-  'AbtauenAbtauen (Kreisumkehr)':  { en: 'Defrost (Reverse Cycle)',    de: 'Abtauen (Kreisumkehr)',       nl: 'Ontdooien (kringomkering)' },
-  'AbtauenLuftabtauen':            { en: 'Air Defrost',                de: 'Luftabtauen',                 nl: 'Luchtontdooiing' },
-  'AbtauenAbtauen':                { en: 'Defrost',                    de: 'Abtauen',                     nl: 'Ontdooien' },
-};
 
 // Mapping: Originalstring der luxtronik2-Library → { en, de }
 // Quelle: luxtronik2/utils.js → createHotWaterStateString()
@@ -774,6 +745,18 @@ class LuxtronikHeatpumpDevice extends Device {
             extra.rbe_room_temperature        = values[rbeIst] / 10;
             extra.rbe_room_temperature_target = values[rbeSoll] / 10;
           }
+          // Rohwerte für den erweiterten Betriebszustand: die Bibliothek blendet
+          // Abtauventil und Wärmequellenmotor je nach Visibility-Flag aus und
+          // klebt den Abtau-Untertyp ohne Trennzeichen an den Zustandstext.
+          // Beides umgehen wir, indem wir die Register selbst lesen.
+          const rawAt = (index) => (values && typeof values[index] === 'number' ? values[index] : undefined);
+          extra.raw_defrost_valve = rawAt(CALCULATIONS.C0037_DEFROST_VALVE);
+          extra.raw_pump_flow     = rawAt(CALCULATIONS.C0043_PUMP_FLOW);
+          extra.raw_compressor    = rawAt(CALCULATIONS.C0044_COMPRESSOR);
+          // Estrichprogramm: Stufe und Solltemperatur. Von der Integration
+          // nicht benannt, daher die nackten Indizes wie in luxtronik2.
+          extra.raw_screed_level  = rawAt(121);
+          extra.raw_screed_temp   = rawAt(122);
           return extra;
         },
       });
@@ -1228,26 +1211,36 @@ class LuxtronikHeatpumpDevice extends Device {
     if (lastError && lastError.code) {
       await this._setIfValid('error_reason', `${lastError.code} - ${lastError.message}`);
     }
-    // Heizungs-Status – via HEATING_STATE_MAP übersetzt
-    if (v.heatpump_extendet_state_string !== undefined) {
-      const raw  = String(v.heatpump_extendet_state_string);
+    // Heizungs-Status – über den Zustandscode (C0119) statt über den Text der
+    // Bibliothek, siehe EXTENDED_STATES in lib/luxtronik-codes.
+    if (typeof v.heatpump_state3 === 'number') {
       const lang = this.homey.i18n.getLanguage();
-      let heatingLabel;
-      if (raw.startsWith('Estrich Programm')) {
-        // Dynamischer Suffix "Stufe X - Y °C" – nur das Schlüsselwort übersetzen
-        const suffix    = raw.replace('Estrich Programm', '').trim();
-        const base      = lang === 'de' ? 'Estrich Programm' : (lang === 'nl' ? 'Dekvloerprogramma' : 'Screed Program');
+      const code = v.heatpump_state3;
+      let heatingLabel = extendedState(code, lang);
+
+      if (code === 6 && v.raw_screed_level !== undefined) {
+        // Estrichprogramm: Stufe und Solltemperatur anhängen
         const levelWord = lang === 'de' ? 'Stufe' : (lang === 'nl' ? 'Stap' : 'Level');
-        heatingLabel = base + ' ' + suffix.replace('Stufe', levelWord);
-      } else {
-        const entry = HEATING_STATE_MAP[raw];
-        heatingLabel = entry ? (entry[lang] ?? entry.en) : raw;
+        heatingLabel += ` ${levelWord} ${v.raw_screed_level} - ${v.raw_screed_temp / 10} °C`;
+      } else if (code === 7) {
+        // Abtauen: Untertyp aus den Rohregistern bestimmen
+        const variant = defrostVariant({
+          defrostValve: v.raw_defrost_valve,
+          compressor:   v.raw_compressor,
+          pumpFlow:     v.raw_pump_flow,
+        });
+        heatingLabel = defrostState(variant, lang) || heatingLabel;
       }
+
       // Kühlbetrieb überschreibt 'Heizbetrieb' (gleiche Logik wie heatpump_state oben):
       // bei aktiver Freigabe Kühlung meldet die Steuerung 'Heizbetrieb' obwohl gekühlt wird.
-      if (this._n(v.FreigabKuehl) === 1 && raw === 'Heizbetrieb') {
-        const coolEntry = HEATING_STATE_MAP.Kuehlbetrieb;
-        heatingLabel = coolEntry ? (coolEntry[lang] ?? coolEntry.en) : heatingLabel;
+      if (this._n(v.FreigabKuehl) === 1 && code === 0) {
+        heatingLabel = extendedState(10, lang) || heatingLabel;
+      }
+
+      // Unbekannter Code: auf den Text der Bibliothek zurückfallen
+      if (heatingLabel === null && v.heatpump_extendet_state_string !== undefined) {
+        heatingLabel = String(v.heatpump_extendet_state_string);
       }
       await this._setIfValid('heating_state_string', heatingLabel);
     }
