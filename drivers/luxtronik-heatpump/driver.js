@@ -3,6 +3,14 @@
 const { Driver } = require('homey');
 const luxtronik  = require('../../lib/luxtronik2/luxtronik');
 
+// Obergrenze für den Verbindungstest beim Pairing. Ein vollständiger Lesevorgang
+// dauert auf einem gesunden Controller rund 0,2 s. Ohne Deckel hängt der Dialog
+// dagegen unbegrenzt, sobald die Bibliothek ihren Callback nicht aufruft - dann
+// steht im Log nur "Testing connection to ..." und der Nutzer sieht einen
+// endlos drehenden Knopf ohne Fehlermeldung. 15 s lassen auch einem langsamen
+// Controller reichlich Luft und liefern trotzdem eine Aussage.
+const PAIR_TIMEOUT_MS = 15000;
+
 class LuxtronikHeatpumpDriver extends Driver {
 
   async onInit() {
@@ -22,20 +30,35 @@ class LuxtronikHeatpumpDriver extends Driver {
       this.log(`Testing connection to ${ip}:${port}...`);
 
       const connected = await new Promise((resolve) => {
+        let settled = false;
+        let timer = null;
+        // Gibt den Test auf jedem Pfad frei, auch wenn der Callback ausbleibt.
+        const finish = (ok) => {
+          if (settled) return;
+          settled = true;
+          if (timer) { clearTimeout(timer); timer = null; }
+          resolve(ok);
+        };
+
+        timer = setTimeout(() => {
+          this.error(`Pair connection test timed out after ${PAIR_TIMEOUT_MS} ms: ${ip}:${port}`);
+          finish(false);
+        }, PAIR_TIMEOUT_MS);
+
         try {
           const pump = new luxtronik.createConnection(ip, port);
           pump.read((err) => {
             if (err) {
               this.error('Pair connection test failed:', err.message);
-              resolve(false);
+              finish(false);
             } else {
               this.log(`Pair connection test OK: ${ip}:${port}`);
-              resolve(true);
+              finish(true);
             }
           });
         } catch (e) {
           this.error('Pair connection exception:', e.message);
-          resolve(false);
+          finish(false);
         }
       });
 
