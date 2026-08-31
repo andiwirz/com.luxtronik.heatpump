@@ -63,7 +63,9 @@
     "cooling_inlet_temp_cap",
     "alarm_generic",
     "last_poll",
-    "firmware_version"
+    "firmware_version",
+    "switchoff_reason",
+    "error_reason"
   ],
   "capabilitiesOptions": {
     "measure_temp_outdoor": {
