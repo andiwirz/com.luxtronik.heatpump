@@ -19,7 +19,7 @@
   "author": "Luxtronik Homey",
   "license": "MIT",
   "dependencies": {
-    "luxtronik2": "2.7.2"
+    "humanize-duration": "^3.31.0"
   },
   "devDependencies": {
     "eslint": "^8.57.1"

@@ -1,7 +1,7 @@
 'use strict';
 
 const { Driver } = require('homey');
-const luxtronik  = require('luxtronik2');
+const luxtronik  = require('../../lib/luxtronik2/luxtronik');
 
 class LuxtronikHeatpumpDriver extends Driver {
 
