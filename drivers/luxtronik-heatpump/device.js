@@ -3,6 +3,7 @@
 const { Device } = require('homey');
 const luxtronik = require('../../lib/luxtronik2/luxtronik');
 const { switchoffReason, newestEntry } = require('../../lib/luxtronik-codes');
+const { CALCULATIONS } = require('../../lib/luxtronik-registers');
 
 // Betriebsmodus-Bezeichnungen
 const OPERATION_MODE_LABELS = {
@@ -767,9 +768,11 @@ class LuxtronikHeatpumpDevice extends Device {
           const extra = {};
           // values ist array-ähnlich (kein echtes Array → kein Array.isArray-Guard).
           // Indizes direkt prüfen; ältere Firmware ohne RBE liefert hier undefined → Skip.
-          if (values && typeof values[227] === 'number' && typeof values[228] === 'number') {
-            extra.rbe_room_temperature        = values[227] / 10;
-            extra.rbe_room_temperature_target = values[228] / 10;
+          const rbeIst  = CALCULATIONS.C0227_ROOM_THERMOSTAT_TEMPERATURE;
+          const rbeSoll = CALCULATIONS.C0228_ROOM_THERMOSTAT_TEMPERATURE_TARGET;
+          if (values && typeof values[rbeIst] === 'number' && typeof values[rbeSoll] === 'number') {
+            extra.rbe_room_temperature        = values[rbeIst] / 10;
+            extra.rbe_room_temperature_target = values[rbeSoll] / 10;
           }
           return extra;
         },
