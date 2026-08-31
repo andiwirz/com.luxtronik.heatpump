@@ -3,9 +3,9 @@
 const { Device } = require('homey');
 const luxtronik = require('../../lib/luxtronik2/luxtronik');
 const {
-  switchoffReason, newestEntry, extendedState, defrostVariant, defrostState,
+  switchoffReason, newestEntry, extendedState, defrostVariant, defrostState, mixerCanCool,
 } = require('../../lib/luxtronik-codes');
-const { CALCULATIONS } = require('../../lib/luxtronik-registers');
+const { CALCULATIONS, PARAMETERS } = require('../../lib/luxtronik-registers');
 
 // Betriebsmodus-Bezeichnungen
 const OPERATION_MODE_LABELS = {
@@ -766,7 +766,22 @@ class LuxtronikHeatpumpDevice extends Device {
           // nicht benannt, daher die nackten Indizes wie in luxtronik2.
           extra.raw_screed_level  = rawAt(121);
           extra.raw_screed_temp   = rawAt(122);
+          // Betriebsstunden Kühlung. Die Bibliothek blendet sie hinter einem
+          // Visibility-Flag aus, das genau dann 0 ist, wenn die Kühlung nicht
+          // erkannt wurde - als Nachweis für vorhandene Kühlung damit
+          // unbrauchbar, also roh lesen.
+          extra.raw_hours_cooling = rawAt(CALCULATIONS.C0066_OPERATION_HOURS_COOLING);
           return extra;
+        },
+        onProcessParameters: (parameters) => {
+          // Typ der drei Mischkreise: sagt aus, ob überhaupt ein Kreis kühlen
+          // kann, unabhängig davon ob die Kühlung gerade freigegeben ist.
+          const rawAt = (index) => (parameters && typeof parameters[index] === 'number' ? parameters[index] : undefined);
+          return {
+            raw_mixer1_type: rawAt(PARAMETERS.P0042_MIXING_CIRCUIT1_TYPE),
+            raw_mixer2_type: rawAt(PARAMETERS.P0130_MIXING_CIRCUIT2_TYPE),
+            raw_mixer3_type: rawAt(PARAMETERS.P0780_MIXING_CIRCUIT3_TYPE),
+          };
         },
       });
       this.log(`Verbunden mit ${this._ip}:${this._port}`);
@@ -1084,7 +1099,16 @@ class LuxtronikHeatpumpDevice extends Device {
     // ── Kühlung ───────────────────────────────────────────────────────────────
     // FreigabKuehl: 0 = gesperrt, 1 = freigegeben (Controller-Flag)
     // cooling_visibility: 'auto' | 'show' | 'hide'
-    const coolingDetected    = v.FreigabKuehl === 1;
+    // Kühlung erkennen. Die Freigabe allein reicht nicht: sie ist 0, solange
+    // die Steuerung gerade nicht kühlen darf, auch auf einem Gerät das es
+    // könnte - dann verschwanden die Kühl-Capabilities. Die
+    // Home-Assistant-Integration wertet stattdessen aus, ob je gekühlt wurde
+    // (Betriebsstundenzähler, kann nicht zurückgehen) oder ob ein Mischkreis
+    // als kühlfähig konfiguriert ist. Beides kommt hier als zusätzlicher
+    // Nachweis dazu; erkannt bleibt erkannt.
+    const coolingEverRan = (this._n(v.raw_hours_cooling) ?? 0) > 0;
+    const coolingCircuit = [p.raw_mixer1_type, p.raw_mixer2_type, p.raw_mixer3_type].some(mixerCanCool);
+    const coolingDetected    = v.FreigabKuehl === 1 || coolingEverRan || coolingCircuit;
     const coolingVisibility  = this.getSetting('cooling_visibility') ?? 'auto';
     const showCooling =
       coolingVisibility === 'show' ||
