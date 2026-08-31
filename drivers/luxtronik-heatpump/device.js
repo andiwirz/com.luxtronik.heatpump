@@ -474,7 +474,7 @@ class LuxtronikHeatpumpDevice extends Device {
       try { await this.removeCapability('force_poll'); } catch (e) { this.error('removeCapability force_poll:', e.message); }
     }
 
-    this._connectPump();
+    this._ensurePump();
     await this._doPoll();
     this._firstPollDone = true;  // Ab jetzt dürfen onSettings-Handler schreiben
     this._startPolling();
@@ -487,6 +487,9 @@ class LuxtronikHeatpumpDevice extends Device {
     if (this._watchdogTimer)        { clearInterval(this._watchdogTimer);       this._watchdogTimer        = null; }
     if (this._pollTimeout)          { clearTimeout(this._pollTimeout);          this._pollTimeout          = null; }
     if (this._pollAfterWriteTimer)  { clearTimeout(this._pollAfterWriteTimer);  this._pollAfterWriteTimer  = null; }
+    // Offene Sockets schliessen — sonst blockieren sie den Controller weiter,
+    // obwohl das Gerät in Homey schon weg ist.
+    this._resetPump();
   }
 
   async onSettings({ newSettings, changedKeys }) {
@@ -506,7 +509,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (changedKeys.includes('tdi_setpoint_setting') && _shouldWrite('tdi_target_temperature')) {
       const val = parseFloat(newSettings.tdi_setpoint_setting);
       if (val >= 50 && val <= 80) {
-        this._connectPump();
+        this._ensurePump();
         await this._setTdiTargetTemperature(val).catch((e) => this.error('TDI-Solltemperatur Schreiben fehlgeschlagen:', e.message));
       }
     }
@@ -515,7 +518,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (changedKeys.includes('outdoor_temp_max_setting') && _shouldWrite('outdoor_temp_max')) {
       const val = parseFloat(newSettings.outdoor_temp_max_setting);
       if (val >= 10 && val <= 45) {
-        this._connectPump();
+        this._ensurePump();
         await this._setOutdoorTempMax(val).catch((e) => this.error('Max. Aussentemperatur Schreiben fehlgeschlagen:', e.message));
       }
     }
@@ -524,7 +527,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (changedKeys.includes('heating_limit_setting') && _shouldWrite('heating_limit')) {
       const val = parseFloat(newSettings.heating_limit_setting);
       if (val >= 5 && val <= 30) {
-        this._connectPump();
+        this._ensurePump();
         await this._setHeatingLimit(val).catch((e) => this.error('Heizgrenze Schreiben fehlgeschlagen:', e.message));
       }
     }
@@ -533,7 +536,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (changedKeys.includes('hotwater_hysteresis_setting') && _shouldWrite('hotwater_hysteresis')) {
       const val = parseFloat(newSettings.hotwater_hysteresis_setting);
       if (val >= 0.5 && val <= 10) {
-        this._connectPump();
+        this._ensurePump();
         await this._setHotwaterHysteresis(val).catch((e) => this.error('Warmwasser-Hysterese Schreiben fehlgeschlagen:', e.message));
       }
     }
@@ -542,7 +545,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (changedKeys.includes('return_temp_hysteresis_setting') && _shouldWrite('return_temp_hysteresis')) {
       const val = parseFloat(newSettings.return_temp_hysteresis_setting);
       if (val >= 0.5 && val <= 10) {
-        this._connectPump();
+        this._ensurePump();
         await this._setReturnTempHysteresis(val).catch((e) => this.error('Rücklauf-Hysterese Schreiben fehlgeschlagen:', e.message));
       }
     }
@@ -551,7 +554,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (changedKeys.includes('heating_curve_endpoint_setting') && _shouldWrite('heating_curve_endpoint')) {
       const val = parseFloat(newSettings.heating_curve_endpoint_setting);
       if (val >= 20 && val <= 70) {
-        this._connectPump();
+        this._ensurePump();
         await this._setHeatingCurveEndpoint(val).catch((e) => this.error('Heizkurve Endpunkt Schreiben fehlgeschlagen:', e.message));
       }
     }
@@ -560,7 +563,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (changedKeys.includes('heating_curve_offset_setting') && _shouldWrite('heating_curve_offset')) {
       const val = parseFloat(newSettings.heating_curve_offset_setting);
       if (val >= 5 && val <= 35) {
-        this._connectPump();
+        this._ensurePump();
         await this._setHeatingCurveOffset(val).catch((e) => this.error('Heizkurve Parallelverschiebung Schreiben fehlgeschlagen:', e.message));
       }
     }
@@ -569,7 +572,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (changedKeys.includes('mk1_curve_endpoint_setting') && _shouldWrite('mk1_curve_endpoint')) {
       const val = parseFloat(newSettings.mk1_curve_endpoint_setting);
       if (val >= 20 && val <= 70) {
-        this._connectPump();
+        this._ensurePump();
         await this._setMk1CurveEndpoint(val).catch((e) => this.error('MK1 Kurve Endpunkt Schreiben fehlgeschlagen:', e.message));
       }
     }
@@ -578,7 +581,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (changedKeys.includes('mk1_curve_offset_setting') && _shouldWrite('mk1_curve_offset')) {
       const val = parseFloat(newSettings.mk1_curve_offset_setting);
       if (val >= 5 && val <= 35) {
-        this._connectPump();
+        this._ensurePump();
         await this._setMk1CurveOffset(val).catch((e) => this.error('MK1 Kurve Parallelverschiebung Schreiben fehlgeschlagen:', e.message));
       }
     }
@@ -587,7 +590,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (changedKeys.includes('outdoor_temp_min_setting') && _shouldWrite('outdoor_temp_min')) {
       const val = parseFloat(newSettings.outdoor_temp_min_setting);
       if (val >= -30 && val <= 10) {
-        this._connectPump();
+        this._ensurePump();
         await this._setOutdoorTempMin(val).catch((e) => this.error('Min. Aussentemperatur Schreiben fehlgeschlagen:', e.message));
       }
     }
@@ -596,7 +599,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (changedKeys.includes('temp_setback_limit_setting') && _shouldWrite('temp_setback_limit')) {
       const val = parseFloat(newSettings.temp_setback_limit_setting);
       if (val >= -20 && val <= 10) {
-        this._connectPump();
+        this._ensurePump();
         await this._setTempSetbackLimit(val).catch((e) => this.error('Absenk-Temperaturgrenze Schreiben fehlgeschlagen:', e.message));
       }
     }
@@ -605,7 +608,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (changedKeys.includes('supply_temp_limit_setting') && _shouldWrite('supply_temp_limit')) {
       const val = parseFloat(newSettings.supply_temp_limit_setting);
       if (val >= 20 && val <= 70) {
-        this._connectPump();
+        this._ensurePump();
         await this._setSupplyTempLimit(val).catch((e) => this.error('Vorlauftemperatur-Grenze Schreiben fehlgeschlagen:', e.message));
       }
     }
@@ -614,7 +617,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (changedKeys.includes('return_temp_limit_setting') && _shouldWrite('return_temp_limit')) {
       const val = parseFloat(newSettings.return_temp_limit_setting);
       if (val >= 20 && val <= 65) {
-        this._connectPump();
+        this._ensurePump();
         await this._setReturnTempLimit(val).catch((e) => this.error('Rücklauftemperatur-Grenze Schreiben fehlgeschlagen:', e.message));
       }
     }
@@ -623,7 +626,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (changedKeys.includes('return_temp_min_setting') && _shouldWrite('return_temp_min')) {
       const val = parseFloat(newSettings.return_temp_min_setting);
       if (val >= 5 && val <= 30) {
-        this._connectPump();
+        this._ensurePump();
         await this._setReturnTempMin(val).catch((e) => this.error('Rücklauftemperatur Minimum Schreiben fehlgeschlagen:', e.message));
       }
     }
@@ -632,7 +635,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (changedKeys.includes('delta_heating_reduction_setting') && _shouldWrite('delta_heating_reduction')) {
       const val = parseFloat(newSettings.delta_heating_reduction_setting);
       if (val >= -15 && val <= 10) {
-        this._connectPump();
+        this._ensurePump();
         await this._setDeltaHeatingReduction(val).catch((e) => this.error('Absenkung Heizung Delta Schreiben fehlgeschlagen:', e.message));
       }
     }
@@ -641,7 +644,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (changedKeys.includes('delta_mk1_reduction_setting') && _shouldWrite('delta_mk1_reduction')) {
       const val = parseFloat(newSettings.delta_mk1_reduction_setting);
       if (val >= -15 && val <= 10) {
-        this._connectPump();
+        this._ensurePump();
         await this._setDeltaMk1Reduction(val).catch((e) => this.error('Absenkung MK1 Delta Schreiben fehlgeschlagen:', e.message));
       }
     }
@@ -650,7 +653,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (changedKeys.includes('temp_zwe_enable_setting') && _shouldWrite('temp_zwe_enable')) {
       const val = parseFloat(newSettings.temp_zwe_enable_setting);
       if (val >= -20 && val <= 20) {
-        this._connectPump();
+        this._ensurePump();
         await this._setTempZweEnable(val).catch((e) => this.error('ZWE Freigabe-Temperatur Schreiben fehlgeschlagen:', e.message));
       }
     }
@@ -659,7 +662,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (changedKeys.includes('temp_2nd_comp_heating_setting') && _shouldWrite('temp_2nd_comp_heating')) {
       const val = parseFloat(newSettings.temp_2nd_comp_heating_setting);
       if (val >= -20 && val <= 30) {
-        this._connectPump();
+        this._ensurePump();
         await this._setTemp2ndCompHeating(val).catch((e) => this.error('2. Verdichter Aussentemp. Heizen Schreiben fehlgeschlagen:', e.message));
       }
     }
@@ -668,7 +671,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (changedKeys.includes('temp_2nd_comp_hotwater_setting') && _shouldWrite('temp_2nd_comp_hotwater')) {
       const val = parseFloat(newSettings.temp_2nd_comp_hotwater_setting);
       if (val >= 10 && val <= 70) {
-        this._connectPump();
+        this._ensurePump();
         await this._setTemp2ndCompHotwater(val).catch((e) => this.error('2. Verdichter Vorlauftemp. Warmwasser Schreiben fehlgeschlagen:', e.message));
       }
     }
@@ -677,7 +680,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (changedKeys.includes('cooling_release_temp_setting') && _shouldWrite('cooling_release_temp_cap')) {
       const val = parseFloat(newSettings.cooling_release_temp_setting);
       if (val >= 10 && val <= 40) {
-        this._connectPump();
+        this._ensurePump();
         await this._setCoolingReleaseTemp(val).catch((e) => this.error('Kühlung Freigabe-Temperatur Schreiben fehlgeschlagen:', e.message));
       }
     }
@@ -686,7 +689,7 @@ class LuxtronikHeatpumpDevice extends Device {
     if (changedKeys.includes('cooling_inlet_temp_setting') && _shouldWrite('cooling_inlet_temp_cap')) {
       const val = parseFloat(newSettings.cooling_inlet_temp_setting);
       if (val >= 5 && val <= 30) {
-        this._connectPump();
+        this._ensurePump();
         await this._setCoolingInletTemp(val).catch((e) => this.error('Kühlung Einlauftemperatur Schreiben fehlgeschlagen:', e.message));
       }
     }
@@ -728,7 +731,11 @@ class LuxtronikHeatpumpDevice extends Device {
       }
     }
 
-    this._connectPump();
+    // Nur bei geänderter Adresse wirklich neu verbinden. Sonst die bestehende
+    // Verbindung behalten: ein Austausch des Pump-Objekts während eines laufenden
+    // Polls verwaist dessen Socket.
+    if (changedKeys.includes('ip') || changedKeys.includes('port')) this._resetPump();
+    this._ensurePump();
     await this._doPoll();
     this._startPolling();
   }
@@ -791,6 +798,54 @@ class LuxtronikHeatpumpDevice extends Device {
     if (this._timer) { clearInterval(this._timer); this._timer = null; }
   }
 
+  // Effektiver Poll-Timeout in Sekunden. Der eingestellte Wert wird unter das
+  // Poll-Intervall geklemmt: sind beide gleich (z.B. je 120s), öffnet der nächste
+  // Timer-Tick eine zweite Verbindung, bevor die erste aufgegeben wurde — und der
+  // Controller verträgt nur eine.
+  _pollTimeoutSec() {
+    const configured = Number(this.getSettings().watchdog_timeout) || 30;
+    const ceiling    = Math.max(5, Math.floor(this._pollInterval / 1000) - 5);
+    return Math.min(configured, ceiling);
+  }
+
+  // Verwirft das Pump-Objekt samt hängendem Socket.
+  // luxtronik2 überschreibt .client und .receivy beim nächsten read() ungeprüft:
+  // ein verspäteter Fehler des alten Sockets würde sonst den Callback des neuen
+  // Polls abräumen. Listener vorher entfernen, damit der Callback des
+  // aufgegebenen Polls nicht nachträglich noch feuert.
+  _resetPump() {
+    const sock = this._pump && this._pump.client;
+    if (sock) {
+      try { sock.removeAllListeners(); sock.destroy(); }
+      catch (e) { this.error('Socket verwerfen fehlgeschlagen:', e.message); }
+    }
+    this._pump = null;
+  }
+
+  // Verbindung nur aufbauen wenn keine besteht. Ein Austausch des Pump-Objekts
+  // während eines laufenden Polls verwaist dessen Socket — der bleibt dann für
+  // immer offen und belegt den einzigen Verbindungsplatz des Controllers.
+  _ensurePump() {
+    if (!this._pump) this._connectPump();
+    return !!this._pump;
+  }
+
+  // Setzt ein Inaktivitäts-Timeout auf den Socket, den luxtronik2 gerade geöffnet hat.
+  // Die Bibliothek setzt selbst keines: antwortet die Wärmepumpe nach dem
+  // Verbindungsaufbau nicht mehr, kommt weder 'data' noch 'error', der Callback
+  // bleibt aus und der Socket offen. destroy(err) statt destroy() — nur mit
+  // Fehlerargument emittiert der Socket 'error', worauf luxtronik2 den Callback
+  // aufruft und der Poll sauber endet statt bis zum Backstop zu hängen.
+  _guardSocket(sockName, timeoutMs, label) {
+    const sock = this._pump && this._pump[sockName];
+    if (!sock || typeof sock.setTimeout !== 'function') return;
+    sock.setTimeout(timeoutMs, () => {
+      this.error(`Socket-Timeout ${label} nach ${Math.round(timeoutMs / 1000)}s — Verbindung wird geschlossen`);
+      try { sock.destroy(new Error(`Socket-Timeout nach ${Math.round(timeoutMs / 1000)}s`)); }
+      catch (e) { this.error('Socket schliessen fehlgeschlagen:', e.message); }
+    });
+  }
+
   async _doPoll() {
     // Überlappende Polls verhindern: das Luxtronik-Protokoll verträgt keine parallelen
     // TCP-Verbindungen. Antwortet der Controller langsamer als das Poll-Intervall,
@@ -799,10 +854,14 @@ class LuxtronikHeatpumpDevice extends Device {
       this.log('Poll übersprungen — vorheriger Poll läuft noch');
       return;
     }
-    if (!this._pump) { this._connectPump(); if (!this._pump) return; }
+    if (!this._ensurePump()) return;
 
     this._polling = true;
-    const timeoutSec = Number(this.getSettings().watchdog_timeout) || 30;
+    const timeoutSec = this._pollTimeoutSec();
+    const socketMs   = timeoutSec * 1000;
+    // Backstop hinter dem Socket-Timeout: greift nur wenn selbst das Schliessen
+    // des Sockets keinen Callback ausgelöst hat.
+    const backstopMs = socketMs + 5000;
 
     return new Promise((resolve) => {
       let settled = false;
@@ -816,14 +875,16 @@ class LuxtronikHeatpumpDevice extends Device {
         resolve();
       };
 
-      // Poll-Timeout: wenn keine Antwort nach timeoutSec → Fehler und Poll freigeben
       if (this._pollTimeout) clearTimeout(this._pollTimeout);
       this._pollTimeout = setTimeout(() => {
         this._pollTimeout = null;
-        this.error(`Poll-Timeout: Keine Antwort von der Wärmepumpe nach ${timeoutSec}s`);
-        this.setUnavailable(this.homey.__('errors.timeout') || `Keine Antwort (Timeout nach ${timeoutSec}s)`).catch(() => {});
+        this.error(`Poll-Timeout: Keine Antwort von der Wärmepumpe nach ${Math.round(backstopMs / 1000)}s`);
+        this.setUnavailable(this.homey.__('errors.timeout') || `Keine Antwort (Timeout nach ${Math.round(backstopMs / 1000)}s)`).catch(() => {});
+        // Verbindung hart verwerfen: der Socket hängt und würde beim nächsten
+        // Poll verwaisen statt geschlossen zu werden.
+        this._resetPump();
         finish();
-      }, timeoutSec * 1000);
+      }, backstopMs);
 
       this._pump.read((err, data) => {
         if (err) {
@@ -858,6 +919,9 @@ class LuxtronikHeatpumpDevice extends Device {
           finish();
         });
       });
+
+      // read() legt den Socket synchron an, er ist hier also bereits vorhanden.
+      this._guardSocket('client', socketMs, '(Poll)');
     });
   }
 
@@ -1095,9 +1159,13 @@ class LuxtronikHeatpumpDevice extends Device {
         // der Lücke unbekannt. Ohne Deckel würde eine 6h-Unterbrechung "6h × aktuelle Watt"
         // in den Zähler schreiben und das Energie-Dashboard dauerhaft verfälschen.
         const maxGapMs     = this._pollInterval * 2;
-        const elapsedMs    = Math.min(now - this._lastPollTime, maxGapMs);
-        if (now - this._lastPollTime > maxGapMs) {
-          this.log(`Energiezähler: Lücke von ${Math.round((now - this._lastPollTime) / 60000)} min auf ${Math.round(maxGapMs / 60000)} min begrenzt`);
+        const gapMs        = now - this._lastPollTime;
+        const elapsedMs    = Math.min(gapMs, maxGapMs);
+        // Erst ab spürbarem Überhang loggen und mit Nachkommastelle ausgeben:
+        // auf ganze Minuten gerundet lasen sich Lücke und Deckel identisch
+        // ("Lücke von 4 min auf 4 min begrenzt") und die Meldung sagte nichts aus.
+        if (gapMs > maxGapMs * 1.1) {
+          this.log(`Energiezähler: Lücke von ${(gapMs / 60000).toFixed(1)} min auf ${(maxGapMs / 60000).toFixed(1)} min begrenzt`);
         }
         const elapsedHours = elapsedMs / 3600000;
         const watts        = Number(this.getSetting(`power_${stateSlug}`)) || 0;
@@ -1716,15 +1784,23 @@ class LuxtronikHeatpumpDevice extends Device {
         }
       };
 
-      // Sicherheits-Timeout: wenn der Callback nie kommt, sauber abbrechen
+      // Sicherheits-Backstop: wenn selbst das Schliessen des Sockets keinen
+      // Callback ausgelöst hat, den Write hart abbrechen und die Verbindung
+      // verwerfen — ein hängender Write-Socket blockiert den Controller genauso
+      // wie ein hängender Poll-Socket.
       const writeTimeout = setTimeout(() => {
         this.error(`Write-Timeout (${parameter}=${value})`);
+        this._resetPump();
         done(new Error(`Write-Timeout: ${parameter}`));
-      }, 8000);
+      }, 13000);
 
       // Kurz warten bis eine laufende Poll-Verbindung geschlossen ist
       setTimeout(() => {
+        if (!this._pump) { done(new Error('Nicht verbunden')); return; }
         this._pump.write(parameter, value, (err, res) => done(err, res));
+        // luxtronik2 nutzt für Writes einen eigenen Socket (.writeClient) und setzt
+        // auch dort kein Timeout.
+        this._guardSocket('writeClient', 8000, `(Write ${parameter})`);
       }, 1500);
     });
   }
