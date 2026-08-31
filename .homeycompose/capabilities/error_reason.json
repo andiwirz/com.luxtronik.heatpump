@@ -1,0 +1,14 @@
+{
+  "type": "string",
+  "title": {
+    "en": "Last Error",
+    "de": "Letzter Fehler",
+    "nl": "Laatste fout",
+    "fr": "Dernière erreur"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": false,
+  "icon": "/assets/capabilities/alarm.svg"
+}

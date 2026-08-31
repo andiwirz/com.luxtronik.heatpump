@@ -2,6 +2,7 @@
 
 const { Device } = require('homey');
 const luxtronik = require('../../lib/luxtronik2/luxtronik');
+const { switchoffReason, newestEntry } = require('../../lib/luxtronik-codes');
 
 // Betriebsmodus-Bezeichnungen
 const OPERATION_MODE_LABELS = {
@@ -193,6 +194,9 @@ class LuxtronikHeatpumpDevice extends Device {
       'delta_heating_reduction', 'delta_mk1_reduction',
       'temp_zwe_enable', 'temp_2nd_comp_heating', 'temp_2nd_comp_hotwater',
       'heatpump_state_string', 'measure_temp_flow',
+      // Beide werden über _setIfValid() gesetzt und nicht bedingt verwaltet,
+      // gehören also hierher:
+      'switchoff_reason', 'error_reason',
       // Hier NICHT auflisten, was _setCapabilityConditional() verwaltet — sonst
       // fügt diese Migration die Capability bei jedem App-Start hinzu und der
       // erste Poll entfernt sie sofort wieder. Genau das passierte mit
@@ -1200,6 +1204,23 @@ class LuxtronikHeatpumpDevice extends Device {
     // → nur state1 === 4 ist zuverlässig für einen aktiven Fehler
     const hasError = (v.heatpump_state1 === 4);
     await this._setIfValid('alarm_generic', hasError);
+
+    // Abschaltgrund und letzter Fehler aus den Ringpuffern der Steuerung.
+    // Diagnose-Werte: sie sagen, warum die Wärmepumpe gerade nicht läuft bzw.
+    // was zuletzt schiefging - unabhängig von alarm_generic, das nur den
+    // aktuellen Fehlerzustand abbildet.
+    const lastSwitchoff = newestEntry(v.switch_off);
+    if (lastSwitchoff) {
+      // Die Bibliothek kennt nur die Codes 0-9 und nur auf Deutsch; für alles
+      // darüber hinaus greift die übersetzte Tabelle aus lib/luxtronik-codes.
+      const translated = switchoffReason(lastSwitchoff.code, this.homey.i18n.getLanguage());
+      await this._setIfValid('switchoff_reason', translated || lastSwitchoff.message);
+    }
+
+    const lastError = newestEntry(v.errors);
+    if (lastError && lastError.code) {
+      await this._setIfValid('error_reason', `${lastError.code} - ${lastError.message}`);
+    }
     // Heizungs-Status – via HEATING_STATE_MAP übersetzt
     if (v.heatpump_extendet_state_string !== undefined) {
       const raw  = String(v.heatpump_extendet_state_string);
