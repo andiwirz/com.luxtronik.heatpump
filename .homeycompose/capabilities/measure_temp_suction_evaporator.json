@@ -1,0 +1,18 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Suction Temperature Evaporator",
+    "de": "Ansaugtemperatur Verdampfer",
+    "nl": "Aanzuigtemperatuur verdamper",
+    "fr": "Température d'aspiration évaporateur"
+  },
+  "units": {
+    "en": "°C",
+    "de": "°C"
+  },
+  "decimals": 1,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true
+}

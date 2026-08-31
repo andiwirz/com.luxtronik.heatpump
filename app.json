@@ -2021,7 +2021,17 @@
         "last_poll",
         "firmware_version",
         "switchoff_reason",
-        "error_reason"
+        "error_reason",
+        "measure_hours_total",
+        "measure_hours_zwe",
+        "measure_hours_compressor2",
+        "measure_starts_compressor",
+        "measure_pressure_high",
+        "measure_pressure_low",
+        "measure_temp_suction_evaporator",
+        "measure_temp_suction_compressor",
+        "measure_heat_output",
+        "measure_flow_heat_source"
       ],
       "capabilitiesOptions": {
         "measure_temp_outdoor": {
@@ -3482,6 +3492,43 @@
       "insights": false,
       "icon": "/assets/capabilities/last_poll.svg"
     },
+    "measure_flow_heat_source": {
+      "type": "number",
+      "title": {
+        "en": "Heat Source Flow Rate",
+        "de": "Durchfluss Wärmequelle",
+        "nl": "Debiet warmtebron",
+        "fr": "Débit source de chaleur"
+      },
+      "units": {
+        "en": "l/h",
+        "de": "l/h"
+      },
+      "decimals": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/measure_water.svg"
+    },
+    "measure_heat_output": {
+      "type": "number",
+      "title": {
+        "en": "Heat Output",
+        "de": "Heizleistung",
+        "nl": "Warmteafgifte",
+        "fr": "Puissance thermique"
+      },
+      "units": {
+        "en": "W",
+        "de": "W"
+      },
+      "decimals": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true
+    },
     "measure_hours_compressor": {
       "type": "number",
       "title": {
@@ -3489,6 +3536,25 @@
         "de": "Betriebsstunden Verdichter",
         "nl": "Bedrijfsuren compressor",
         "fr": "Heures compresseur"
+      },
+      "units": {
+        "en": "h",
+        "de": "h"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/round-hours-icon.svg"
+    },
+    "measure_hours_compressor2": {
+      "type": "number",
+      "title": {
+        "en": "Compressor 2 Hours",
+        "de": "Betriebsstunden Verdichter 2",
+        "nl": "Bedrijfsuren compressor 2",
+        "fr": "Heures compresseur 2"
       },
       "units": {
         "en": "h",
@@ -3552,6 +3618,95 @@
         "de": "h"
       },
       "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/round-hours-icon.svg"
+    },
+    "measure_hours_total": {
+      "type": "number",
+      "title": {
+        "en": "Total Operating Hours",
+        "de": "Betriebsstunden gesamt",
+        "nl": "Bedrijfsuren totaal",
+        "fr": "Heures de fonctionnement totales"
+      },
+      "units": {
+        "en": "h",
+        "de": "h"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/round-hours-icon.svg"
+    },
+    "measure_hours_zwe": {
+      "type": "number",
+      "title": {
+        "en": "Auxiliary Heater Hours",
+        "de": "Betriebsstunden Zweiter Wärmeerzeuger",
+        "nl": "Bedrijfsuren tweede warmteopwekker",
+        "fr": "Heures deuxième générateur"
+      },
+      "units": {
+        "en": "h",
+        "de": "h"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/capabilities/round-hours-icon.svg"
+    },
+    "measure_pressure_high": {
+      "type": "number",
+      "title": {
+        "en": "High Pressure",
+        "de": "Hochdruck",
+        "nl": "Hogedruk",
+        "fr": "Haute pression"
+      },
+      "units": {
+        "en": "bar",
+        "de": "bar"
+      },
+      "decimals": 2,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true
+    },
+    "measure_pressure_low": {
+      "type": "number",
+      "title": {
+        "en": "Low Pressure",
+        "de": "Niederdruck",
+        "nl": "Lagedruk",
+        "fr": "Basse pression"
+      },
+      "units": {
+        "en": "bar",
+        "de": "bar"
+      },
+      "decimals": 2,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true
+    },
+    "measure_starts_compressor": {
+      "type": "number",
+      "title": {
+        "en": "Compressor Starts",
+        "de": "Verdichter Starts",
+        "nl": "Compressorstarts",
+        "fr": "Démarrages compresseur"
+      },
+      "decimals": 0,
       "getable": true,
       "setable": false,
       "uiComponent": "sensor",
@@ -3804,6 +3959,42 @@
       "uiComponent": "sensor",
       "insights": true,
       "icon": "/assets/capabilities/measure_temperature.svg"
+    },
+    "measure_temp_suction_compressor": {
+      "type": "number",
+      "title": {
+        "en": "Suction Temperature Compressor",
+        "de": "Ansaugtemperatur Verdichter",
+        "nl": "Aanzuigtemperatuur compressor",
+        "fr": "Température d'aspiration compresseur"
+      },
+      "units": {
+        "en": "°C",
+        "de": "°C"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true
+    },
+    "measure_temp_suction_evaporator": {
+      "type": "number",
+      "title": {
+        "en": "Suction Temperature Evaporator",
+        "de": "Ansaugtemperatur Verdampfer",
+        "nl": "Aanzuigtemperatuur verdamper",
+        "fr": "Température d'aspiration évaporateur"
+      },
+      "units": {
+        "en": "°C",
+        "de": "°C"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true
     },
     "measure_volume_flow": {
       "type": "number",

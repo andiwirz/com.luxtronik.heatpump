@@ -1,0 +1,18 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Low Pressure",
+    "de": "Niederdruck",
+    "nl": "Lagedruk",
+    "fr": "Basse pression"
+  },
+  "units": {
+    "en": "bar",
+    "de": "bar"
+  },
+  "decimals": 2,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true
+}

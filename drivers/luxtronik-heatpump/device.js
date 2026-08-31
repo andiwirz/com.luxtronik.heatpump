@@ -181,6 +181,11 @@ class LuxtronikHeatpumpDevice extends Device {
       // Beide werden über _setIfValid() gesetzt und nicht bedingt verwaltet,
       // gehören also hierher:
       'switchoff_reason', 'error_reason',
+      // Zähler, die jede Steuerung führt: über _setIfValid() gesetzt und daher
+      // hier aufzuführen. Die sieben hardwareabhängigen Werte desselben
+      // Commits stehen bewusst nicht hier, die verwaltet
+      // _setCapabilityConditional().
+      'measure_hours_total', 'measure_hours_zwe', 'measure_starts_compressor',
       // Hier NICHT auflisten, was _setCapabilityConditional() verwaltet — sonst
       // fügt diese Migration die Capability bei jedem App-Start hinzu und der
       // erste Poll entfernt sie sofort wieder. Genau das passierte mit
@@ -775,6 +780,21 @@ class LuxtronikHeatpumpDevice extends Device {
           // erkannt wurde - als Nachweis für vorhandene Kühlung damit
           // unbrauchbar, also roh lesen.
           extra.raw_hours_cooling = rawAt(CALCULATIONS.C0066_OPERATION_HOURS_COOLING);
+          // Weitere Zähler und Fühler, die luxtronik2 nicht abbildet. Die
+          // Umrechnung folgt den Datentypen von python-luxtronik, auf die sich
+          // auch die Home-Assistant-Integration stützt: Seconds roh in
+          // Sekunden, Pulses und Flow und Power roh, Celsius und Kelvin in
+          // Zehnteln, Pressure in Hundertsteln.
+          extra.raw_hours_total       = rawAt(CALCULATIONS.C0063_OPERATION_HOURS);
+          extra.raw_hours_zwe         = rawAt(CALCULATIONS.C0060_ADDITIONAL_HEAT_GENERATOR_OPERATION_HOURS);
+          extra.raw_hours_compressor2 = rawAt(CALCULATIONS.C0058_COMPRESSOR2_OPERATION_HOURS);
+          extra.raw_starts_compressor = rawAt(CALCULATIONS.C0057_COMPRESSOR1_IMPULSES);
+          extra.raw_pressure_high     = rawAt(CALCULATIONS.C0180_HIGH_PRESSURE);
+          extra.raw_pressure_low      = rawAt(CALCULATIONS.C0181_LOW_PRESSURE);
+          extra.raw_suction_evaporator = rawAt(CALCULATIONS.C0175_SUCTION_EVAPORATOR_TEMPERATURE);
+          extra.raw_suction_compressor = rawAt(CALCULATIONS.C0176_SUCTION_COMPRESSOR_TEMPERATURE);
+          extra.raw_heat_output       = rawAt(CALCULATIONS.C0257_CURRENT_HEAT_OUTPUT);
+          extra.raw_flow_heat_source  = rawAt(CALCULATIONS.C0173_HEAT_SOURCE_FLOW_RATE);
           return extra;
         },
         onProcessParameters: (parameters) => {
@@ -1103,6 +1123,29 @@ class LuxtronikHeatpumpDevice extends Device {
       this._energyMetered(energyHotwater, v.hours_warmwater));
     await this._setCapabilityConditional('meter_energy_total',    energyTotal,
       this._energyMetered(energyTotal,    v.hours_compressor1));
+
+    // ── Zusätzliche Zähler und Fühler ────────────────────────────────────────
+    // Zähler, die jede Steuerung führt: immer anzeigen.
+    await this._setIfValid('measure_hours_total',       this._hours(v.raw_hours_total));
+    await this._setIfValid('measure_hours_zwe',         this._hours(v.raw_hours_zwe));
+    await this._setIfValid('measure_starts_compressor', this._n(v.raw_starts_compressor));
+
+    // Hardware, die längst nicht jedes Gerät hat: nur anzeigen, wenn der
+    // Regler etwas anderes als null meldet. Ältere Geräte ohne LIN-Bus liefern
+    // für Drücke und Ansaugfühler durchgehend 0, ein zweiter Verdichter fehlt
+    // auf Einverdichter-Geräten ganz.
+    const optional = [
+      ['measure_hours_compressor2',       this._hours(v.raw_hours_compressor2)],
+      ['measure_pressure_high',           this._scaled(v.raw_pressure_high, 100)],
+      ['measure_pressure_low',            this._scaled(v.raw_pressure_low, 100)],
+      ['measure_temp_suction_evaporator', this._scaled(v.raw_suction_evaporator, 10)],
+      ['measure_temp_suction_compressor', this._scaled(v.raw_suction_compressor, 10)],
+      ['measure_heat_output',             this._n(v.raw_heat_output)],
+      ['measure_flow_heat_source',        this._n(v.raw_flow_heat_source)],
+    ];
+    for (const [capability, value] of optional) {
+      await this._setCapabilityConditional(capability, value, value !== null && value !== 0);
+    }
 
     // ── Betriebsstunden ──────────────────────────────────────────────────────
     // luxtronik2 liefert Stunden direkt als Zahl
@@ -1968,6 +2011,19 @@ class LuxtronikHeatpumpDevice extends Device {
   _temp(val) {
     const n = this._n(val);
     return n === UNWIRED_SENSOR_TEMPERATURE ? null : n;
+  }
+
+  // Sekundenzähler der Steuerung in Stunden (Datentyp Seconds).
+  _hours(val) {
+    const n = this._n(val);
+    return n === null ? null : Math.round((n / 3600) * 10) / 10;
+  }
+
+  // Rohwert durch den Faktor des Datentyps teilen (Celsius/Kelvin 10,
+  // Pressure 100), auf eine Nachkommastelle mehr als die Anzeige gerundet.
+  _scaled(val, divisor) {
+    const n = this._n(val);
+    return n === null ? null : Math.round((n / divisor) * 100) / 100;
   }
 
   _int(val) {

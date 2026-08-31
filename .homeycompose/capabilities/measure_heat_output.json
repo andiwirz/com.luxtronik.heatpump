@@ -1,0 +1,18 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Heat Output",
+    "de": "Heizleistung",
+    "nl": "Warmteafgifte",
+    "fr": "Puissance thermique"
+  },
+  "units": {
+    "en": "W",
+    "de": "W"
+  },
+  "decimals": 0,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true
+}

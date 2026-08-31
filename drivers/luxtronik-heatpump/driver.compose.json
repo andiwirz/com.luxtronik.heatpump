@@ -65,7 +65,17 @@
     "last_poll",
     "firmware_version",
     "switchoff_reason",
-    "error_reason"
+    "error_reason",
+    "measure_hours_total",
+    "measure_hours_zwe",
+    "measure_hours_compressor2",
+    "measure_starts_compressor",
+    "measure_pressure_high",
+    "measure_pressure_low",
+    "measure_temp_suction_evaporator",
+    "measure_temp_suction_compressor",
+    "measure_heat_output",
+    "measure_flow_heat_source"
   ],
   "capabilitiesOptions": {
     "measure_temp_outdoor": {
