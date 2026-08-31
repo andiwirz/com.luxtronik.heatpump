@@ -1,7 +1,7 @@
 'use strict';
 
 const { Device } = require('homey');
-const luxtronik = require('luxtronik2');
+const luxtronik = require('../../lib/luxtronik2/luxtronik');
 
 // Betriebsmodus-Bezeichnungen
 const OPERATION_MODE_LABELS = {
