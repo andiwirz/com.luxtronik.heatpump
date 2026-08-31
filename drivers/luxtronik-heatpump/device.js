@@ -67,6 +67,15 @@ const CAPABILITY_TITLE_FIXES = {
   'measure_hours_cooling':    { title: { en: 'Cooling Operating Hours', de: 'Betriebsstunden Kühlung', nl: 'Bedrijfsuren koeling' } },
 };
 
+// Die Steuerung meldet -50 °C für einen Temperaturfühler, der nicht
+// angeschlossen ist (offener Eingang). Auf einer Luft-Wasser-Wärmepumpe
+// betrifft das die Wärmequellenfühler TWE/TWA, die es dort gar nicht gibt -
+// auf einer L1H stehen beide dauerhaft auf -50. Ohne Filter zeigt die Kachel
+// das als Messwert an. Die Home-Assistant-Integration wertet dieselbe
+// Beobachtung aus, um auf einen fehlenden Kreis zu schließen ("TWA -50, so no
+// passive-cooling circuit", sensor_entities_predefined.py).
+const UNWIRED_SENSOR_TEMPERATURE = -50;
+
 // heatpump_state1 = Grob-Status (0=läuft, 1=steht, 4=Fehler)
 // Nur für Fehlerkennung verwendet
 const HEATPUMP_STATE1_ERROR = 4;
@@ -1020,8 +1029,10 @@ class LuxtronikHeatpumpDevice extends Device {
     }
 
     await this._setIfValid('measure_temp_hotwater_target', this._n(v.temperature_hot_water_target));
-    await this._setIfValid('measure_temp_source_in',    this._n(v.temperature_heat_source_in));
-    await this._setIfValid('measure_temp_source_out',   this._n(v.temperature_heat_source_out));
+    const sourceIn  = this._temp(v.temperature_heat_source_in);
+    const sourceOut = this._temp(v.temperature_heat_source_out);
+    await this._setCapabilityConditional('measure_temp_source_in',  sourceIn,  sourceIn  !== null);
+    await this._setCapabilityConditional('measure_temp_source_out', sourceOut, sourceOut !== null);
     // Ansaugluft / Zuluft (Luft-WP)
     // Ansaugluft nur bei Luft-WP vorhanden → nur anzeigen wenn Wert > 0
     const suctionAirTemp = this._n(v.Temp_Lueftung_Zuluft);
@@ -1897,6 +1908,13 @@ class LuxtronikHeatpumpDevice extends Device {
     if (val === null || val === undefined || val === 'no') return null;
     const n = parseFloat(val);
     return Number.isNaN(n) ? null : n;
+  }
+
+  // Temperatur wie _n(), liefert aber null für den Wert eines nicht
+  // angeschlossenen Fühlers, damit daraus keine Messung wird.
+  _temp(val) {
+    const n = this._n(val);
+    return n === UNWIRED_SENSOR_TEMPERATURE ? null : n;
   }
 
   _int(val) {
