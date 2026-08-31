@@ -63,8 +63,14 @@ This app communicates with the **Luxtronik 2.0 / 2.1** controller, which is buil
 | <img src="assets/capabilities/temperature.svg" width="24"> | 2nd Compressor Heating / Hot Water Temp. | Thresholds for engaging the 2nd compressor |
 | <img src="assets/capabilities/temperature.svg" width="24"> | Cooling Release / Inlet Temperature | Cooling circuit setpoints (only with cooling support) |
 | <img src="assets/capabilities/alarm.svg" width="24"> | Error Alarm | Error active: Yes / No |
+| <img src="assets/capabilities/alarm.svg" width="24"> | Switch-off Reason | Why the heat pump last stopped running |
+| <img src="assets/capabilities/alarm.svg" width="24"> | Last Error | Newest entry from the controller's error log, with its code |
 | <img src="assets/capabilities/last_poll.svg" width="24"> | Last Poll | Time of last successful poll (local time) |
 | <img src="assets/capabilities/firmware_version.svg" width="24"> | Firmware Version | Controller software version |
+
+> **Switch-off Reason and Last Error are history, not live state.** The controller keeps two five-entry ring buffers and the app shows the newest record of each. An entry can be days old and stays until the controller writes a new one, so "Switch-off Reason" does not mean the heat pump is off right now — only **Error Alarm** reports a currently active fault. The buffers are not returned in chronological order, so the newest entry is picked by timestamp rather than by position.
+>
+> Switch-off codes are translated from [`lib/luxtronik-codes.js`](lib/luxtronik-codes.js): the bundled library only maps codes 0–9 and only to German, while controllers emit codes up to 27. Codes the controller leaves unassigned fall back to the library's text.
 
 ### Controllable Values
 

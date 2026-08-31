@@ -1214,7 +1214,11 @@ class LuxtronikHeatpumpDevice extends Device {
       // Die Bibliothek kennt nur die Codes 0-9 und nur auf Deutsch; für alles
       // darüber hinaus greift die übersetzte Tabelle aus lib/luxtronik-codes.
       const translated = switchoffReason(lastSwitchoff.code, this.homey.i18n.getLanguage());
-      await this._setIfValid('switchoff_reason', translated || lastSwitchoff.message);
+      const reason = translated || lastSwitchoff.message;
+      // Code 4 ist in der Steuerung unbelegt: Tabelle und Bibliothek liefern
+      // dafür beide einen leeren Text. _setIfValid filtert leere Strings nicht,
+      // die Kachel bekäme also eine leere Zeile. Lieber nichts anzeigen.
+      if (reason) await this._setIfValid('switchoff_reason', reason);
     }
 
     const lastError = newestEntry(v.errors);

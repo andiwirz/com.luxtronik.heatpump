@@ -284,6 +284,17 @@
       <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Weitere Werte</span><span data-lang="en">Additional Values</span></span></div>
       <div class="card-desc"><span data-lang="de">Volumenstrom (l/h) · Fehleralarm · Letzte Abfrage · Firmware-Version</span><span data-lang="en">Volume flow (l/h) · Error alarm · Last poll · Firmware version</span></div>
     </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Abschaltgrund &amp; Letzter Fehler</span><span data-lang="en">Switch-off Reason &amp; Last Error</span></span></div>
+      <div class="card-desc"><span data-lang="de">Der Regler führt zwei Protokolle mit je fünf Einträgen: warum er zuletzt aufgehört hat zu laufen, und welche Fehler er zuletzt registriert hat. Die App zeigt jeweils den jüngsten Eintrag, den Fehler mitsamt Code.</span><span data-lang="en">The controller keeps two five-entry logs: why it last stopped running, and the errors it last recorded. The app shows the newest entry of each, the error together with its code.</span></div>
+    </div>
+
+    <div class="infobox">
+      <strong><span data-lang="de">Diese beiden Werte sind Historie, kein Live-Zustand.</span><span data-lang="en">Both of these are history, not a live state.</span></strong><br>
+      <span data-lang="de">Der Eintrag kann Tage alt sein und bleibt stehen, bis der Regler einen neuen schreibt — „Abschaltgrund" heisst also nicht, dass die Wärmepumpe gerade abgeschaltet ist. Ob aktuell ein Fehler ansteht, sagt allein der <strong>Fehleralarm</strong>.</span>
+      <span data-lang="en">An entry can be days old and stays until the controller writes a new one — "Switch-off Reason" therefore does not mean the heat pump is off right now. Whether an error is currently active is told by the <strong>error alarm</strong> alone.</span>
+    </div>
   </div>
 </div>
 
