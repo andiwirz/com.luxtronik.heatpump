@@ -440,11 +440,21 @@ The detailed heating status (`heating_state_string`) comes from the controller. 
 
 ## Technical Background
 
-The app communicates via TCP (port 8889) directly with the Luxtronik controller.
+The app communicates via TCP (port 8889) directly with the Luxtronik controller. The controller answers with three register blocks: **calculations** (command 3004, live readings), **parameters** (3003, settings) and **visibilities** (3005, which features the unit actually has). It accepts only one connection at a time, which is why the app serialises every read and write.
 
-The protocol library is [`luxtronik2`](https://github.com/coolchip/luxtronik2) 2.7.2 (MIT), **bundled in [`lib/luxtronik2/`](lib/luxtronik2/)** rather than pulled from npm. Upstream has published nothing since February 2024 and the issue tracker is unattended, but the library needed a fix for controllers that split their reply across TCP segments. `types.js` and `utils.js` are verbatim copies of the published tarball; `luxtronik.js` differs only by the changes documented in [`lib/luxtronik2/README.md`](lib/luxtronik2/README.md).
+### `lib/`
 
-Parameter reference:
+| Module | Purpose |
+|--------|---------|
+| [`lib/luxtronik2/`](lib/luxtronik2/) | The protocol library [`luxtronik2`](https://github.com/coolchip/luxtronik2) 2.7.2 (MIT), **bundled rather than pulled from npm**. Upstream has published nothing since February 2024 and the issue tracker is unattended, but the library needed fixes the app cannot apply from outside. `types.js` and `utils.js` are verbatim copies of the published tarball; the deviations in `luxtronik.js` and `utils.js` are documented in [`lib/luxtronik2/README.md`](lib/luxtronik2/README.md). |
+| [`lib/luxtronik-registers.js`](lib/luxtronik-registers.js) | Named registers — 99 calculations, 105 parameters, 43 visibilities. The library addresses registers by bare array offsets scattered through its source; this table gives them names so further sensors can be added without guessing at positions. Each entry carries the controller's own field name as a comment. |
+| [`lib/luxtronik-codes.js`](lib/luxtronik-codes.js) | Switch-off reason texts in EN/DE/NL. The bundled library maps only codes 0–9 and only to German, while controllers emit codes up to 27. |
+
+Both tables are transcribed from [BenPru/luxtronik](https://github.com/BenPru/luxtronik), which documents and translates them. Register keys keep the upstream spelling **including the register number**, because the name alone is not unique — `P0002` and `P0105` are both called `DHW_TARGET_TEMPERATURE` and are different registers (the configured setting versus the controller's momentary target; see *Hot Water: Setpoint vs. "Target (current)"* above).
+
+### Reference material
+
+- [BenPru/luxtronik – const.py](https://github.com/BenPru/luxtronik/blob/main/custom_components/luxtronik2/const.py) — register names and switch-off codes
 - [Bouni/python-luxtronik – parameters.py](https://github.com/Bouni/python-luxtronik/blob/master/luxtronik/parameters.py)
 - [Bouni/python-luxtronik – calculations.py](https://github.com/Bouni/python-luxtronik/blob/master/luxtronik/calculations.py)
 - [FHEM Luxtronik Wiki (DE)](https://wiki.fhem.de/wiki/Luxtronik_2.0)
@@ -459,7 +469,7 @@ MIT License – see [LICENSE](LICENSE)
 
 ## 🤖 AI Development
 
-This app was developed entirely with the help of **Claude (Anthropic AI)**.
+This app was built with the help of **Claude (Anthropic AI)**, alongside contributions from the people listed below.
 
 ---
 
@@ -470,3 +480,4 @@ This app was developed entirely with the help of **Claude (Anthropic AI)**.
 - [BenPru/luxtronik](https://github.com/BenPru/luxtronik) (Home Assistant integration)
 - [Bouni/luxtronik](https://github.com/Bouni/luxtronik)
 - [@mgntrn](https://github.com/mgntrn) — room temperature firmware fix, cooling state detection, room temperature flow cards, Dutch translations
+- [@scaronni](https://github.com/scaronni) — vendored the protocol library and fixed reads split across TCP segments, added the switch-off reason and last error tiles, contributed the named register table
