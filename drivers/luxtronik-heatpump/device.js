@@ -76,6 +76,11 @@ const CAPABILITY_TITLE_FIXES = {
 // passive-cooling circuit", sensor_entities_predefined.py).
 const UNWIRED_SENSOR_TEMPERATURE = -50;
 
+// Betriebsstunden, ab denen ein Wärmemengenzähler etwas gezählt haben muss.
+// Darunter ist 0 kWh noch kein Beweis für einen fehlenden Zähler, sondern
+// womöglich eine frisch in Betrieb genommene Anlage.
+const ENERGY_METER_MIN_HOURS = 24;
+
 // heatpump_state1 = Grob-Status (0=läuft, 1=steht, 4=Fehler)
 // Nur für Fehlerkennung verwendet
 const HEATPUMP_STATE1_ERROR = 4;
@@ -160,8 +165,6 @@ class LuxtronikHeatpumpDevice extends Device {
       'warmwater_operation_mode',
       'alarm_generic',
       'measure_volume_flow',
-      'meter_energy_hotwater',
-      'meter_energy_total',
       'measure_hours_compressor',
       'measure_hours_hotwater',
       // Später hinzugefügte Capabilities
@@ -186,7 +189,8 @@ class LuxtronikHeatpumpDevice extends Device {
       // _setCapabilityConditional() legt die Capability selbst an, sobald ein
       // Wert vorliegt — die Migration ist hier also nicht nur schädlich, sondern
       // auch überflüssig.
-      // Bedingt verwaltet: cooling_operation_mode, cooling_release_temp_cap,
+      // Bedingt verwaltet: meter_energy_heating, meter_energy_hotwater,
+      // meter_energy_total, cooling_operation_mode, cooling_release_temp_cap,
       // cooling_inlet_temp_cap, measure_hours_cooling, measure_temp_room,
       // measure_temp_room_target, measure_temp_suction_air, heating_curve_endpoint,
       // heating_curve_offset, mk1_curve_endpoint, mk1_curve_offset,
@@ -1086,9 +1090,19 @@ class LuxtronikHeatpumpDevice extends Device {
     }
 
     // ── Energie (kWh) ────────────────────────────────────────────────────────
-    await this._setIfValid('meter_energy_heating',  this._n(v.thermalenergy_heating));
-    await this._setIfValid('meter_energy_hotwater', this._n(v.thermalenergy_warmwater));
-    await this._setIfValid('meter_energy_total',    this._n(v.thermalenergy_total));
+    // Nicht jede Anlage hat einen Wärmemengenzähler. Fehlt er, meldet die
+    // Steuerung dauerhaft 0 kWh, während die Betriebsstunden längst hochlaufen -
+    // auf dem Gerät, an dem das geprüft wurde, 0 kWh gegen 26827 Stunden
+    // Heizbetrieb. Als "0 kWh" angezeigt sieht das aus wie eine Messung.
+    const energyHeating  = this._n(v.thermalenergy_heating);
+    const energyHotwater = this._n(v.thermalenergy_warmwater);
+    const energyTotal    = this._n(v.thermalenergy_total);
+    await this._setCapabilityConditional('meter_energy_heating',  energyHeating,
+      this._energyMetered(energyHeating,  v.hours_heating));
+    await this._setCapabilityConditional('meter_energy_hotwater', energyHotwater,
+      this._energyMetered(energyHotwater, v.hours_warmwater));
+    await this._setCapabilityConditional('meter_energy_total',    energyTotal,
+      this._energyMetered(energyTotal,    v.hours_compressor1));
 
     // ── Betriebsstunden ──────────────────────────────────────────────────────
     // luxtronik2 liefert Stunden direkt als Zahl
@@ -1932,6 +1946,21 @@ class LuxtronikHeatpumpDevice extends Device {
     if (val === null || val === undefined || val === 'no') return null;
     const n = parseFloat(val);
     return Number.isNaN(n) ? null : n;
+  }
+
+  // Hat die Anlage einen Wärmemengenzähler für diesen Kreis?
+  //
+  // Ein Wert über null beweist ihn. Steht er auf null, entscheidet der
+  // zugehörige Betriebsstundenzähler: lief der Kreis schon lange und es kam
+  // trotzdem nichts zusammen, gibt es keinen Zähler. Sind die Betriebsstunden
+  // unbekannt - die Bibliothek blendet sie je nach Visibility-Flag aus - wird
+  // im Zweifel angezeigt, statt eine vorhandene Kachel zu entfernen.
+  _energyMetered(energy, hours) {
+    if (energy === null) return false;
+    if (energy > 0) return true;
+    const runtime = this._n(hours);
+    if (runtime === null) return true;
+    return runtime <= ENERGY_METER_MIN_HOURS;
   }
 
   // Temperatur wie _n(), liefert aber null für den Wert eines nicht
