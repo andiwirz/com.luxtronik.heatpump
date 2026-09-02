@@ -32,11 +32,26 @@ class LuxtronikHeatpumpDriver extends Driver {
       const connected = await new Promise((resolve) => {
         let settled = false;
         let timer = null;
+        let pump = null;
+
+        // Hängenden Socket schliessen. luxtronik2 setzt selbst kein Timeout:
+        // antwortet der Regler nach dem Verbindungsaufbau nicht mehr, bleibt der
+        // Socket offen. Der Regler nimmt nur eine Verbindung gleichzeitig an —
+        // ein liegengelassener Socket würde also den sofortigen zweiten Versuch
+        // des Nutzers ebenfalls scheitern lassen.
+        const closeSocket = () => {
+          const sock = pump && pump.client;
+          if (!sock) return;
+          try { sock.removeAllListeners(); sock.destroy(); }
+          catch (e) { this.error('Pair socket cleanup failed:', e.message); }
+        };
+
         // Gibt den Test auf jedem Pfad frei, auch wenn der Callback ausbleibt.
         const finish = (ok) => {
           if (settled) return;
           settled = true;
           if (timer) { clearTimeout(timer); timer = null; }
+          if (!ok) closeSocket();
           resolve(ok);
         };
 
@@ -46,7 +61,7 @@ class LuxtronikHeatpumpDriver extends Driver {
         }, PAIR_TIMEOUT_MS);
 
         try {
-          const pump = new luxtronik.createConnection(ip, port);
+          pump = new luxtronik.createConnection(ip, port);
           pump.read((err) => {
             if (err) {
               this.error('Pair connection test failed:', err.message);
