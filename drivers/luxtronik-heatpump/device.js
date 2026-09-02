@@ -2,8 +2,10 @@
 
 const { Device } = require('homey');
 const luxtronik = require('../../lib/luxtronik2/luxtronik');
-const { switchoffReason, newestEntry } = require('../../lib/luxtronik-codes');
-const { CALCULATIONS } = require('../../lib/luxtronik-registers');
+const {
+  switchoffReason, newestEntry, extendedState, defrostVariant, defrostState, mixerCanCool,
+} = require('../../lib/luxtronik-codes');
+const { CALCULATIONS, PARAMETERS } = require('../../lib/luxtronik-registers');
 
 // Betriebsmodus-Bezeichnungen
 const OPERATION_MODE_LABELS = {
@@ -45,37 +47,6 @@ const HEATPUMP_STATE_MAP = {
 };
 
 
-// Mapping: Originalstring der luxtronik2-Library → { en, de }
-// Quelle: luxtronik2/types.js → extendetStateMessages + createExtendedStateString()
-// Hinweis: state3=7 (Abtauen) konkateniert die Library ohne Leerzeichen (Bug im npm)
-const HEATING_STATE_MAP = {
-  'Heizbetrieb':                   { en: 'Heating',                    de: 'Heizbetrieb',                 nl: 'Verwarmen' },
-  'Keine Anforderung':              { en: 'No Request',                 de: 'Keine Anforderung',           nl: 'Geen warmtevraag' },
-  'Netz Einschaltverzoegerung':     { en: 'Grid Startup Delay',         de: 'Netz Einschaltverzögerung',   nl: 'Netinschakelvertraging' },
-  'Schaltspielzeit':                { en: 'Switching Cycle Time',       de: 'Schaltspielzeit',             nl: 'Schakelspeltijd' },
-  'EVU Sperrzeit':                  { en: 'EVU Lock',                   de: 'EVU Sperrzeit',               nl: 'EVU-blokkering' },
-  'Brauchwasser':                   { en: 'Hot Water',                  de: 'Brauchwasser',                nl: 'Warmwater' },
-  // Estrich Programm: dynamischer Suffix "Stufe X - Y °C" → Sonderbehandlung im Poll
-  'Pumpenvorlauf':                  { en: 'Pump Pre-run',               de: 'Pumpenvorlauf',               nl: 'Pompvoorloop' },
-  'Thermische Desinfektion':        { en: 'Thermal Disinfection',       de: 'Thermische Desinfektion',     nl: 'Thermische desinfectie' },
-  'Kuehlbetrieb':                   { en: 'Cooling',                    de: 'Kühlbetrieb',                 nl: 'Koelen' },
-  'Schwimmbad/Photovoltaik':        { en: 'Pool / Photovoltaic',        de: 'Schwimmbad / Photovoltaik',   nl: 'Zwembad / Fotovoltaïsch' },
-  'Heizen Ext.':                    { en: 'External Heating',           de: 'Heizen Ext.',                 nl: 'Externe verwarming' },
-  'Brauchwasser Ext.':              { en: 'External Hot Water',         de: 'Brauchwasser Ext.',           nl: 'Extern warmwater' },
-  'Durchflussueberwachung':         { en: 'Flow Monitoring',            de: 'Durchflussüberwachung',       nl: 'Doorstroombewaking' },
-  'Elektrische Zusatzheizung':      { en: 'Electric Auxiliary Heating', de: 'Elektrische Zusatzheizung',   nl: 'Elektrische bijverwarming' },
-  'Warmw. Nachheizung':             { en: 'DHW Reheating',              de: 'Warmwasser Nachheizung',      nl: 'Warmwater naverwarming' },
-  // state3=15: in luxtronik2, python-luxtronik und der HA-Integration undokumentiert.
-  // Beobachtet gemeinsam mit Fehler 718 "Max. Aussentemp." → Wärmepumpe ausserhalb der
-  // Einsatzgrenzen. Label bewusst neutral, da unklar ist ob 15 spezifisch die
-  // Aussentemperatur-Grenze meint oder generisch "wegen Störung gesperrt".
-  'Unknown [15]':                   { en: 'Operating Limit',            de: 'Einsatzgrenze / Sperre',      nl: 'Bedrijfsgrens / blokkering' },
-  'Unknown [18]':                   { en: 'Compressor Heating Up',      de: 'Verdichter heizt auf',        nl: 'Compressor warmt op' },
-  // state3=7: Library konkateniert Basisstring + Subtyp ohne Leerzeichen
-  'AbtauenAbtauen (Kreisumkehr)':  { en: 'Defrost (Reverse Cycle)',    de: 'Abtauen (Kreisumkehr)',       nl: 'Ontdooien (kringomkering)' },
-  'AbtauenLuftabtauen':            { en: 'Air Defrost',                de: 'Luftabtauen',                 nl: 'Luchtontdooiing' },
-  'AbtauenAbtauen':                { en: 'Defrost',                    de: 'Abtauen',                     nl: 'Ontdooien' },
-};
 
 // Mapping: Originalstring der luxtronik2-Library → { en, de }
 // Quelle: luxtronik2/utils.js → createHotWaterStateString()
@@ -95,6 +66,20 @@ const CAPABILITY_TITLE_FIXES = {
   'measure_temp_room_target': { title: { en: 'Room Target Temperature', de: 'Raumtemperatur Soll',     nl: 'Gewenste ruimtetemperatuur' } },
   'measure_hours_cooling':    { title: { en: 'Cooling Operating Hours', de: 'Betriebsstunden Kühlung', nl: 'Bedrijfsuren koeling' } },
 };
+
+// Die Steuerung meldet -50 °C für einen Temperaturfühler, der nicht
+// angeschlossen ist (offener Eingang). Auf einer Luft-Wasser-Wärmepumpe
+// betrifft das die Wärmequellenfühler TWE/TWA, die es dort gar nicht gibt -
+// auf einer L1H stehen beide dauerhaft auf -50. Ohne Filter zeigt die Kachel
+// das als Messwert an. Die Home-Assistant-Integration wertet dieselbe
+// Beobachtung aus, um auf einen fehlenden Kreis zu schließen ("TWA -50, so no
+// passive-cooling circuit", sensor_entities_predefined.py).
+const UNWIRED_SENSOR_TEMPERATURE = -50;
+
+// Betriebsstunden, ab denen ein Wärmemengenzähler etwas gezählt haben muss.
+// Darunter ist 0 kWh noch kein Beweis für einen fehlenden Zähler, sondern
+// womöglich eine frisch in Betrieb genommene Anlage.
+const ENERGY_METER_MIN_HOURS = 24;
 
 // heatpump_state1 = Grob-Status (0=läuft, 1=steht, 4=Fehler)
 // Nur für Fehlerkennung verwendet
@@ -180,8 +165,6 @@ class LuxtronikHeatpumpDevice extends Device {
       'warmwater_operation_mode',
       'alarm_generic',
       'measure_volume_flow',
-      'meter_energy_hotwater',
-      'meter_energy_total',
       'measure_hours_compressor',
       'measure_hours_hotwater',
       // Später hinzugefügte Capabilities
@@ -206,7 +189,8 @@ class LuxtronikHeatpumpDevice extends Device {
       // _setCapabilityConditional() legt die Capability selbst an, sobald ein
       // Wert vorliegt — die Migration ist hier also nicht nur schädlich, sondern
       // auch überflüssig.
-      // Bedingt verwaltet: cooling_operation_mode, cooling_release_temp_cap,
+      // Bedingt verwaltet: meter_energy_heating, meter_energy_hotwater,
+      // meter_energy_total, cooling_operation_mode, cooling_release_temp_cap,
       // cooling_inlet_temp_cap, measure_hours_cooling, measure_temp_room,
       // measure_temp_room_target, measure_temp_suction_air, heating_curve_endpoint,
       // heating_curve_offset, mk1_curve_endpoint, mk1_curve_offset,
@@ -774,7 +758,34 @@ class LuxtronikHeatpumpDevice extends Device {
             extra.rbe_room_temperature        = values[rbeIst] / 10;
             extra.rbe_room_temperature_target = values[rbeSoll] / 10;
           }
+          // Rohwerte für den erweiterten Betriebszustand: die Bibliothek blendet
+          // Abtauventil und Wärmequellenmotor je nach Visibility-Flag aus und
+          // klebt den Abtau-Untertyp ohne Trennzeichen an den Zustandstext.
+          // Beides umgehen wir, indem wir die Register selbst lesen.
+          const rawAt = (index) => (values && typeof values[index] === 'number' ? values[index] : undefined);
+          extra.raw_defrost_valve = rawAt(CALCULATIONS.C0037_DEFROST_VALVE);
+          extra.raw_pump_flow     = rawAt(CALCULATIONS.C0043_PUMP_FLOW);
+          extra.raw_compressor    = rawAt(CALCULATIONS.C0044_COMPRESSOR);
+          // Estrichprogramm: Stufe und Solltemperatur. Von der Integration
+          // nicht benannt, daher die nackten Indizes wie in luxtronik2.
+          extra.raw_screed_level  = rawAt(121);
+          extra.raw_screed_temp   = rawAt(122);
+          // Betriebsstunden Kühlung. Die Bibliothek blendet sie hinter einem
+          // Visibility-Flag aus, das genau dann 0 ist, wenn die Kühlung nicht
+          // erkannt wurde - als Nachweis für vorhandene Kühlung damit
+          // unbrauchbar, also roh lesen.
+          extra.raw_hours_cooling = rawAt(CALCULATIONS.C0066_OPERATION_HOURS_COOLING);
           return extra;
+        },
+        onProcessParameters: (parameters) => {
+          // Typ der drei Mischkreise: sagt aus, ob überhaupt ein Kreis kühlen
+          // kann, unabhängig davon ob die Kühlung gerade freigegeben ist.
+          const rawAt = (index) => (parameters && typeof parameters[index] === 'number' ? parameters[index] : undefined);
+          return {
+            raw_mixer1_type: rawAt(PARAMETERS.P0042_MIXING_CIRCUIT1_TYPE),
+            raw_mixer2_type: rawAt(PARAMETERS.P0130_MIXING_CIRCUIT2_TYPE),
+            raw_mixer3_type: rawAt(PARAMETERS.P0780_MIXING_CIRCUIT3_TYPE),
+          };
         },
       });
       this.log(`Verbunden mit ${this._ip}:${this._port}`);
@@ -1037,8 +1048,10 @@ class LuxtronikHeatpumpDevice extends Device {
     }
 
     await this._setIfValid('measure_temp_hotwater_target', this._n(v.temperature_hot_water_target));
-    await this._setIfValid('measure_temp_source_in',    this._n(v.temperature_heat_source_in));
-    await this._setIfValid('measure_temp_source_out',   this._n(v.temperature_heat_source_out));
+    const sourceIn  = this._temp(v.temperature_heat_source_in);
+    const sourceOut = this._temp(v.temperature_heat_source_out);
+    await this._setCapabilityConditional('measure_temp_source_in',  sourceIn,  sourceIn  !== null);
+    await this._setCapabilityConditional('measure_temp_source_out', sourceOut, sourceOut !== null);
     // Ansaugluft / Zuluft (Luft-WP)
     // Ansaugluft nur bei Luft-WP vorhanden → nur anzeigen wenn Wert > 0
     const suctionAirTemp = this._n(v.Temp_Lueftung_Zuluft);
@@ -1077,9 +1090,19 @@ class LuxtronikHeatpumpDevice extends Device {
     }
 
     // ── Energie (kWh) ────────────────────────────────────────────────────────
-    await this._setIfValid('meter_energy_heating',  this._n(v.thermalenergy_heating));
-    await this._setIfValid('meter_energy_hotwater', this._n(v.thermalenergy_warmwater));
-    await this._setIfValid('meter_energy_total',    this._n(v.thermalenergy_total));
+    // Nicht jede Anlage hat einen Wärmemengenzähler. Fehlt er, meldet die
+    // Steuerung dauerhaft 0 kWh, während die Betriebsstunden längst hochlaufen -
+    // auf dem Gerät, an dem das geprüft wurde, 0 kWh gegen 26827 Stunden
+    // Heizbetrieb. Als "0 kWh" angezeigt sieht das aus wie eine Messung.
+    const energyHeating  = this._n(v.thermalenergy_heating);
+    const energyHotwater = this._n(v.thermalenergy_warmwater);
+    const energyTotal    = this._n(v.thermalenergy_total);
+    await this._setCapabilityConditional('meter_energy_heating',  energyHeating,
+      this._energyMetered(energyHeating,  v.hours_heating));
+    await this._setCapabilityConditional('meter_energy_hotwater', energyHotwater,
+      this._energyMetered(energyHotwater, v.hours_warmwater));
+    await this._setCapabilityConditional('meter_energy_total',    energyTotal,
+      this._energyMetered(energyTotal,    v.hours_compressor1));
 
     // ── Betriebsstunden ──────────────────────────────────────────────────────
     // luxtronik2 liefert Stunden direkt als Zahl
@@ -1090,7 +1113,16 @@ class LuxtronikHeatpumpDevice extends Device {
     // ── Kühlung ───────────────────────────────────────────────────────────────
     // FreigabKuehl: 0 = gesperrt, 1 = freigegeben (Controller-Flag)
     // cooling_visibility: 'auto' | 'show' | 'hide'
-    const coolingDetected    = v.FreigabKuehl === 1;
+    // Kühlung erkennen. Die Freigabe allein reicht nicht: sie ist 0, solange
+    // die Steuerung gerade nicht kühlen darf, auch auf einem Gerät das es
+    // könnte - dann verschwanden die Kühl-Capabilities. Die
+    // Home-Assistant-Integration wertet stattdessen aus, ob je gekühlt wurde
+    // (Betriebsstundenzähler, kann nicht zurückgehen) oder ob ein Mischkreis
+    // als kühlfähig konfiguriert ist. Beides kommt hier als zusätzlicher
+    // Nachweis dazu; erkannt bleibt erkannt.
+    const coolingEverRan = (this._n(v.raw_hours_cooling) ?? 0) > 0;
+    const coolingCircuit = [p.raw_mixer1_type, p.raw_mixer2_type, p.raw_mixer3_type].some(mixerCanCool);
+    const coolingDetected    = v.FreigabKuehl === 1 || coolingEverRan || coolingCircuit;
     const coolingVisibility  = this.getSetting('cooling_visibility') ?? 'auto';
     const showCooling =
       coolingVisibility === 'show' ||
@@ -1228,26 +1260,36 @@ class LuxtronikHeatpumpDevice extends Device {
     if (lastError && lastError.code) {
       await this._setIfValid('error_reason', `${lastError.code} - ${lastError.message}`);
     }
-    // Heizungs-Status – via HEATING_STATE_MAP übersetzt
-    if (v.heatpump_extendet_state_string !== undefined) {
-      const raw  = String(v.heatpump_extendet_state_string);
+    // Heizungs-Status – über den Zustandscode (C0119) statt über den Text der
+    // Bibliothek, siehe EXTENDED_STATES in lib/luxtronik-codes.
+    if (typeof v.heatpump_state3 === 'number') {
       const lang = this.homey.i18n.getLanguage();
-      let heatingLabel;
-      if (raw.startsWith('Estrich Programm')) {
-        // Dynamischer Suffix "Stufe X - Y °C" – nur das Schlüsselwort übersetzen
-        const suffix    = raw.replace('Estrich Programm', '').trim();
-        const base      = lang === 'de' ? 'Estrich Programm' : (lang === 'nl' ? 'Dekvloerprogramma' : 'Screed Program');
+      const code = v.heatpump_state3;
+      let heatingLabel = extendedState(code, lang);
+
+      if (code === 6 && v.raw_screed_level !== undefined) {
+        // Estrichprogramm: Stufe und Solltemperatur anhängen
         const levelWord = lang === 'de' ? 'Stufe' : (lang === 'nl' ? 'Stap' : 'Level');
-        heatingLabel = base + ' ' + suffix.replace('Stufe', levelWord);
-      } else {
-        const entry = HEATING_STATE_MAP[raw];
-        heatingLabel = entry ? (entry[lang] ?? entry.en) : raw;
+        heatingLabel += ` ${levelWord} ${v.raw_screed_level} - ${v.raw_screed_temp / 10} °C`;
+      } else if (code === 7) {
+        // Abtauen: Untertyp aus den Rohregistern bestimmen
+        const variant = defrostVariant({
+          defrostValve: v.raw_defrost_valve,
+          compressor:   v.raw_compressor,
+          pumpFlow:     v.raw_pump_flow,
+        });
+        heatingLabel = defrostState(variant, lang) || heatingLabel;
       }
+
       // Kühlbetrieb überschreibt 'Heizbetrieb' (gleiche Logik wie heatpump_state oben):
       // bei aktiver Freigabe Kühlung meldet die Steuerung 'Heizbetrieb' obwohl gekühlt wird.
-      if (this._n(v.FreigabKuehl) === 1 && raw === 'Heizbetrieb') {
-        const coolEntry = HEATING_STATE_MAP.Kuehlbetrieb;
-        heatingLabel = coolEntry ? (coolEntry[lang] ?? coolEntry.en) : heatingLabel;
+      if (this._n(v.FreigabKuehl) === 1 && code === 0) {
+        heatingLabel = extendedState(10, lang) || heatingLabel;
+      }
+
+      // Unbekannter Code: auf den Text der Bibliothek zurückfallen
+      if (heatingLabel === null && v.heatpump_extendet_state_string !== undefined) {
+        heatingLabel = String(v.heatpump_extendet_state_string);
       }
       await this._setIfValid('heating_state_string', heatingLabel);
     }
@@ -1904,6 +1946,28 @@ class LuxtronikHeatpumpDevice extends Device {
     if (val === null || val === undefined || val === 'no') return null;
     const n = parseFloat(val);
     return Number.isNaN(n) ? null : n;
+  }
+
+  // Hat die Anlage einen Wärmemengenzähler für diesen Kreis?
+  //
+  // Ein Wert über null beweist ihn. Steht er auf null, entscheidet der
+  // zugehörige Betriebsstundenzähler: lief der Kreis schon lange und es kam
+  // trotzdem nichts zusammen, gibt es keinen Zähler. Sind die Betriebsstunden
+  // unbekannt - die Bibliothek blendet sie je nach Visibility-Flag aus - wird
+  // im Zweifel angezeigt, statt eine vorhandene Kachel zu entfernen.
+  _energyMetered(energy, hours) {
+    if (energy === null) return false;
+    if (energy > 0) return true;
+    const runtime = this._n(hours);
+    if (runtime === null) return true;
+    return runtime <= ENERGY_METER_MIN_HOURS;
+  }
+
+  // Temperatur wie _n(), liefert aber null für den Wert eines nicht
+  // angeschlossenen Fühlers, damit daraus keine Messung wird.
+  _temp(val) {
+    const n = this._n(val);
+    return n === UNWIRED_SENSOR_TEMPERATURE ? null : n;
   }
 
   _int(val) {
