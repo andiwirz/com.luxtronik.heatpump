@@ -297,6 +297,9 @@ class LuxtronikHeatpumpDevice extends Device {
     this._pollTimeout        = null;
     // Verhindert überlappende Polls (parallele TCP-Verbindungen)
     this._polling            = false;
+    // Merker für nachgewiesene optionale Hardware, siehe _hardwarePresent().
+    // Aus dem Store, damit die Kacheln einen App-Neustart überstehen.
+    this._hardwareSeen = (await this.getStoreValue('hardware_seen')) || {};
 
     // Flow-Trigger
     this._triggerHeatingModeChanged  = this.homey.flow.getDeviceTriggerCard('heating_operation_mode_changed');
@@ -1144,7 +1147,7 @@ class LuxtronikHeatpumpDevice extends Device {
       ['measure_flow_heat_source',        this._n(v.raw_flow_heat_source)],
     ];
     for (const [capability, value] of optional) {
-      await this._setCapabilityConditional(capability, value, value !== null && value !== 0);
+      await this._setCapabilityConditional(capability, value, await this._hardwarePresent(capability, value));
     }
 
     // ── Betriebsstunden ──────────────────────────────────────────────────────
@@ -2024,6 +2027,31 @@ class LuxtronikHeatpumpDevice extends Device {
   _scaled(val, divisor) {
     const n = this._n(val);
     return n === null ? null : Math.round((n / divisor) * 100) / 100;
+  }
+
+  // Ist die Hardware hinter dieser Capability vorhanden?
+  //
+  // Ein Wert ungleich null beweist sie — und ab dann bleibt es dabei, wie bei
+  // der Kühlungserkennung. Ohne dieses Merken wäre "0" für Momentanwerte
+  // fatal: Heizleistung ist im Leerlauf 0 W, der Durchfluss der Wärmequelle
+  // bei stehender Pumpe 0 l/h, und eine Ansaugtemperatur von 0,0 °C ist am
+  // Verdampfer ein völlig realistischer Messwert. Die Capability würde dann
+  // bei jedem Verdichtertakt entfernt und neu angelegt — und jedes Entfernen
+  // löscht die Insights-Historie, die diese Sensoren gerade interessant macht.
+  //
+  // Nur beim erstmaligen Nachweis wird geschrieben; der Merker liegt im Store,
+  // damit er einen App-Neustart überlebt und die Kachel nicht bis zum nächsten
+  // Anlauf der Wärmepumpe verschwindet.
+  async _hardwarePresent(capability, value) {
+    if (value !== null && value !== 0) {
+      if (!this._hardwareSeen[capability]) {
+        this._hardwareSeen[capability] = true;
+        try { await this.setStoreValue('hardware_seen', this._hardwareSeen); }
+        catch (e) { this.error('hardware_seen speichern fehlgeschlagen:', e.message); }
+      }
+      return true;
+    }
+    return this._hardwareSeen[capability] === true;
   }
 
   _int(val) {
