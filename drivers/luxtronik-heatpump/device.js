@@ -485,6 +485,10 @@ class LuxtronikHeatpumpDevice extends Device {
     await this._doPoll();
     this._firstPollDone = true;  // Ab jetzt dürfen onSettings-Handler schreiben
     this._startPolling();
+    // Zweites Sicherheitsnetz hinter dem Poll-Timeout: der greift nur, wenn
+    // überhaupt gepollt wird. Bleibt das Polling still stehen, merkt es sonst
+    // niemand — genau dafür ist der Watchdog da.
+    this._startWatchdog();
   }
 
   async onDeleted() {
@@ -512,193 +516,44 @@ class LuxtronikHeatpumpDevice extends Device {
     // den Controller überschreiben bevor die echten Werte geladen wurden.
     const _shouldWrite = (capabilityId) => this._firstPollDone && this.getCapabilityValue(capabilityId) !== null;
 
-    // TDI-Solltemperatur: direkt schreiben wenn Einstellung geändert wurde
-    if (changedKeys.includes('tdi_setpoint_setting') && _shouldWrite('tdi_target_temperature')) {
-      const val = parseFloat(newSettings.tdi_setpoint_setting);
-      if (val >= 50 && val <= 80) {
-        this._ensurePump();
-        await this._setTdiTargetTemperature(val).catch((e) => this.error('TDI-Solltemperatur Schreiben fehlgeschlagen:', e.message));
-      }
-    }
+    // Einstellungen, die direkt auf den Controller geschrieben werden.
+    //
+    // Alle 21 folgen demselben Ablauf: geändert? Capability schon gelesen?
+    // Wert im erlaubten Bereich? — dann schreiben. Als Tabelle steht der
+    // Wertebereich neben dem Namen, und eine neue Einstellung ist eine Zeile
+    // statt eines weiteren Kopierblocks, der von den anderen abdriften kann.
+    const CONTROLLER_SETTINGS = [
+      { setting: 'tdi_setpoint_setting',            capability: 'tdi_target_temperature',   min:  50, max: 80, write: this._setTdiTargetTemperature,   label: 'TDI-Solltemperatur' },
+      { setting: 'outdoor_temp_max_setting',        capability: 'outdoor_temp_max',         min:  10, max: 45, write: this._setOutdoorTempMax,         label: 'Max. Aussentemperatur' },
+      { setting: 'heating_limit_setting',           capability: 'heating_limit',            min:   5, max: 30, write: this._setHeatingLimit,           label: 'Heizgrenze' },
+      { setting: 'hotwater_hysteresis_setting',     capability: 'hotwater_hysteresis',      min: 0.5, max: 10, write: this._setHotwaterHysteresis,     label: 'Warmwasser-Hysterese' },
+      { setting: 'return_temp_hysteresis_setting',  capability: 'return_temp_hysteresis',   min: 0.5, max: 10, write: this._setReturnTempHysteresis,   label: 'Rücklauf-Hysterese' },
+      { setting: 'heating_curve_endpoint_setting',  capability: 'heating_curve_endpoint',   min:  20, max: 70, write: this._setHeatingCurveEndpoint,   label: 'Heizkurve Endpunkt' },
+      { setting: 'heating_curve_offset_setting',    capability: 'heating_curve_offset',     min:   5, max: 35, write: this._setHeatingCurveOffset,     label: 'Heizkurve Parallelverschiebung' },
+      { setting: 'mk1_curve_endpoint_setting',      capability: 'mk1_curve_endpoint',       min:  20, max: 70, write: this._setMk1CurveEndpoint,       label: 'MK1 Kurve Endpunkt' },
+      { setting: 'mk1_curve_offset_setting',        capability: 'mk1_curve_offset',         min:   5, max: 35, write: this._setMk1CurveOffset,         label: 'MK1 Kurve Parallelverschiebung' },
+      { setting: 'outdoor_temp_min_setting',        capability: 'outdoor_temp_min',         min: -30, max: 10, write: this._setOutdoorTempMin,         label: 'Min. Aussentemperatur' },
+      { setting: 'temp_setback_limit_setting',      capability: 'temp_setback_limit',       min: -20, max: 10, write: this._setTempSetbackLimit,       label: 'Absenk-Temperaturgrenze' },
+      { setting: 'supply_temp_limit_setting',       capability: 'supply_temp_limit',        min:  20, max: 70, write: this._setSupplyTempLimit,        label: 'Vorlauftemperatur-Grenze' },
+      { setting: 'return_temp_limit_setting',       capability: 'return_temp_limit',        min:  20, max: 65, write: this._setReturnTempLimit,        label: 'Rücklauftemperatur-Grenze' },
+      { setting: 'return_temp_min_setting',         capability: 'return_temp_min',          min:   5, max: 30, write: this._setReturnTempMin,          label: 'Rücklauftemperatur Minimum' },
+      { setting: 'delta_heating_reduction_setting', capability: 'delta_heating_reduction',  min: -15, max: 10, write: this._setDeltaHeatingReduction,  label: 'Absenkung Heizung Delta' },
+      { setting: 'delta_mk1_reduction_setting',     capability: 'delta_mk1_reduction',      min: -15, max: 10, write: this._setDeltaMk1Reduction,      label: 'Absenkung MK1 Delta' },
+      { setting: 'temp_zwe_enable_setting',         capability: 'temp_zwe_enable',          min: -20, max: 20, write: this._setTempZweEnable,          label: 'ZWE Freigabe-Temperatur' },
+      { setting: 'temp_2nd_comp_heating_setting',   capability: 'temp_2nd_comp_heating',    min: -20, max: 30, write: this._setTemp2ndCompHeating,     label: '2. Verdichter Aussentemp. Heizen' },
+      { setting: 'temp_2nd_comp_hotwater_setting',  capability: 'temp_2nd_comp_hotwater',   min:  10, max: 70, write: this._setTemp2ndCompHotwater,    label: '2. Verdichter Vorlauftemp. Warmwasser' },
+      { setting: 'cooling_release_temp_setting',    capability: 'cooling_release_temp_cap', min:  10, max: 40, write: this._setCoolingReleaseTemp,     label: 'Kühlung Freigabe-Temperatur' },
+      { setting: 'cooling_inlet_temp_setting',      capability: 'cooling_inlet_temp_cap',   min:   5, max: 30, write: this._setCoolingInletTemp,       label: 'Kühlung Einlauftemperatur' },
+    ];
 
-    // Max. Aussentemperatur: direkt schreiben wenn Einstellung geändert wurde
-    if (changedKeys.includes('outdoor_temp_max_setting') && _shouldWrite('outdoor_temp_max')) {
-      const val = parseFloat(newSettings.outdoor_temp_max_setting);
-      if (val >= 10 && val <= 45) {
-        this._ensurePump();
-        await this._setOutdoorTempMax(val).catch((e) => this.error('Max. Aussentemperatur Schreiben fehlgeschlagen:', e.message));
-      }
-    }
+    // Verbindung einmal sicherstellen statt vor jedem einzelnen Schreibvorgang.
+    if (CONTROLLER_SETTINGS.some((s) => changedKeys.includes(s.setting))) this._ensurePump();
 
-    // Heizgrenze: direkt schreiben wenn Einstellung geändert wurde
-    if (changedKeys.includes('heating_limit_setting') && _shouldWrite('heating_limit')) {
-      const val = parseFloat(newSettings.heating_limit_setting);
-      if (val >= 5 && val <= 30) {
-        this._ensurePump();
-        await this._setHeatingLimit(val).catch((e) => this.error('Heizgrenze Schreiben fehlgeschlagen:', e.message));
-      }
-    }
-
-    // Warmwasser-Hysterese: direkt schreiben wenn Einstellung geändert wurde
-    if (changedKeys.includes('hotwater_hysteresis_setting') && _shouldWrite('hotwater_hysteresis')) {
-      const val = parseFloat(newSettings.hotwater_hysteresis_setting);
-      if (val >= 0.5 && val <= 10) {
-        this._ensurePump();
-        await this._setHotwaterHysteresis(val).catch((e) => this.error('Warmwasser-Hysterese Schreiben fehlgeschlagen:', e.message));
-      }
-    }
-
-    // Rücklauf-Hysterese: direkt schreiben wenn Einstellung geändert wurde
-    if (changedKeys.includes('return_temp_hysteresis_setting') && _shouldWrite('return_temp_hysteresis')) {
-      const val = parseFloat(newSettings.return_temp_hysteresis_setting);
-      if (val >= 0.5 && val <= 10) {
-        this._ensurePump();
-        await this._setReturnTempHysteresis(val).catch((e) => this.error('Rücklauf-Hysterese Schreiben fehlgeschlagen:', e.message));
-      }
-    }
-
-    // Heizkurve Endpunkt: direkt schreiben wenn Einstellung geändert wurde
-    if (changedKeys.includes('heating_curve_endpoint_setting') && _shouldWrite('heating_curve_endpoint')) {
-      const val = parseFloat(newSettings.heating_curve_endpoint_setting);
-      if (val >= 20 && val <= 70) {
-        this._ensurePump();
-        await this._setHeatingCurveEndpoint(val).catch((e) => this.error('Heizkurve Endpunkt Schreiben fehlgeschlagen:', e.message));
-      }
-    }
-
-    // Heizkurve Parallelverschiebung: direkt schreiben wenn Einstellung geändert wurde
-    if (changedKeys.includes('heating_curve_offset_setting') && _shouldWrite('heating_curve_offset')) {
-      const val = parseFloat(newSettings.heating_curve_offset_setting);
-      if (val >= 5 && val <= 35) {
-        this._ensurePump();
-        await this._setHeatingCurveOffset(val).catch((e) => this.error('Heizkurve Parallelverschiebung Schreiben fehlgeschlagen:', e.message));
-      }
-    }
-
-    // MK1 Kurve Endpunkt: direkt schreiben wenn Einstellung geändert wurde
-    if (changedKeys.includes('mk1_curve_endpoint_setting') && _shouldWrite('mk1_curve_endpoint')) {
-      const val = parseFloat(newSettings.mk1_curve_endpoint_setting);
-      if (val >= 20 && val <= 70) {
-        this._ensurePump();
-        await this._setMk1CurveEndpoint(val).catch((e) => this.error('MK1 Kurve Endpunkt Schreiben fehlgeschlagen:', e.message));
-      }
-    }
-
-    // MK1 Kurve Parallelverschiebung: direkt schreiben wenn Einstellung geändert wurde
-    if (changedKeys.includes('mk1_curve_offset_setting') && _shouldWrite('mk1_curve_offset')) {
-      const val = parseFloat(newSettings.mk1_curve_offset_setting);
-      if (val >= 5 && val <= 35) {
-        this._ensurePump();
-        await this._setMk1CurveOffset(val).catch((e) => this.error('MK1 Kurve Parallelverschiebung Schreiben fehlgeschlagen:', e.message));
-      }
-    }
-
-    // Min. Aussentemperatur: direkt schreiben wenn Einstellung geändert wurde
-    if (changedKeys.includes('outdoor_temp_min_setting') && _shouldWrite('outdoor_temp_min')) {
-      const val = parseFloat(newSettings.outdoor_temp_min_setting);
-      if (val >= -30 && val <= 10) {
-        this._ensurePump();
-        await this._setOutdoorTempMin(val).catch((e) => this.error('Min. Aussentemperatur Schreiben fehlgeschlagen:', e.message));
-      }
-    }
-
-    // Absenk-Temperaturgrenze: direkt schreiben wenn Einstellung geändert wurde
-    if (changedKeys.includes('temp_setback_limit_setting') && _shouldWrite('temp_setback_limit')) {
-      const val = parseFloat(newSettings.temp_setback_limit_setting);
-      if (val >= -20 && val <= 10) {
-        this._ensurePump();
-        await this._setTempSetbackLimit(val).catch((e) => this.error('Absenk-Temperaturgrenze Schreiben fehlgeschlagen:', e.message));
-      }
-    }
-
-    // Vorlauftemperatur-Grenze: direkt schreiben wenn Einstellung geändert wurde
-    if (changedKeys.includes('supply_temp_limit_setting') && _shouldWrite('supply_temp_limit')) {
-      const val = parseFloat(newSettings.supply_temp_limit_setting);
-      if (val >= 20 && val <= 70) {
-        this._ensurePump();
-        await this._setSupplyTempLimit(val).catch((e) => this.error('Vorlauftemperatur-Grenze Schreiben fehlgeschlagen:', e.message));
-      }
-    }
-
-    // Rücklauftemperatur-Grenze: direkt schreiben wenn Einstellung geändert wurde
-    if (changedKeys.includes('return_temp_limit_setting') && _shouldWrite('return_temp_limit')) {
-      const val = parseFloat(newSettings.return_temp_limit_setting);
-      if (val >= 20 && val <= 65) {
-        this._ensurePump();
-        await this._setReturnTempLimit(val).catch((e) => this.error('Rücklauftemperatur-Grenze Schreiben fehlgeschlagen:', e.message));
-      }
-    }
-
-    // Rücklauftemperatur Minimum: direkt schreiben wenn Einstellung geändert wurde
-    if (changedKeys.includes('return_temp_min_setting') && _shouldWrite('return_temp_min')) {
-      const val = parseFloat(newSettings.return_temp_min_setting);
-      if (val >= 5 && val <= 30) {
-        this._ensurePump();
-        await this._setReturnTempMin(val).catch((e) => this.error('Rücklauftemperatur Minimum Schreiben fehlgeschlagen:', e.message));
-      }
-    }
-
-    // Absenkung Heizung Delta: direkt schreiben wenn Einstellung geändert wurde
-    if (changedKeys.includes('delta_heating_reduction_setting') && _shouldWrite('delta_heating_reduction')) {
-      const val = parseFloat(newSettings.delta_heating_reduction_setting);
-      if (val >= -15 && val <= 10) {
-        this._ensurePump();
-        await this._setDeltaHeatingReduction(val).catch((e) => this.error('Absenkung Heizung Delta Schreiben fehlgeschlagen:', e.message));
-      }
-    }
-
-    // Absenkung MK1 Delta: direkt schreiben wenn Einstellung geändert wurde
-    if (changedKeys.includes('delta_mk1_reduction_setting') && _shouldWrite('delta_mk1_reduction')) {
-      const val = parseFloat(newSettings.delta_mk1_reduction_setting);
-      if (val >= -15 && val <= 10) {
-        this._ensurePump();
-        await this._setDeltaMk1Reduction(val).catch((e) => this.error('Absenkung MK1 Delta Schreiben fehlgeschlagen:', e.message));
-      }
-    }
-
-    // ZWE Freigabe-Temperatur: direkt schreiben wenn Einstellung geändert wurde
-    if (changedKeys.includes('temp_zwe_enable_setting') && _shouldWrite('temp_zwe_enable')) {
-      const val = parseFloat(newSettings.temp_zwe_enable_setting);
-      if (val >= -20 && val <= 20) {
-        this._ensurePump();
-        await this._setTempZweEnable(val).catch((e) => this.error('ZWE Freigabe-Temperatur Schreiben fehlgeschlagen:', e.message));
-      }
-    }
-
-    // 2. Verdichter Aussentemp. Heizen: direkt schreiben wenn Einstellung geändert wurde
-    if (changedKeys.includes('temp_2nd_comp_heating_setting') && _shouldWrite('temp_2nd_comp_heating')) {
-      const val = parseFloat(newSettings.temp_2nd_comp_heating_setting);
-      if (val >= -20 && val <= 30) {
-        this._ensurePump();
-        await this._setTemp2ndCompHeating(val).catch((e) => this.error('2. Verdichter Aussentemp. Heizen Schreiben fehlgeschlagen:', e.message));
-      }
-    }
-
-    // 2. Verdichter Vorlauftemp. Warmwasser: direkt schreiben wenn Einstellung geändert wurde
-    if (changedKeys.includes('temp_2nd_comp_hotwater_setting') && _shouldWrite('temp_2nd_comp_hotwater')) {
-      const val = parseFloat(newSettings.temp_2nd_comp_hotwater_setting);
-      if (val >= 10 && val <= 70) {
-        this._ensurePump();
-        await this._setTemp2ndCompHotwater(val).catch((e) => this.error('2. Verdichter Vorlauftemp. Warmwasser Schreiben fehlgeschlagen:', e.message));
-      }
-    }
-
-    // Kühlung Freigabe-Temperatur: direkt schreiben wenn Einstellung geändert wurde
-    if (changedKeys.includes('cooling_release_temp_setting') && _shouldWrite('cooling_release_temp_cap')) {
-      const val = parseFloat(newSettings.cooling_release_temp_setting);
-      if (val >= 10 && val <= 40) {
-        this._ensurePump();
-        await this._setCoolingReleaseTemp(val).catch((e) => this.error('Kühlung Freigabe-Temperatur Schreiben fehlgeschlagen:', e.message));
-      }
-    }
-
-    // Kühlung Einlauftemperatur: direkt schreiben wenn Einstellung geändert wurde
-    if (changedKeys.includes('cooling_inlet_temp_setting') && _shouldWrite('cooling_inlet_temp_cap')) {
-      const val = parseFloat(newSettings.cooling_inlet_temp_setting);
-      if (val >= 5 && val <= 30) {
-        this._ensurePump();
-        await this._setCoolingInletTemp(val).catch((e) => this.error('Kühlung Einlauftemperatur Schreiben fehlgeschlagen:', e.message));
-      }
+    for (const { setting, capability, min, max, write, label } of CONTROLLER_SETTINGS) {
+      if (!changedKeys.includes(setting) || !_shouldWrite(capability)) continue;
+      const val = parseFloat(newSettings[setting]);
+      if (!(val >= min && val <= max)) continue;
+      await write.call(this, val).catch((e) => this.error(`${label} Schreiben fehlgeschlagen:`, e.message));
     }
 
     // Leistungssensor sofort aktualisieren ohne auf den nächsten Poll zu warten
@@ -745,6 +600,8 @@ class LuxtronikHeatpumpDevice extends Device {
     this._ensurePump();
     await this._doPoll();
     this._startPolling();
+    // Neu starten, damit ein geändertes Prüfintervall sofort greift.
+    this._startWatchdog();
   }
 
   // ─── Verbindung ────────────────────────────────────────────────────────────
@@ -1967,6 +1824,10 @@ class LuxtronikHeatpumpDevice extends Device {
     if (!this.hasCapability(capability)) return;
     // Write-Schutz: nach einem manuellen Schreiben kurz nicht überschreiben
     if (this._writeProtectUntil[capability] && Date.now() < this._writeProtectUntil[capability]) return;
+    // Unveränderte Werte gar nicht erst schreiben. Ein Poll setzt rund 65
+    // Capabilities, davon sind die meisten Konfigurationswerte und Zähler, die
+    // sich über Stunden nicht ändern — das spart den Grossteil der Aufrufe.
+    if (this.getCapabilityValue(capability) === value) return;
     try { await this.setCapabilityValue(capability, value); }
     catch (e) { this.error(`Fehler beim Setzen von ${capability}:`, e.message); }
   }
