@@ -29,6 +29,8 @@ class LuxtronikHeatpumpDriver extends Driver {
 
       this.log(`Testing connection to ${ip}:${port}...`);
 
+      let heatpumpType = null;
+
       const connected = await new Promise((resolve) => {
         let settled = false;
         let timer = null;
@@ -62,12 +64,16 @@ class LuxtronikHeatpumpDriver extends Driver {
 
         try {
           pump = new luxtronik.createConnection(ip, port);
-          pump.read((err) => {
+          pump.read((err, data) => {
             if (err) {
               this.error('Pair connection test failed:', err.message);
               finish(false);
             } else {
-              this.log(`Pair connection test OK: ${ip}:${port}`);
+              // Der Verbindungstest liest ohnehin einmal alles; das Modell
+              // daraus mitzunehmen kostet nichts und ergibt einen Gerätenamen,
+              // der etwas über das Gerät sagt.
+              heatpumpType = (data && data.values) ? data.values.typeHeatpump : null;
+              this.log(`Pair connection test OK: ${ip}:${port} (${heatpumpType || 'type unknown'})`);
               finish(true);
             }
           });
@@ -79,9 +85,17 @@ class LuxtronikHeatpumpDriver extends Driver {
 
       if (!connected) return false;
 
+      // Gerätename ohne IP-Adresse: die steht in den Geräteeinstellungen und
+      // gehört nicht in den Namen — sie ändert sich mit dem DHCP-Lease, und
+      // keine andere Integration schreibt sie in die Kachel. Stattdessen das
+      // Modell, sofern die Steuerung eines meldet; `createHeatPumptTypeString`
+      // liefert für unbekannte Codes 'Unbekannter Typ', was als Name nichts
+      // taugt.
+      const model = (heatpumpType && heatpumpType !== 'Unbekannter Typ') ? heatpumpType : null;
+
       // Return the full device descriptor for Homey.createDevice()
       return {
-        name: `Luxtronik @ ${ip}`,
+        name: model ? `Luxtronik ${model}` : 'Luxtronik',
         data: {
           id: `luxtronik-${ip.replace(/\./g, '-')}-${port}`,
         },
