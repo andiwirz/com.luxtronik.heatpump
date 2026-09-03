@@ -1,0 +1,18 @@
+{
+  "type": "number",
+  "title": {
+    "en": "High Pressure",
+    "de": "Hochdruck",
+    "nl": "Hogedruk",
+    "fr": "Haute pression"
+  },
+  "units": {
+    "en": "bar",
+    "de": "bar"
+  },
+  "decimals": 2,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true
+}

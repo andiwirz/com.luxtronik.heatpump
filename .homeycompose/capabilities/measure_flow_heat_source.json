@@ -1,0 +1,19 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Heat Source Flow Rate",
+    "de": "Durchfluss Wärmequelle",
+    "nl": "Debiet warmtebron",
+    "fr": "Débit source de chaleur"
+  },
+  "units": {
+    "en": "l/h",
+    "de": "l/h"
+  },
+  "decimals": 0,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true,
+  "icon": "/assets/capabilities/measure_water.svg"
+}

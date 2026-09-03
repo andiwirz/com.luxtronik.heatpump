@@ -1,0 +1,19 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Compressor 2 Hours",
+    "de": "Betriebsstunden Verdichter 2",
+    "nl": "Bedrijfsuren compressor 2",
+    "fr": "Heures compresseur 2"
+  },
+  "units": {
+    "en": "h",
+    "de": "h"
+  },
+  "decimals": 1,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true,
+  "icon": "/assets/capabilities/round-hours-icon.svg"
+}

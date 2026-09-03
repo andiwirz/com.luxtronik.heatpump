@@ -1,0 +1,18 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Suction Temperature Compressor",
+    "de": "Ansaugtemperatur Verdichter",
+    "nl": "Aanzuigtemperatuur compressor",
+    "fr": "Température d'aspiration compresseur"
+  },
+  "units": {
+    "en": "°C",
+    "de": "°C"
+  },
+  "decimals": 1,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true
+}

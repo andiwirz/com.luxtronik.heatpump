@@ -1,0 +1,19 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Total Operating Hours",
+    "de": "Betriebsstunden gesamt",
+    "nl": "Bedrijfsuren totaal",
+    "fr": "Heures de fonctionnement totales"
+  },
+  "units": {
+    "en": "h",
+    "de": "h"
+  },
+  "decimals": 1,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "insights": true,
+  "icon": "/assets/capabilities/round-hours-icon.svg"
+}
