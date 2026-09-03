@@ -256,7 +256,7 @@
 
     <div class="card">
       <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Heizung Status</span><span data-lang="en">Heating Status</span></span></div>
-      <div class="card-desc"><span data-lang="de">Detaillierter Status vom Controller, z.B. „Heizbetrieb", „Abtauen (Kreisumkehr)", „Estrich Programm Stufe 2"</span><span data-lang="en">Detailed status from controller, e.g. "Heating", "Defrost (reverse cycle)", "Screed Program Level 2"</span></div>
+      <div class="card-desc"><span data-lang="de">Detaillierter Status vom Controller, z.B. „Heizbetrieb", „Abtauen (Kreisumkehr)", „Estrich Programm Stufe 2". Der Status wird über den Statuscode der Steuerung gelesen, nicht über deutschen Text — dadurch werden auch die drei Abtau-Varianten korrekt unterschieden.</span><span data-lang="en">Detailed status from controller, e.g. "Heating", "Defrost (reverse cycle)", "Screed Program Level 2". The status is read from the controller's status code rather than by matching German text, which also tells the three defrost variants apart correctly.</span></div>
     </div>
 
     <div class="card">
@@ -281,6 +281,16 @@
     </div>
 
     <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Weitere Zähler</span><span data-lang="en">Additional Counters</span></span></div>
+      <div class="card-desc"><span data-lang="de">Betriebsstunden gesamt · Betriebsstunden Zuheizer · Verdichter-Starts. Diese drei führt jede Steuerung, sie werden immer angezeigt. Betriebsstunden Verdichter 2 nur bei Geräten mit zweitem Verdichter.</span><span data-lang="en">Total operating hours · auxiliary heater hours · compressor starts. Every controller keeps these three, so they are always shown. Compressor 2 hours only on units with a second compressor.</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Kältekreis</span><span data-lang="en">Refrigerant Circuit</span></span></div>
+      <div class="card-desc"><span data-lang="de">Hochdruck · Niederdruck (bar) · Ansaugtemperatur am Verdampfer und am Verdichter (°C) · Heizleistung (W) · Durchfluss Wärmequelle (l/h). Die Druck- und Ansaugwerte setzen einen LIN-Bus voraus; ältere Geräte ohne melden durchgehend null.</span><span data-lang="en">High pressure · low pressure (bar) · suction temperature at the evaporator and at the compressor (°C) · heat output (W) · heat source flow rate (l/h). The pressure and suction values require a LIN bus; older units without one report a flat zero.</span></div>
+    </div>
+
+    <div class="card">
       <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Weitere Werte</span><span data-lang="en">Additional Values</span></span></div>
       <div class="card-desc"><span data-lang="de">Volumenstrom (l/h) · Fehleralarm · Letzte Abfrage · Firmware-Version</span><span data-lang="en">Volume flow (l/h) · Error alarm · Last poll · Firmware version</span></div>
     </div>
@@ -294,6 +304,32 @@
       <strong><span data-lang="de">Diese beiden Werte sind Historie, kein Live-Zustand.</span><span data-lang="en">Both of these are history, not a live state.</span></strong><br>
       <span data-lang="de">Der Eintrag kann Tage alt sein und bleibt stehen, bis der Regler einen neuen schreibt — „Abschaltgrund" heisst also nicht, dass die Wärmepumpe gerade abgeschaltet ist. Ob aktuell ein Fehler ansteht, sagt allein der <strong>Fehleralarm</strong>.</span>
       <span data-lang="en">An entry can be days old and stays until the controller writes a new one — "Switch-off Reason" therefore does not mean the heat pump is off right now. Whether an error is currently active is told by the <strong>error alarm</strong> alone.</span>
+    </div>
+
+    <div class="section-title" style="margin-top:20px;"><span data-lang="de">Warum manche Kacheln fehlen</span><span data-lang="en">Why some tiles are missing</span></div>
+
+    <div class="card">
+      <div class="card-desc"><span data-lang="de">Keine zwei Luxtronik-Anlagen sind gleich verkabelt, und die Steuerung antwortet auch für Hardware, die gar nicht vorhanden ist — statt das zu melden, liefert sie einen Wert. Die App blendet die Kachel dann lieber aus, als eine Zahl anzuzeigen, die keine Messung ist.</span><span data-lang="en">No two Luxtronik installations are wired the same, and the controller answers for hardware that is not there — instead of saying so, it returns a value. The app hides the tile rather than showing a number that is not a measurement.</span></div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="settings-table">
+        <thead><tr><th><span data-lang="de">Kachel</span><span data-lang="en">Tile</span></th><th><span data-lang="de">Ausgeblendet wenn</span><span data-lang="en">Hidden when</span></th></tr></thead>
+        <tbody>
+          <tr><td class="key"><span data-lang="de">Wärmequelle Ein / Aus</span><span data-lang="en">Heat Source Inlet / Outlet</span></td><td><span data-lang="de">Die Steuerung meldet <strong>−50 °C</strong> — ihr Wert für einen nicht angeschlossenen Fühler. Luft-Wasser-Geräte haben diese Fühler gar nicht.</span><span data-lang="en">The controller reports <strong>−50 °C</strong>, its value for an unconnected sensor. Air-source units have no such sensors at all.</span></td></tr>
+          <tr><td class="key"><span data-lang="de">Wärmeenergie Heizung / Warmwasser / Gesamt</span><span data-lang="en">Energy Heating / Hot Water / Total</span></td><td><span data-lang="de">Der Zähler steht auf 0 kWh, obwohl der Kreis über einen Tag gelaufen ist — dann hat die Anlage keinen Wärmemengenzähler. Unter einem Tag Laufzeit bleibt die Kachel, denn 0 kann auch „frisch in Betrieb" heissen.</span><span data-lang="en">The counter reads 0 kWh although the circuit has run for more than a day — that unit has no heat meter. Below a day of runtime the tile stays, since 0 may simply mean "newly commissioned".</span></td></tr>
+          <tr><td class="key"><span data-lang="de">Kältekreis-Werte, Verdichter 2</span><span data-lang="en">Refrigerant circuit values, Compressor 2</span></td><td><span data-lang="de">Die Steuerung hat noch nie etwas anderes als null gemeldet.</span><span data-lang="en">The controller has never reported anything but zero.</span></td></tr>
+          <tr><td class="key"><span data-lang="de">Raumtemperatur Ist / Soll</span><span data-lang="en">Room Temperature Actual / Target</span></td><td><span data-lang="de">Keine Raumbedieneinheit (RBE) angeschlossen.</span><span data-lang="en">No RBE room unit connected.</span></td></tr>
+          <tr><td class="key"><span data-lang="de">Ansauglufttemperatur</span><span data-lang="en">Suction Air Temperature</span></td><td><span data-lang="de">Keine Luft-Wasser-Wärmepumpe.</span><span data-lang="en">Not an air-source unit.</span></td></tr>
+          <tr><td class="key"><span data-lang="de">Kühl-Kacheln</span><span data-lang="en">Cooling tiles</span></td><td><span data-lang="de">Siehe Kühlungserkennung im Tab <em>Funktionen</em>.</span><span data-lang="en">See cooling detection in the <em>Functions</em> tab.</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="infobox">
+      <strong><span data-lang="de">Einmal nachgewiesen, bleibt sichtbar.</span><span data-lang="en">Once detected, it stays.</span></strong><br>
+      <span data-lang="de">Hat ein Fühler einmal einen echten Wert geliefert, behält er seine Kachel — auch wenn der Wert später wieder null wird. Die Heizleistung ist im Stillstand des Verdichters legitim 0 W, der Durchfluss der Wärmequelle bei stehender Pumpe 0 l/h. Eine Kachel, die mit jedem Takt käme und ginge, würde jedes Mal ihre Insights-Historie verlieren.</span>
+      <span data-lang="en">Once a sensor has reported a real value it keeps its tile, even when the value later returns to zero. Heat output is legitimately 0 W while the compressor rests and the heat source flow 0 l/h while the pump is off. A tile that came and went with every cycle would lose its Insights history each time.</span>
     </div>
   </div>
 </div>
@@ -550,13 +586,28 @@
     <div class="func-card">
       <div class="func-head"><span class="func-head-icon">🔒</span><span class="func-head-title"><span data-lang="de">Verbindungs-Watchdog</span><span data-lang="en">Connection Watchdog</span></span></div>
       <div class="func-body">
+        <p><span data-lang="de">Zwei voneinander unabhängige Netze, weil sie verschiedene Fehler abfangen.</span><span data-lang="en">Two independent safety nets, because they catch different failures.</span></p>
         <ul class="func-steps">
-          <li><span class="step-num">1</span><span data-lang="de"><strong>Poll-Timeout (Standard 30 s):</strong> Keine Antwort → Gerät sofort unavailable</span><span data-lang="en"><strong>Poll timeout (default 30 s):</strong> No response → device immediately unavailable</span></li>
-          <li><span class="step-num">2</span><span data-lang="de"><strong>Watchdog-Timer:</strong> Prüft alle 60 s, ob der letzte Poll zu lange zurückliegt (3× Intervall)</span><span data-lang="en"><strong>Watchdog timer:</strong> Checks every 60 s whether the last poll is too old (3× interval)</span></li>
+          <li><span class="step-num">1</span><span data-lang="de"><strong>Poll-Timeout (Standard 30 s):</strong> Keine Antwort → Gerät sofort unavailable. Greift nur bei einer Abfrage, die tatsächlich läuft. Der eingestellte Wert wird knapp unter das Abfrageintervall geklemmt, damit eine langsame Abfrage nie mit der nächsten kollidiert.</span><span data-lang="en"><strong>Poll timeout (default 30 s):</strong> No response → device immediately unavailable. Only fires for a poll that is actually running. The configured value is capped just below the poll interval so a slow poll can never collide with the next one.</span></li>
+          <li><span class="step-num">2</span><span data-lang="de"><strong>Watchdog-Timer:</strong> Prüft regelmässig, ob der letzte erfolgreiche Poll zu lange zurückliegt. Das ist das Netz für den Fall, den der Poll-Timeout nicht sehen kann — dass das Abfragen ganz aussetzt.</span><span data-lang="en"><strong>Watchdog timer:</strong> Checks periodically whether the last successful poll is too far in the past. This is the net for the case the poll timeout cannot see — polling having stopped altogether.</span></li>
           <li><span class="step-num">3</span><span data-lang="de">Gerät wird automatisch wieder available wenn der Controller antwortet</span><span data-lang="en">Device automatically becomes available again when the controller responds</span></li>
           <li><span class="step-num">4</span><span data-lang="de">Ein laufender Poll blockiert den nächsten — es wird nie mehr als eine Verbindung gleichzeitig geöffnet</span><span data-lang="en">A running poll blocks the next one — never more than one connection at a time</span></li>
+          <li><span class="step-num">5</span><span data-lang="de">Verbindungen haben ein eigenes Zeitlimit. Ohne das bleibt ein Socket für immer offen, wenn der Regler die Verbindung annimmt und dann verstummt — und da er nur einen Client bedient, macht jedes solche Leck den nächsten Versuch anfälliger.</span><span data-lang="en">Connections carry their own timeout. Without one, a socket stays open forever when the controller accepts the connection and then goes quiet — and since it serves only one client, every such leak makes the next attempt more likely to hang too.</span></li>
         </ul>
         <div class="infobox"><span data-lang="de">Alle drei Zeitwerte sind unter <strong>Geräteeinstellungen → Verbindung</strong> anpassbar.</span><span data-lang="en">All three timings are adjustable under <strong>Device Settings → Connection</strong>.</span></div>
+      </div>
+    </div>
+
+    <div class="func-card">
+      <div class="func-head"><span class="func-head-icon">❄️</span><span class="func-head-title"><span data-lang="de">Kühlungserkennung</span><span data-lang="en">Cooling Detection</span></span></div>
+      <div class="func-body">
+        <p><span data-lang="de">Die Freigabe allein genügt nicht: sie steht auf 0, solange der Regler gerade nicht kühlen darf — auch auf einem Gerät, das es könnte. Dann verschwanden die Kühl-Kacheln mitten in der Saison. Die App wertet deshalb drei unabhängige Nachweise aus, und <strong>erkannt bleibt erkannt</strong>.</span><span data-lang="en">The release flag alone is not enough: it reads 0 whenever the controller is not currently allowed to cool, even on a unit that can. The cooling tiles then vanished mid-season. The app therefore accepts three independent pieces of evidence, and <strong>what has been detected stays detected</strong>.</span></p>
+        <ul class="func-steps">
+          <li><span class="step-num">1</span><span data-lang="de"><strong>FreigabKuehl = 1</strong> — Kühlung ist gerade freigegeben</span><span data-lang="en"><strong>FreigabKuehl = 1</strong> — cooling is released right now</span></li>
+          <li><span class="step-num">2</span><span data-lang="de"><strong>Betriebsstundenzähler Kühlung &gt; 0</strong> — die Anlage hat schon einmal gekühlt, und der Zähler kann nicht zurückgehen</span><span data-lang="en"><strong>Cooling hours counter &gt; 0</strong> — the unit has cooled at some point, and that counter cannot go back</span></li>
+          <li><span class="step-num">3</span><span data-lang="de"><strong>Mischkreis kühlfähig konfiguriert</strong> (Parameter 42, 130 oder 780)</span><span data-lang="en"><strong>A mixing circuit configured as cooling-capable</strong> (parameters 42, 130 or 780)</span></li>
+        </ul>
+        <div class="infobox"><span data-lang="de">Überschreibbar über <strong>Geräteeinstellungen → Kühlung → Sichtbarkeit</strong>: „Immer anzeigen" oder „Immer ausblenden".</span><span data-lang="en">Overridable under <strong>Device Settings → Cooling → visibility</strong>: "Always show" or "Always hide".</span></div>
       </div>
     </div>
   </div>
@@ -673,6 +724,11 @@
       </table>
     </div>
     <div class="infobox"><strong><span data-lang="de">Tipp:</span><span data-lang="en">Tip:</span></strong> <span data-lang="de">DHCP-Reservierung im Router einrichten für eine stabile IP-Adresse.</span><span data-lang="en">Set up a DHCP reservation in your router for a stable IP address.</span></div>
+
+    <div class="card" style="margin-top:10px;">
+      <div class="card-header"><span class="card-name"><span data-lang="de">Gerät hinzufügen</span><span data-lang="en">Adding a device</span></span></div>
+      <div class="card-desc"><span data-lang="de">Der Verbindungstest bricht nach 15 Sekunden mit einer klaren Fehlermeldung ab, statt endlos zu drehen, und schliesst die aufgegebene Verbindung — ein sofortiger zweiter Versuch scheitert also nicht an ihr. Das neue Gerät wird nach dem Modell benannt, das die Steuerung meldet, etwa <strong>Luxtronik LWC</strong>. Meldet sie ein unbekanntes Modell, heisst es schlicht <strong>Luxtronik</strong>. Die IP-Adresse steht bewusst nicht im Namen: sie gehört in die Geräteeinstellungen und wäre veraltet, sobald sich der DHCP-Lease ändert. Bestehende Geräte behalten ihren Namen.</span><span data-lang="en">The connection test gives up after 15 seconds with a clear error instead of spinning indefinitely, and closes the abandoned connection — so an immediate retry is not blocked by it. The new device is named after the model the controller reports, for example <strong>Luxtronik LWC</strong>. If it reports a model the library does not know, the name is simply <strong>Luxtronik</strong>. The IP address is deliberately not part of the name: it belongs in the device settings and would go stale the moment the DHCP lease changes. Existing devices keep their name.</span></div>
+    </div>
   </div>
 
   <div class="section">

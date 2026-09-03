@@ -48,8 +48,14 @@ This app communicates with the **Luxtronik 2.0 / 2.1** controller, which is buil
 | <img src="assets/capabilities/measure_temp_outdoor.svg" width="24"> | Suction Air Temperature | Air-source heat pumps only |
 | <img src="assets/capabilities/measure_temperature.svg" width="24"> | Room Temperature Actual / Target | Only with connected RBE room display |
 | <img src="assets/capabilities/flow.svg" width="24"> | Volume Flow | l/h (heat source) |
-| <img src="assets/capabilities/energy.svg" width="24"> | Energy Heating / Hot Water / Total | kWh (from controller) |
+| <img src="assets/capabilities/energy.svg" width="24"> | Energy Heating / Hot Water / Total | kWh (from controller, only on units with a heat meter) |
 | <img src="assets/capabilities/round-hours-icon.svg" width="24"> | Operating Hours Compressor / Heating / Hot Water / Cooling | Hours |
+| <img src="assets/capabilities/round-hours-icon.svg" width="24"> | Total Operating Hours · Auxiliary Heater Hours · Compressor Starts | Counters every controller keeps |
+| <img src="assets/capabilities/round-hours-icon.svg" width="24"> | Compressor 2 Hours | Only on units with a second compressor |
+| <img src="assets/capabilities/temperature.svg" width="24"> | High / Low Pressure | Refrigerant circuit, bar — needs a LIN bus |
+| <img src="assets/capabilities/temperature.svg" width="24"> | Suction Temperature Evaporator / Compressor | Refrigerant circuit — needs a LIN bus |
+| <img src="assets/capabilities/meter_power.svg" width="24"> | Heat Output | Current thermal output in W |
+| <img src="assets/capabilities/measure_water.svg" width="24"> | Heat Source Flow Rate | l/h at the heat source |
 | <img src="assets/capabilities/heating_curve.svg" width="24"> | Heating Curve Endpoint / Offset | Heating curve parameters |
 | <img src="assets/capabilities/heating_curve.svg" width="24"> | MK1 Curve Endpoint / Offset | MK1 mixed circuit parameters |
 | <img src="assets/capabilities/heating_limit.svg" width="24"> | Heating Limit | Outdoor temperature limit for heating |
@@ -71,6 +77,21 @@ This app communicates with the **Luxtronik 2.0 / 2.1** controller, which is buil
 > **Switch-off Reason and Last Error are history, not live state.** The controller keeps two five-entry ring buffers and the app shows the newest record of each. An entry can be days old and stays until the controller writes a new one, so "Switch-off Reason" does not mean the heat pump is off right now — only **Error Alarm** reports a currently active fault. The buffers are not returned in chronological order, so the newest entry is picked by timestamp rather than by position.
 >
 > Switch-off codes are translated from [`lib/luxtronik-codes.js`](lib/luxtronik-codes.js): the bundled library only maps codes 0–9 and only to German, while controllers emit codes up to 27. Codes the controller leaves unassigned fall back to the library's text.
+
+### Why some tiles are missing
+
+No two Luxtronik installations are wired the same, and the controller answers for hardware it does not have rather than saying so. The app therefore hides a tile instead of showing a number that is not a measurement:
+
+| Tile | Hidden when |
+|------|-------------|
+| Heat Source Inlet / Outlet | The controller reports **−50 °C**, its value for an unconnected sensor. Air-source units have no such sensors at all. |
+| Energy Heating / Hot Water / Total | The counter reads 0 kWh although the circuit has run for more than a day — that unit has no heat meter. Below a day of runtime the tile stays, since 0 may simply mean "newly commissioned". |
+| Refrigerant pressures, suction temperatures, Compressor 2 Hours, Heat Output, Heat Source Flow Rate | The controller has never reported anything but zero. |
+| Room Temperature Actual / Target | No RBE room unit is connected. |
+| Suction Air Temperature | Not an air-source unit. |
+| Cooling tiles | See *Cooling Mode* below. |
+
+Once a sensor has reported a real value its tile stays, even when the value legitimately returns to zero. Heat output is 0 W whenever the compressor rests and the heat source flow is 0 l/h whenever the pump is off — a tile that came and went with every cycle would lose its Insights history each time.
 
 ### Controllable Values
 
@@ -165,9 +186,15 @@ The visibility of cooling capabilities is controlled via the device setting **"C
 
 | Option | Behaviour |
 |--------|-----------|
-| **Auto** *(default)* | Show when the controller reports cooling as available (`FreigabKuehl = 1`) |
-| **Always show** | Always visible, regardless of `FreigabKuehl` — useful when cooling disappears from the tile after the cooling season ends |
+| **Auto** *(default)* | Show when the app detects cooling — see below |
+| **Always show** | Always visible, regardless of detection — useful when cooling disappears from the tile after the cooling season ends |
 | **Always hide** | Never visible — useful if your heat pump supports cooling but you don't use it |
+
+**How cooling is detected.** The release flag `FreigabKuehl` alone is not enough: it reads 0 whenever the controller is not currently allowed to cool, even on a unit that can, and the cooling tiles then vanished mid-season. The app therefore accepts three independent pieces of evidence, and **what has been detected stays detected**:
+
+- `FreigabKuehl = 1` — cooling is released right now
+- The cooling operating-hours counter is above zero — the unit has cooled at some point, and that counter cannot go back
+- A mixing circuit is configured as cooling-capable (`LuxMkTypes` 3 or 4)
 
 Changes are applied immediately. On some controllers (e.g. MSW2-6S), the heat pump state is also automatically corrected: when `FreigabKuehl = 1` but the controller still reports state3=0 ("Heating"), the app overrides it to "Cooling".
 
@@ -221,11 +248,14 @@ Timeline entries are written in the Homey interface language (German or English)
 
 ## Connection Watchdog
 
-- **Poll Timeout (30s):** No response within 30 seconds → device immediately marked as unavailable
-- **Watchdog Timer:** Checks periodically whether the last successful poll is too far in the past (threshold: 3× polling interval, configurable)
+Two independent safety nets, because they catch different failures:
+
+- **Poll Timeout (30 s):** No response within the timeout → device immediately marked as unavailable. This only fires for a poll that is actually running. The configured value is capped just below the poll interval, so a slow poll can never collide with the next one.
+- **Watchdog Timer:** Checks periodically whether the last successful poll is too far in the past (threshold: 3× polling interval, check interval and threshold both configurable). This is the net for the case the poll timeout cannot see — polling having stopped altogether.
 - **Last Poll:** Capability shows the time of the last successful poll in local time
 - Device is automatically marked as available again as soon as the controller responds
 - A poll that is still running blocks the next one. The controller does not tolerate parallel TCP connections, so the app never opens more than one at a time.
+- Connections carry their own inactivity timeout. Without one, a controller that accepts the connection and then goes quiet leaves the socket open forever — and since the controller serves only one client, every such leak makes the next attempt more likely to hang too.
 
 ---
 
@@ -283,6 +313,10 @@ The pairing view and device settings page default to **English**. German is avai
 2. Add device: **Devices → + → Luxtronik Heat Pump Manager**
 3. Enter IP address and port (default: 8889)
 4. Connection test – if successful, the device is created
+
+The connection test gives up after 15 seconds and reports a clear failure rather than spinning indefinitely, and it closes the abandoned connection so an immediate retry is not blocked by it.
+
+The new device is named after the model the controller reports — `Luxtronik LWC`, for example — falling back to plain `Luxtronik` when the controller reports a model the library does not know. The IP address is deliberately not part of the name: it belongs in the device settings and would go stale the moment the DHCP lease changes. Existing devices keep the name they were given; Homey stores it at creation.
 
 ### Device Settings
 
