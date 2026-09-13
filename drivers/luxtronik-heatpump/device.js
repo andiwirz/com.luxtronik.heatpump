@@ -404,14 +404,22 @@ class LuxtronikHeatpumpDevice extends Device {
     this.homey.flow.getActionCard('start_hotwater_boost')
       .registerRunListener(async (args) => this._startHotwaterBoost(parseInt(args.duration, 10)));
 
+    // _endBoost() wirft nicht, damit ein Fehlschlag den Poll nicht abbricht —
+    // in einer Flow-Aktion soll er aber sichtbar sein.
     this.homey.flow.getActionCard('stop_hotwater_boost')
-      .registerRunListener(async () => this._stopHotwaterBoost());
+      .registerRunListener(async () => {
+        const err = await this._stopHotwaterBoost();
+        if (err) throw err;
+      });
 
     this.homey.flow.getActionCard('start_hotwater_boost_party')
       .registerRunListener(async (args) => this._startHotwaterBoostParty(parseInt(args.duration, 10)));
 
     this.homey.flow.getActionCard('stop_hotwater_boost_party')
-      .registerRunListener(async () => this._stopHotwaterBoostParty());
+      .registerRunListener(async () => {
+        const err = await this._stopHotwaterBoostParty();
+        if (err) throw err;
+      });
 
 
     this.homey.flow.getActionCard('enable_thermal_disinfection')
@@ -454,7 +462,10 @@ class LuxtronikHeatpumpDevice extends Device {
       if (v) {
         await this._startHotwaterBoostParty(Number(s.hotwater_boost_duration) || 60);
       } else {
-        await this._stopHotwaterBoostParty();
+        // Fehlschlag weitergeben, damit Homey den Schalter nicht stillschweigend
+        // als umgelegt bestätigt.
+        const err = await this._stopHotwaterBoostParty();
+        if (err) throw err;
       }
     });
 
@@ -467,7 +478,8 @@ class LuxtronikHeatpumpDevice extends Device {
         const s = this.getSettings();
         await this._startHotwaterBoost(Number(s.hotwater_boost_duration) || 60);
       } else {
-        await this._stopHotwaterBoost();
+        const err = await this._stopHotwaterBoost();
+        if (err) throw err;
       }
     });
 
@@ -898,8 +910,9 @@ class LuxtronikHeatpumpDevice extends Device {
       const targetTemp  = this._n(v.temperature_hot_water_target) ?? this.getCapabilityValue('target_temperature');
       if (currentTemp !== null && targetTemp !== null && currentTemp >= targetTemp) {
         this.log(`Schnelladung: Zieltemperatur ${targetTemp}°C erreicht (${currentTemp}°C) — beende automatisch`);
+        // _endBoost() löst den Trigger selbst aus; ein zweiter Aufruf hier liess
+        // Nutzerflows bei jedem automatischen Stopp doppelt laufen.
         await this._stopHotwaterBoost();
-        await this._triggerBoostEnded.trigger(this, {}).catch(() => {});
       }
     }
     // Brauchwasser Schnellladung (Party): automatisch beenden wenn Zieltemperatur erreicht
@@ -909,7 +922,6 @@ class LuxtronikHeatpumpDevice extends Device {
       if (currentTempP !== null && targetTempP !== null && currentTempP >= targetTempP) {
         this.log(`Schnellladung (Party): Zieltemperatur ${targetTempP}°C erreicht (${currentTempP}°C) — beende automatisch`);
         await this._stopHotwaterBoostParty();
-        await this._triggerBoostPartyEnded.trigger(this, {}).catch(() => {});
       }
     }
     // Thermische Desinfektion: automatisch deaktivieren wenn Zieltemperatur erreicht
@@ -1626,26 +1638,59 @@ class LuxtronikHeatpumpDevice extends Device {
     await this._notify(this._tl(`💧 Schnellladung gestartet (${duration} min)`, `💧 Hot water boost started (${duration} min)`));
 
     // Auto-Reset nach konfigurierbarer Zeit
-    this._boostTimer = setTimeout(async () => {
+    this._boostTimer = setTimeout(() => {
       this.log(`Schnelladung beendet (${duration} min), schalte zurück auf Automatik`);
-      this._boostTimer = null;
-      await this._setWarmwaterOperationMode(0).catch((e) => this.error('Boost-Reset fehlgeschlagen:', e.message));
-      await this.setCapabilityValue('hotwater_boost', false).catch(() => {});
-      await this._triggerBoostEnded.trigger(this, {}).catch(() => {});
-      await this._notify(this._tl('💧 Schnellladung beendet', '💧 Hot water boost ended'));
+      // _endBoost() löscht den (bereits abgelaufenen) Timer selbst und weiss
+      // dadurch, dass eine Ladung lief — Trigger und Meldung kommen genau einmal.
+      this._endBoost('aux');
     }, duration * 60 * 1000);
   }
 
-  async _stopHotwaterBoost() {
-    this.log('Schnelladung manuell gestoppt');
-    if (this._boostTimer) {
-      clearTimeout(this._boostTimer);
-      this._boostTimer = null;
-      await this._triggerBoostEnded.trigger(this, {}).catch(() => {});
-      await this._notify(this._tl('💧 Schnellladung beendet', '💧 Hot water boost ended'));
+  // Beendet eine laufende Schnellladung — die einzige Stelle, an der das passiert.
+  //
+  // Vorher gab es diese Logik doppelt: im Auto-Reset-Timer sorgfältig
+  // abgesichert, in _stopHotwaterBoost() ohne jedes catch. Schlug dort das
+  // Zurückschalten fehl — Write-Timeouts kommen an diesem Controller vor —,
+  // war der Timer bereits gelöscht, die Capability blieb auf true und die
+  // Wärmepumpe im Zuheizer-Modus. Nichts schaltete sie je zurück. Aufgerufen
+  // aus _processData brach die Ablehnung zusätzlich den restlichen Poll ab.
+  //
+  // Gibt den Schreibfehler zurück statt ihn zu werfen: der Poll soll
+  // weiterlaufen, eine Flow-Aktion den Fehlschlag aber melden können.
+  async _endBoost(kind) {
+    const cfg = kind === 'party'
+      ? {
+        timer: '_boostPartyTimer', capability: 'hotwater_boost_party', trigger: this._triggerBoostPartyEnded,
+        label: 'Schnellladung (Party)', message: this._tl('🎉 Schnellladung (Party) beendet', '🎉 Hot water boost (party) ended'),
+      }
+      : {
+        timer: '_boostTimer', capability: 'hotwater_boost', trigger: this._triggerBoostEnded,
+        label: 'Schnellladung', message: this._tl('💧 Schnellladung beendet', '💧 Hot water boost ended'),
+      };
+
+    const wasRunning = this[cfg.timer] !== null;
+    if (this[cfg.timer]) { clearTimeout(this[cfg.timer]); this[cfg.timer] = null; }
+
+    let writeError = null;
+    await this._setWarmwaterOperationMode(0).catch((e) => {
+      writeError = e;
+      this.error(`${cfg.label}: Zurückschalten auf Automatik fehlgeschlagen:`, e.message);
+    });
+    await this.setCapabilityValue(cfg.capability, false).catch(() => {});
+
+    // Trigger und Benachrichtigung nur wenn tatsächlich eine Ladung lief — und
+    // genau einmal. Beim automatischen Stopp löste _processData den Trigger
+    // nach dem Aufruf noch ein zweites Mal aus.
+    if (wasRunning) {
+      await cfg.trigger.trigger(this, {}).catch(() => {});
+      await this._notify(cfg.message);
     }
-    await this._setWarmwaterOperationMode(0);
-    await this.setCapabilityValue('hotwater_boost', false);
+    return writeError;
+  }
+
+  async _stopHotwaterBoost() {
+    this.log('Schnelladung gestoppt');
+    return this._endBoost('aux');
   }
 
   async _startHotwaterBoostParty(durationMinutes) {
@@ -1661,26 +1706,15 @@ class LuxtronikHeatpumpDevice extends Device {
     await this._triggerBoostPartyStarted.trigger(this, { duration }).catch(() => {});
     await this._notify(this._tl(`🎉 Schnellladung (Party) gestartet (${duration} min)`, `🎉 Hot water boost (party) started (${duration} min)`));
     // Auto-Reset nach konfigurierbarer Zeit
-    this._boostPartyTimer = setTimeout(async () => {
+    this._boostPartyTimer = setTimeout(() => {
       this.log(`Schnellladung (Party) beendet (${duration} min), schalte zurück auf Automatik`);
-      this._boostPartyTimer = null;
-      await this._setWarmwaterOperationMode(0).catch((e) => this.error('Party-Boost-Reset fehlgeschlagen:', e.message));
-      await this.setCapabilityValue('hotwater_boost_party', false).catch(() => {});
-      await this._triggerBoostPartyEnded.trigger(this, {}).catch(() => {});
-      await this._notify(this._tl('🎉 Schnellladung (Party) beendet', '🎉 Hot water boost (party) ended'));
+      this._endBoost('party');
     }, duration * 60 * 1000);
   }
 
   async _stopHotwaterBoostParty() {
-    this.log('Schnellladung (Party) manuell gestoppt');
-    if (this._boostPartyTimer) {
-      clearTimeout(this._boostPartyTimer);
-      this._boostPartyTimer = null;
-      await this._triggerBoostPartyEnded.trigger(this, {}).catch(() => {});
-      await this._notify(this._tl('🎉 Schnellladung (Party) beendet', '🎉 Hot water boost (party) ended'));
-    }
-    await this._setWarmwaterOperationMode(0);
-    await this.setCapabilityValue('hotwater_boost_party', false);
+    this.log('Schnellladung (Party) gestoppt');
+    return this._endBoost('party');
   }
 
   async _setThermalDisinfectionContinuous(enabled) {

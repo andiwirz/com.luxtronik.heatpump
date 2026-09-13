@@ -1,0 +1,37 @@
+name: CI
+
+# Läuft bei jedem Push auf main und bei jedem Pull Request. Die App hat mehrere
+# Beiträge von aussen bekommen; damit sieht man vor dem Merge, ob Lint, Tests
+# und die Homey-Validierung noch durchlaufen.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Abhängigkeiten installieren
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests
+        run: npm test
+
+      # Die Validierung braucht die Homey CLI, aber keinen angemeldeten Account
+      # und kein Homey im Netz.
+      - name: Homey CLI installieren
+        run: npm install --no-save homey
+
+      - name: App validieren (publish-Stufe)
+        run: npx homey app validate --level publish

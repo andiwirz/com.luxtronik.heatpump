@@ -8,7 +8,8 @@
     "validate": "homey app validate",
     "build": "homey app build",
     "publish": "homey app publish",
-    "install-clean": "npm install && npm audit fix"
+    "install-clean": "npm install && npm audit fix",
+    "test": "node --test test/"
   },
   "keywords": [
     "homey",
