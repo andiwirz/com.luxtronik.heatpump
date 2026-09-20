@@ -45,7 +45,12 @@ test('jede setzbare Capability hat einen Listener', () => {
 test('keine private Methode ist unerreichbar', () => {
   // _startWatchdog() war fünf Monate definiert, aber nie aufgerufen — die
   // beiden Watchdog-Einstellungen waren dadurch wirkungslos.
-  const lifecycle = ['onInit', 'onDeleted', 'onSettings', 'onAdded', 'onRenamed', 'onUninit'];
+  // Von Homey aufgerufen, nicht von der App — hier also erwartbar ohne
+  // Aufrufstelle im eigenen Code.
+  const lifecycle = [
+    'onInit', 'onDeleted', 'onSettings', 'onAdded', 'onRenamed', 'onUninit',
+    'onDiscoveryResult', 'onDiscoveryAvailable', 'onDiscoveryAddressChanged', 'onDiscoveryLastSeenChanged',
+  ];
   const methods = [...device.matchAll(/^ {2}(?:async )?([A-Za-z_][A-Za-z0-9_]*)\s*\(/gm)].map((m) => m[1]);
   const dead = methods.filter((m) => {
     if (lifecycle.includes(m)) return false;

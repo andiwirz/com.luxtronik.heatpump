@@ -85,6 +85,44 @@
     }
     .btn:hover { background: #2c5282; }
     .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    /* Die Suche ist der angebotene Weg, das Verbinden bleibt die Bestätigung —
+       deshalb hier zurückhaltender als der Hauptknopf. */
+    .btn-search {
+      background: #fff;
+      color: #2b6cb0;
+      border: 1px solid #bee3f8;
+      margin-bottom: 4px;
+    }
+    .btn-search:hover { background: #ebf8ff; }
+    .found-list { margin: 8px 0 14px; }
+    .found-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .found-item:hover { border-color: #2b6cb0; background: #f7fafc; }
+    .found-item.selected { border-color: #2b6cb0; background: #ebf8ff; }
+    .found-addr { font-weight: 600; color: #2d3748; }
+    .found-tag {
+      margin-left: auto;
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+    .tag-confirmed { background: #c6f6d5; color: #22543d; }
+    .tag-candidate { background: #fefcbf; color: #744210; }
+    .found-empty { font-size: 12px; color: #718096; padding: 6px 2px; }
     .status {
       text-align: center;
       font-size: 12px;
@@ -107,8 +145,13 @@
 
   <div class="info-box">
     ℹ️ The Luxtronik controller must be reachable on your local network.<br>
-    A static IP address is recommended (DHCP reservation in your router).
+    Search for it below, or enter its address by hand.
   </div>
+
+  <button class="btn btn-search" id="btn-search" onclick="searchNetwork()">
+    🔍 Search network
+  </button>
+  <div class="found-list" id="found-list"></div>
 
   <div class="form-group">
     <label for="ip">IP Address</label>
@@ -160,6 +203,93 @@
       setStatus(loading ? 'Testing connection…' : '');
     }
 
+    // MAC der ausgewählten Fundstelle. Wird beim Verbinden mitgegeben, damit das
+    // Gerät seine Adresse später selbst nachführen kann.
+    var selectedMac = null;
+
+    function searchNetwork() {
+      var btn  = document.getElementById('btn-search');
+      var list = document.getElementById('found-list');
+      hideError();
+      btn.disabled = true;
+      btn.textContent = 'Searching…';
+      list.innerHTML = '';
+      setStatus('Looking for controllers on your network…');
+
+      var count = null;
+      Homey.emit('discover')
+        .then(function (found) {
+          count = (found || []).length;
+          renderFound(found || []);
+        })
+        .catch(function (err) {
+          showError('Search failed: ' + (err && err.message ? err.message : err));
+        })
+        .then(function () {
+          btn.disabled = false;
+          btn.textContent = '🔍 Search network';
+          // Rückmeldung stehen lassen: eine kommentarlos erscheinende Liste
+          // lässt offen, ob die Suche überhaupt gelaufen ist — besonders beim
+          // zweiten Versuch.
+          if (count === null) setStatus('');
+          else if (count === 0) setStatus('Search finished — nothing found.');
+          else setStatus(count === 1 ? '1 controller found.' : count + ' controllers found.');
+        });
+    }
+
+    function renderFound(found) {
+      var list = document.getElementById('found-list');
+      list.innerHTML = '';
+
+      if (!found.length) {
+        var empty = document.createElement('div');
+        empty.className = 'found-empty';
+        empty.textContent = 'Nothing found. Enter the IP address below — some controllers do not answer a search.';
+        list.appendChild(empty);
+        return;
+      }
+
+      // Bestätigte zuerst: auf die hat wirklich eine Luxtronik geantwortet.
+      found.sort(function (a, b) { return (b.confirmed ? 1 : 0) - (a.confirmed ? 1 : 0); });
+
+      found.forEach(function (dev) {
+        var item = document.createElement('button');
+        item.className = 'found-item';
+        item.type = 'button';
+        // Adresse am Element hinterlegen: der sichtbare Text trägt zusätzlich
+        // den Port und taugt deshalb nicht zum Vergleich.
+        item.setAttribute('data-address', dev.address);
+
+        var addr = document.createElement('span');
+        addr.className = 'found-addr';
+        // Port mit anzeigen: meldet ein Regler einen abweichenden, springt sonst
+        // unten das Port-Feld um, ohne dass ersichtlich wäre warum.
+        addr.textContent = dev.port ? (dev.address + ':' + dev.port) : dev.address;
+        item.appendChild(addr);
+
+        var tag = document.createElement('span');
+        tag.className = 'found-tag ' + (dev.confirmed ? 'tag-confirmed' : 'tag-candidate');
+        // Ein Kandidat stammt allein aus der MAC-Erkennung: die findet die
+        // Netzwerkkarte, nicht die Wärmepumpe.
+        tag.textContent = dev.confirmed ? 'Luxtronik' : 'possible';
+        item.appendChild(tag);
+
+        item.onclick = function () { selectFound(dev, item); };
+        list.appendChild(item);
+      });
+    }
+
+    function selectFound(dev, item) {
+      document.querySelectorAll('.found-item').forEach(function (el) {
+        el.classList.remove('selected');
+      });
+      item.classList.add('selected');
+      document.getElementById('ip').value = dev.address;
+      if (dev.port) document.getElementById('port').value = dev.port;
+      selectedMac = dev.mac || null;
+      hideError();
+    }
+
     function connect() {
       var ip   = document.getElementById('ip').value.trim();
       var port = parseInt(document.getElementById('port').value, 10);
@@ -177,8 +307,14 @@
 
       setLoading(true);
 
+      // Die MAC nur mitgeben, wenn die Adresse noch die der Fundstelle ist —
+      // tippt jemand danach eine andere ein, gehört die MAC nicht mehr dazu.
+      var mac = selectedMac;
+      var picked = document.querySelector('.found-item.selected');
+      if (!picked || picked.getAttribute('data-address') !== ip) mac = null;
+
       // emit → driver.js session.setHandler('connect') → returns device object or false
-      Homey.emit('connect', { ip: ip, port: port })
+      Homey.emit('connect', { ip: ip, port: port, mac: mac })
         .then(function(device) {
           if (!device) {
             setLoading(false);

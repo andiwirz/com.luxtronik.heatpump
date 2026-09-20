@@ -304,17 +304,29 @@ The pairing view and device settings page default to **English**. German is avai
 ### Requirements
 
 - Luxtronik 2.0 / 2.1 controller reachable via LAN
-- Static IP address recommended (set up DHCP reservation in your router)
 - Default port: **8889** (TCP)
 
 ### Setup in Homey
 
 1. Install the app from the Homey App Store
 2. Add device: **Devices → + → Luxtronik Heat Pump Manager**
-3. Enter IP address and port (default: 8889)
+3. Press **Search network**, or enter the IP address by hand
 4. Connection test – if successful, the device is created
 
 The connection test gives up after 15 seconds and reports a clear failure rather than spinning indefinitely, and it closes the abandoned connection so an immediate retry is not blocked by it.
+
+### Finding the controller
+
+The app looks for controllers two ways, because neither is sufficient alone:
+
+| Method | What it does | Limitation |
+|--------|--------------|------------|
+| **UDP broadcast** | Sends the Luxtronik discovery packet on ports 4444 and 47808. Only a Luxtronik answers, and the reply carries its data port. | Some controllers with older software do not answer. |
+| **MAC address** | Homey's built-in discovery, matching the six manufacturer prefixes these controllers use. Keeps working in the background and tracks the address. | Matches the network card, not the heat pump — the prefixes belong to Siemens, so other Siemens hardware shows up too. |
+
+Results that answered the broadcast are labelled **Luxtronik**; those found only by MAC are labelled **possible**. Picking one fills in the address and port. Manual entry stays available for anything neither method finds.
+
+**A DHCP reservation is no longer necessary.** Once a device has been matched to a discovery result, the app follows its address: when the DHCP lease hands out a new one, the IP setting is updated and the connection re-established instead of the device going offline. Devices added before this existed adopt the MAC the first time they are seen at their configured address, and track it from then on.
 
 The new device is named after the model the controller reports — `Luxtronik LWC`, for example — falling back to plain `Luxtronik` when the controller reports a model the library does not know. The IP address is deliberately not part of the name: it belongs in the device settings and would go stale the moment the DHCP lease changes. Existing devices keep the name they were given; Homey stores it at creation.
 
@@ -483,6 +495,7 @@ The app communicates via TCP (port 8889) directly with the Luxtronik controller.
 | [`lib/luxtronik2/`](lib/luxtronik2/) | The protocol library [`luxtronik2`](https://github.com/coolchip/luxtronik2) 2.7.2 (MIT), **bundled rather than pulled from npm**. Upstream has published nothing since February 2024 and the issue tracker is unattended, but the library needed fixes the app cannot apply from outside. `types.js` and `utils.js` are verbatim copies of the published tarball; the deviations in `luxtronik.js` and `utils.js` are documented in [`lib/luxtronik2/README.md`](lib/luxtronik2/README.md). |
 | [`lib/luxtronik-registers.js`](lib/luxtronik-registers.js) | Named registers — 99 calculations, 105 parameters, 43 visibilities. The library addresses registers by bare array offsets scattered through its source; this table gives them names so further sensors can be added without guessing at positions. Each entry carries the controller's own field name as a comment. |
 | [`lib/luxtronik-codes.js`](lib/luxtronik-codes.js) | Switch-off reason texts in EN/DE/NL. The bundled library maps only codes 0–9 and only to German, while controllers emit codes up to 27. |
+| [`lib/luxtronik-discovery.js`](lib/luxtronik-discovery.js) | UDP broadcast search. Magic packet `2000;111;1;\0` to ports 4444 and 47808; a controller answers with `2500;111;…` whose third field carries its data port. Protocol taken from [python-luxtronik](https://github.com/Bouni/python-luxtronik) (`luxtronik/discover.py`). |
 
 Both tables are transcribed from [BenPru/luxtronik](https://github.com/BenPru/luxtronik), which documents and translates them. Register keys keep the upstream spelling **including the register number**, because the name alone is not unique — `P0002` and `P0105` are both called `DHW_TARGET_TEMPERATURE` and are different registers (the configured setting versus the controller's momentary target; see *Hot Water: Setpoint vs. "Target (current)"* above).
 

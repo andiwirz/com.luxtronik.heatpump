@@ -4,6 +4,7 @@
     "de": "Luxtronik Wärmepumpe"
   },
   "class": "heater",
+  "discovery": "luxtronik",
   "capabilities": [
     "heatpump_state",
     "heatpump_state_string",

@@ -723,7 +723,25 @@
         </tbody>
       </table>
     </div>
-    <div class="infobox"><strong><span data-lang="de">Tipp:</span><span data-lang="en">Tip:</span></strong> <span data-lang="de">DHCP-Reservierung im Router einrichten für eine stabile IP-Adresse.</span><span data-lang="en">Set up a DHCP reservation in your router for a stable IP address.</span></div>
+    <div class="infobox"><strong><span data-lang="de">Eine DHCP-Reservierung ist nicht mehr nötig.</span><span data-lang="en">A DHCP reservation is no longer necessary.</span></strong><br>
+      <span data-lang="de">Ist ein Gerät einmal einer Netzwerk-Fundstelle zugeordnet, folgt die App seiner Adresse: Vergibt der Router eine neue, wird die IP-Einstellung nachgeführt und die Verbindung neu aufgebaut, statt dass das Gerät offline geht. Geräte, die es vor dieser Funktion schon gab, übernehmen die Zuordnung beim ersten Treffer an ihrer eingetragenen Adresse — und ziehen ab dann ebenfalls mit um.</span>
+      <span data-lang="en">Once a device has been matched to a discovery result, the app follows its address: when the router hands out a new one, the IP setting is updated and the connection re-established instead of the device going offline. Devices that existed before this feature adopt the match the first time they are seen at their configured address, and move along from then on.</span>
+    </div>
+
+    <div class="card" style="margin-top:10px;">
+      <div class="card-header"><span class="card-name"><span data-lang="de">Regler im Netz finden</span><span data-lang="en">Finding the controller</span></span></div>
+      <div class="card-desc"><span data-lang="de">Beim Hinzufügen eines Geräts sucht die App auf zwei Wegen, weil keiner für sich genügt. Der <strong>UDP-Broadcast</strong> schickt das Luxtronik-Suchpaket auf die Ports 4444 und 47808 — darauf antwortet nur eine Luxtronik, und die Antwort enthält gleich ihren Datenport. Ältere Softwarestände antworten allerdings nicht. Die <strong>MAC-Erkennung</strong> von Homey gleicht die sechs Hersteller-Präfixe dieser Regler ab; sie läuft dauerhaft im Hintergrund und hält die Adresse aktuell, findet aber die Netzwerkkarte und nicht die Wärmepumpe — die Präfixe gehören Siemens, also erscheint auch andere Siemens-Hardware.</span><span data-lang="en">When adding a device the app searches two ways, because neither suffices alone. The <strong>UDP broadcast</strong> sends the Luxtronik discovery packet on ports 4444 and 47808 — only a Luxtronik answers, and the reply carries its data port. Controllers with older software do not answer, though. Homey's <strong>MAC discovery</strong> matches the six manufacturer prefixes these controllers use; it keeps running in the background and tracks the address, but it finds the network card rather than the heat pump — the prefixes belong to Siemens, so other Siemens hardware appears too.</span></div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="settings-table">
+        <thead><tr><th><span data-lang="de">Markierung</span><span data-lang="en">Label</span></th><th><span data-lang="de">Bedeutung</span><span data-lang="en">Meaning</span></th></tr></thead>
+        <tbody>
+          <tr><td class="key">Luxtronik</td><td><span data-lang="de">Hat auf den Broadcast geantwortet — es ist sicher eine Luxtronik.</span><span data-lang="en">Answered the broadcast — this is definitely a Luxtronik.</span></td></tr>
+          <tr><td class="key">possible</td><td><span data-lang="de">Nur über die MAC gefunden. Kann die Wärmepumpe sein, kann anderes Siemens-Gerät sein.</span><span data-lang="en">Found only by MAC address. May be the heat pump, may be other Siemens hardware.</span></td></tr>
+        </tbody>
+      </table>
+    </div>
 
     <div class="card" style="margin-top:10px;">
       <div class="card-header"><span class="card-name"><span data-lang="de">Gerät hinzufügen</span><span data-lang="en">Adding a device</span></span></div>

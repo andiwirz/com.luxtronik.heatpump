@@ -503,6 +503,52 @@ class LuxtronikHeatpumpDevice extends Device {
     this._startWatchdog();
   }
 
+  // ─── Netzwerk-Erkennung ────────────────────────────────────────────────────
+  //
+  // Homey meldet jedes gefundene Gerät allen Geräten dieses Treibers; hier wird
+  // entschieden, ob die Meldung die eigene ist.
+  //
+  // Neu eingerichtete Geräte tragen die MAC im Store und erkennen sich daran
+  // wieder, auch wenn sich die Adresse geändert hat — genau dafür ist die
+  // Erkennung da. Ältere Geräte haben keine MAC: sie vergleichen die Adresse
+  // und übernehmen die MAC beim ersten Treffer, womit auch sie ab dann
+  // umziehen können.
+  onDiscoveryResult(discoveryResult) {
+    const knownMac = this.getStoreValue('mac');
+    if (knownMac) return discoveryResult.id === knownMac;
+
+    if (discoveryResult.address && discoveryResult.address === this.getSetting('ip')) {
+      this.setStoreValue('mac', discoveryResult.id)
+        .then(() => this.log(`MAC ${discoveryResult.id} übernommen — Adresse wird ab jetzt nachgeführt`))
+        .catch((e) => this.error('MAC übernehmen fehlgeschlagen:', e.message));
+      return true;
+    }
+    return false;
+  }
+
+  async onDiscoveryAvailable(discoveryResult) {
+    await this._applyDiscoveredAddress(discoveryResult.address);
+  }
+
+  async onDiscoveryAddressChanged(discoveryResult) {
+    this.log(`Adresse laut Netzwerk-Erkennung geändert: ${discoveryResult.address}`);
+    await this._applyDiscoveredAddress(discoveryResult.address);
+  }
+
+  // Übernimmt eine geänderte Adresse: Einstellung nachziehen und neu verbinden.
+  // Ohne das bliebe das Gerät nach einem DHCP-Wechsel dauerhaft offline.
+  async _applyDiscoveredAddress(address) {
+    if (!address || address === this._ip) return;
+    this.log(`Adresse wechselt von ${this._ip} auf ${address}`);
+    this._ip = address;
+    try { await this.setSettings({ ip: address }); }
+    catch (e) { this.error('IP-Einstellung nachführen fehlgeschlagen:', e.message); }
+    // Alte Verbindung verwerfen: sie zeigt auf die frühere Adresse.
+    this._resetPump();
+    this._ensurePump();
+    await this._doPoll();
+  }
+
   async onDeleted() {
     this._stopPolling();
     if (this._boostTimer)           { clearTimeout(this._boostTimer);           this._boostTimer           = null; }
