@@ -459,6 +459,7 @@ Not every controller supports every parameter. When a value is not reported, the
 | `external`      | External (2nd heat source)    |
 | `cooling`       | Cooling                       |
 | `standby`       | Standby                       |
+| `unknown`       | Controller reported a state this app does not know |
 
 ### Heating Status Codes
 
@@ -518,6 +519,7 @@ npm test          # 40 tests, no Homey required
 npm run lint
 npm run validate  # homey app validate
 npm run build     # homey app build
+npm run publish   # homey app publish (maintainer only)
 ```
 
 Lint, tests and a publish-level validation run on every push to `main` and on every pull request — see [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
