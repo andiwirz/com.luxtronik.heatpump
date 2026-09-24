@@ -156,8 +156,10 @@ Both variants:
 - Stop automatically when the hot water temperature reaches the target temperature
 - Stop after the configured maximum duration (default: 60 min., configurable in device settings)
 - Reset the operation mode back to "Automatic" afterwards
-- Fire the flow trigger "Hot Water Boost Ended" on automatic stop
+- Fire the flow trigger "Hot Water Boost Ended" exactly once on stop
 - Create a **Timeline entry** when started and when ended
+
+**If the switch back to Automatic fails**, the boost tile is reset anyway and the reason is logged. This matters more than it looks: write timeouts do happen on these controllers, and leaving the tile on while its timer is already gone would mean nothing ever switches the pump back — it would keep running its auxiliary heater. A flow action or the tile switch reports the failure so it is visible; the polling cycle carries on regardless, since a failure here must not cost the rest of that cycle's readings.
 
 ---
 
@@ -505,6 +507,35 @@ Both tables are transcribed from [BenPru/luxtronik](https://github.com/BenPru/lu
 - [Bouni/python-luxtronik – parameters.py](https://github.com/Bouni/python-luxtronik/blob/master/luxtronik/parameters.py)
 - [Bouni/python-luxtronik – calculations.py](https://github.com/Bouni/python-luxtronik/blob/master/luxtronik/calculations.py)
 - [FHEM Luxtronik Wiki (DE)](https://wiki.fhem.de/wiki/Luxtronik_2.0)
+
+---
+
+## Development
+
+```bash
+npm install
+npm test          # 40 tests, no Homey required
+npm run lint
+npm run validate  # homey app validate
+npm run build     # homey app build
+```
+
+Lint, tests and a publish-level validation run on every push to `main` and on every pull request — see [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+
+### Tests
+
+`node --test`, no test framework dependency. The suite runs anywhere Node runs: nothing in it needs a Homey or a heat pump.
+
+| File | Covers |
+|------|--------|
+| [`conversions.test.js`](test/conversions.test.js) | The unit conversions — seconds to hours, tenths and hundredths, the `-50 °C` sentinel of an unconnected sensor, and when a `0 kWh` reading means "no heat meter" rather than "nothing yet". |
+| [`codes.test.js`](test/codes.test.js) | The translation tables against the bundled library: every state code it knows must have a text, defrost variants must follow its own logic, and switch-off codes 0–27 must be complete. |
+| [`protocol.test.js`](test/protocol.test.js) | The library against a fake controller speaking the real 3003/3004/3005 protocol — short parameter lists, a reply split across TCP segments, a controller that goes quiet mid-read. |
+| [`discovery.test.js`](test/discovery.test.js) | The UDP search: valid replies, missing or nonsensical ports, foreign traffic on the same ports, and the app's own broadcast coming back. |
+| [`boost.test.js`](test/boost.test.js) | Ending a hot water boost, including a failed switch-back — the tile must reset and the poll must carry on. |
+| [`manifest.test.js`](test/manifest.test.js) | The manifest against the code: every flow card registered, every capability written, every settable capability with a listener, no unreachable method, and every icon theme-aware and correctly scaled. |
+
+Each test covers a fault that actually occurred rather than a textbook case. The suite is mutation-checked: reintroducing the original defect makes the corresponding test fail.
 
 ---
 
