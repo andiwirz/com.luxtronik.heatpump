@@ -13,19 +13,20 @@ const fs = require('fs');
 const ROOT = path.join(__dirname, '..');
 
 /**
- * Liest eine Methode aus device.js als eigenständige Funktion heraus.
+ * Liest eine Methode aus device.js (oder aus `file`, etwa driver.js) als
+ * eigenständige Funktion heraus.
  *
- * device.js kann nicht importiert werden, weil `require('homey')` nur auf der
- * Homey-Laufzeit existiert. Die reinen Helfer hängen aber an keinem Zustand, so
- * dass sie sich einzeln herausschneiden und auswerten lassen. Bricht das
- * Herausschneiden, schlägt der Test fehl — das ist gewollt, dann hat sich die
- * Signatur geändert und der Test muss mitwandern.
+ * device.js und driver.js können nicht importiert werden, weil
+ * `require('homey')` nur auf der Homey-Laufzeit existiert. Die reinen Helfer
+ * hängen aber an keinem Zustand, so dass sie sich einzeln herausschneiden und
+ * auswerten lassen. Bricht das Herausschneiden, schlägt der Test fehl — das ist
+ * gewollt, dann hat sich die Signatur geändert und der Test muss mitwandern.
  */
-function extractMethod(name) {
-  const src = fs.readFileSync(path.join(ROOT, 'drivers/luxtronik-heatpump/device.js'), 'utf8');
+function extractMethod(name, file = 'drivers/luxtronik-heatpump/device.js') {
+  const src = fs.readFileSync(path.join(ROOT, file), 'utf8');
   const lines = src.split('\n');
   const start = lines.findIndex((l) => l.match(new RegExp('^  (?:async )?' + name + '\\s*\\(')));
-  if (start < 0) throw new Error(`Methode ${name} nicht in device.js gefunden`);
+  if (start < 0) throw new Error(`Methode ${name} nicht in ${path.basename(file)} gefunden`);
   let depth = 0;
   const body = [];
   for (let i = start; i < lines.length; i++) {

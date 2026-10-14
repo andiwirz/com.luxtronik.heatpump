@@ -16,6 +16,147 @@ class LuxtronikHeatpumpDriver extends Driver {
 
   async onInit() {
     this.log('LuxtronikHeatpumpDriver has been initialized');
+    this._registerFlowCards();
+  }
+
+  /**
+   * Hängt die Listener aller Flow-Bedingungen und -Aktionen ein — einmal, für
+   * alle Geräte dieses Treibers.
+   *
+   * Eine Flow-Karte gibt es App-weit nur einmal, und sie hat genau einen
+   * Run-Listener. Solange jedes Gerät seinen Listener in onInit selbst
+   * einhängte, ersetzte es den des vorherigen: mit zwei Wärmepumpen bediente
+   * die zuletzt gestartete jede Aktion und jede Bedingung, gleich welche im
+   * Flow gewählt war. Die gewählte steht in `args.device`; nur an sie wird
+   * weitergereicht.
+   *
+   * Die Trigger bleiben in device.js — die löst jedes Gerät mit
+   * `.trigger(this, …)` für sich selbst aus.
+   */
+  _registerFlowCards() {
+    // Flow-Bedingungen
+    this.homey.flow.getConditionCard('heating_operation_mode_is')
+      .registerRunListener((args) => String(args.device.getCapabilityValue('heating_operation_mode')) === String(args.mode));
+
+    this.homey.flow.getConditionCard('warmwater_operation_mode_is')
+      .registerRunListener((args) => String(args.device.getCapabilityValue('warmwater_operation_mode')) === String(args.mode));
+
+    this.homey.flow.getConditionCard('cooling_operation_mode_is')
+      .registerRunListener((args) => String(args.device.getCapabilityValue('cooling_operation_mode')) === String(args.mode));
+
+    this.homey.flow.getConditionCard('heatpump_state_is')
+      .registerRunListener((args) => args.device.getCapabilityValue('heatpump_state') === args.state);
+
+    this.homey.flow.getConditionCard('thermal_disinfection_is_active')
+      .registerRunListener((args) => args.device.getCapabilityValue('thermal_disinfection_continuous') === true);
+
+    this.homey.flow.getConditionCard('hotwater_boost_is_active')
+      .registerRunListener((args) => args.device.getCapabilityValue('hotwater_boost') === true);
+
+    this.homey.flow.getConditionCard('device_is_available')
+      .registerRunListener((args) => args.device.getAvailable());
+
+    this.homey.flow.getConditionCard('heating_state_is')
+      .registerRunListener((args) => {
+        const current = args.device.getCapabilityValue('heating_state_string') || '';
+        return current.toLowerCase().includes(args.state.toLowerCase());
+      });
+
+    this.homey.flow.getConditionCard('hotwater_state_is')
+      .registerRunListener((args) => {
+        const current = args.device.getCapabilityValue('hotwater_state_string') || '';
+        return current === args.state;
+      });
+
+    this.homey.flow.getConditionCard('outdoor_temp_above')
+      .registerRunListener((args) => {
+        const temp = args.device.getCapabilityValue('measure_temp_outdoor');
+        return temp !== null && temp > args.temperature;
+      });
+
+    this.homey.flow.getConditionCard('outdoor_temp_below')
+      .registerRunListener((args) => {
+        const temp = args.device.getCapabilityValue('measure_temp_outdoor');
+        return temp !== null && temp < args.temperature;
+      });
+
+    this.homey.flow.getConditionCard('room_temp_above')
+      .registerRunListener((args) => {
+        const temp = args.device.hasCapability('measure_temp_room') ? args.device.getCapabilityValue('measure_temp_room') : null;
+        return temp !== null && temp > args.temperature;
+      });
+
+    this.homey.flow.getConditionCard('room_temp_below')
+      .registerRunListener((args) => {
+        const temp = args.device.hasCapability('measure_temp_room') ? args.device.getCapabilityValue('measure_temp_room') : null;
+        return temp !== null && temp < args.temperature;
+      });
+
+    this.homey.flow.getConditionCard('hotwater_boost_party_is_active')
+      .registerRunListener((args) => args.device.getCapabilityValue('hotwater_boost_party') === true);
+
+    // Flow-Aktionen
+    this.homey.flow.getActionCard('set_heating_operation_mode')
+      .registerRunListener(async (args) => args.device._setHeatingOperationMode(parseInt(args.mode, 10)));
+
+    this.homey.flow.getActionCard('set_warmwater_operation_mode')
+      .registerRunListener(async (args) => args.device._setWarmwaterOperationMode(parseInt(args.mode, 10)));
+
+    this.homey.flow.getActionCard('set_cooling_operation_mode')
+      .registerRunListener(async (args) => args.device._setCoolingOperationMode(parseInt(args.mode, 10)));
+
+    this.homey.flow.getActionCard('set_heating_temperature_correction')
+      .registerRunListener(async (args) => args.device._setHeatingTemperatureCorrection(parseFloat(args.value)));
+
+    this.homey.flow.getActionCard('set_warmwater_target_temperature')
+      .registerRunListener(async (args) => args.device._setWarmwaterTargetTemperature(parseFloat(args.value)));
+
+    this.homey.flow.getActionCard('start_hotwater_boost')
+      .registerRunListener(async (args) => args.device._startHotwaterBoost(parseInt(args.duration, 10)));
+
+    // _endBoost() wirft nicht, damit ein Fehlschlag den Poll nicht abbricht —
+    // in einer Flow-Aktion soll er aber sichtbar sein.
+    this.homey.flow.getActionCard('stop_hotwater_boost')
+      .registerRunListener(async (args) => {
+        const err = await args.device._stopHotwaterBoost();
+        if (err) throw err;
+      });
+
+    this.homey.flow.getActionCard('start_hotwater_boost_party')
+      .registerRunListener(async (args) => args.device._startHotwaterBoostParty(parseInt(args.duration, 10)));
+
+    this.homey.flow.getActionCard('stop_hotwater_boost_party')
+      .registerRunListener(async (args) => {
+        const err = await args.device._stopHotwaterBoostParty();
+        if (err) throw err;
+      });
+
+    this.homey.flow.getActionCard('enable_thermal_disinfection')
+      .registerRunListener(async (args) => args.device._setThermalDisinfectionContinuous(true));
+
+    this.homey.flow.getActionCard('disable_thermal_disinfection')
+      .registerRunListener(async (args) => args.device._setThermalDisinfectionContinuous(false));
+
+    this.homey.flow.getActionCard('set_outdoor_temp_max')
+      .registerRunListener(async (args) => args.device._setOutdoorTempMax(parseFloat(args.value)));
+
+    this.homey.flow.getActionCard('set_heating_limit')
+      .registerRunListener(async (args) => args.device._setHeatingLimit(parseFloat(args.value)));
+
+    this.homey.flow.getActionCard('set_return_temp_hysteresis')
+      .registerRunListener(async (args) => args.device._setReturnTempHysteresis(parseFloat(args.value)));
+
+    this.homey.flow.getActionCard('set_hotwater_hysteresis')
+      .registerRunListener(async (args) => args.device._setHotwaterHysteresis(parseFloat(args.value)));
+
+    this.homey.flow.getActionCard('set_hotwater_hysteresis_minimum')
+      .registerRunListener(async (args) => args.device._setHotwaterHysteresis(0.5));
+
+    this.homey.flow.getActionCard('restore_hotwater_hysteresis')
+      .registerRunListener(async (args) => {
+        const value = args.device.getSetting('hotwater_hysteresis_restore') ?? 5;
+        await args.device._setHotwaterHysteresis(parseFloat(value));
+      });
   }
 
   /**

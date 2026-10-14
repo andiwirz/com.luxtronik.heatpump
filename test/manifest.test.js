@@ -14,12 +14,20 @@ const { ROOT } = require('./helpers');
 const app = JSON.parse(fs.readFileSync(path.join(ROOT, 'app.json'), 'utf8'));
 const drv = app.drivers[0];
 const device = fs.readFileSync(path.join(ROOT, 'drivers/luxtronik-heatpump/device.js'), 'utf8');
+const driver = fs.readFileSync(path.join(ROOT, 'drivers/luxtronik-heatpump/driver.js'), 'utf8');
 
 test('jede Flow-Karte im Manifest ist im Code registriert', () => {
+  // Trigger löst jedes Gerät selbst aus; Bedingungen und Aktionen hängt der
+  // Treiber einmal für alle Geräte ein.
+  const registration = {
+    triggers: [device, 'getDeviceTriggerCard'],
+    conditions: [driver, 'getConditionCard'],
+    actions: [driver, 'getActionCard'],
+  };
   const missing = [];
-  for (const kind of ['triggers', 'conditions', 'actions']) {
+  for (const [kind, [src, getter]] of Object.entries(registration)) {
     for (const card of app.flow[kind] || []) {
-      if (!device.includes(`'${card.id}'`)) missing.push(`${kind}/${card.id}`);
+      if (!src.includes(`${getter}('${card.id}')`)) missing.push(`${kind}/${card.id}`);
     }
   }
   assert.deepStrictEqual(missing, []);
@@ -56,7 +64,9 @@ test('keine private Methode ist unerreichbar', () => {
     if (lifecycle.includes(m)) return false;
     // Auf `this.name` prüfen, nicht auf `this.name(`: die Schreibmethoden werden
     // in CONTROLLER_SETTINGS als Referenz übergeben und erst dort aufgerufen.
-    return !new RegExp(`this\\.${m}\\b`).test(device);
+    // Flow-Aktionen ruft der Treiber auf dem gewählten Gerät auf
+    // (`args.device.name`), dort also auf `device.name` prüfen.
+    return !new RegExp(`this\\.${m}\\b`).test(device) && !new RegExp(`\\bdevice\\.${m}\\b`).test(driver);
   });
   assert.deepStrictEqual(dead, [], 'definiert, aber nie aufgerufen');
 });

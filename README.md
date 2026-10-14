@@ -515,7 +515,7 @@ Both tables are transcribed from [BenPru/luxtronik](https://github.com/BenPru/lu
 
 ```bash
 npm install
-npm test          # 40 tests, no Homey required
+npm test          # 43 tests, no Homey required
 npm run lint
 npm run validate  # homey app validate
 npm run build     # homey app build
@@ -535,6 +535,7 @@ Lint, tests and a publish-level validation run on every push to `main` and on ev
 | [`protocol.test.js`](test/protocol.test.js) | The library against a fake controller speaking the real 3003/3004/3005 protocol — short parameter lists, a reply split across TCP segments, a controller that goes quiet mid-read. |
 | [`discovery.test.js`](test/discovery.test.js) | The UDP search: valid replies, missing or nonsensical ports, foreign traffic on the same ports, and the app's own broadcast coming back. |
 | [`boost.test.js`](test/boost.test.js) | Ending a hot water boost, including a failed switch-back — the tile must reset and the poll must carry on. |
+| [`flow.test.js`](test/flow.test.js) | Flow conditions and actions with two heat pumps: every listener must act on the device chosen in the flow, not on whichever one started last, and a failed boost stop must still fail the flow. |
 | [`manifest.test.js`](test/manifest.test.js) | The manifest against the code: every flow card registered, every capability written, every settable capability with a listener, no unreachable method, and every icon theme-aware and correctly scaled. |
 
 Each test covers a fault that actually occurred rather than a textbook case. The suite is mutation-checked: reintroducing the original defect makes the corresponding test fail.
