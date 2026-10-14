@@ -130,6 +130,31 @@ The `heatpump_state_string` capability shows the current heat pump state as an e
 
 ---
 
+## Heating Correction
+
+The heating thermostat and the flow action *Set Heating Temperature Correction* write parameter 1, the controller's **Temperatur +-**: a shift of the heating curve by −5 to +5 K in 0.5 K steps. Positive values → warmer, negative values → cooler. It is not a room temperature.
+
+It needs a heating curve to shift, and a controller that keeps the value:
+
+| Situation | What to expect |
+|-----------|----------------|
+| No room unit, RFV or plain RBE; control mode *heating curve* | The curve shifts as intended. |
+| **Smart** or **RBE Plus** room unit (RBE firmware 2.0 or later) | The heating target is a room temperature (parameter 1148) rather than this correction — the Home Assistant integration writes that one instead. |
+| Control mode **fixed temperature** or **analog input** | The heating curve is bypassed, so a correction to it has nothing to shift. |
+| Controller firmware **V1.90.0** or **V2.90.0** | A known defect in the network write path, reproduced outside Homey: depending on the unit, the controller restarts after every write or accepts the value without applying it. Owners who went back to the previous firmware (V1.88.3 / V2.89) report writes working again; the installer or the manufacturer's support does that. See [BenPru/luxtronik#761](https://github.com/BenPru/luxtronik/issues/761). |
+
+**Which one applies** is in the app log, written once after every start:
+
+```
+Regler-Konfiguration: Raumeinheit=keine (P0033=0), Regelungsart=Heizkurve (P0103=0)
+```
+
+A diagnostics report contains that line. The same raw values are in the Debug tab of the app settings (`raw_room_unit_type`, `raw_heating_control_mode`, `raw_rbe_version`), and the firmware is on the Firmware Version tile.
+
+**A green flow card only means the controller received the value.** Its acknowledgement repeats the parameter number, not the value, so it cannot say whether the value was kept. The tile shows the requested value for two minutes (write protection), then whatever the controller reports — if it springs back, the controller did not keep it.
+
+---
+
 ## Hot Water: Setpoint vs. "Target (current)"
 
 These are two different values, and the difference matters:
@@ -170,7 +195,7 @@ Activates continuous operation (parameter 27) for legionella protection:
 - After each hot water heating cycle, thermal disinfection follows automatically
 - Stops automatically when the hot water temperature ≥ TDI setpoint − 1 °C (set under *Device Settings → Hot Water*, 50–80 °C)
 - Manual stop possible at any time
-- Fires the flow trigger "Thermal Disinfection Ended"
+- Fires the flow trigger "Thermal Disinfection Ended" when it stops on reaching the temperature — not on a manual stop
 - Creates a **Timeline entry** when completed
 
 > **Note:** Requires a connected second heat source (auxiliary heater).
@@ -255,7 +280,8 @@ Two independent safety nets, because they catch different failures:
 - **Poll Timeout (30 s):** No response within the timeout → device immediately marked as unavailable. This only fires for a poll that is actually running. The configured value is capped just below the poll interval, so a slow poll can never collide with the next one.
 - **Watchdog Timer:** Checks periodically whether the last successful poll is too far in the past (threshold: 3× polling interval, check interval and threshold both configurable). This is the net for the case the poll timeout cannot see — polling having stopped altogether.
 - **Last Poll:** Capability shows the time of the last successful poll in local time
-- Device is automatically marked as available again as soon as the controller responds
+- Whichever net catches the outage, the flow trigger *Device Unavailable* fires once — not again on every further failed check
+- Device is automatically marked as available again as soon as the controller responds, which fires *Device Available*
 - A poll that is still running blocks the next one. The controller does not tolerate parallel TCP connections, so the app never opens more than one at a time.
 - Connections carry their own inactivity timeout. Without one, a controller that accepts the connection and then goes quiet leaves the socket open forever — and since the controller serves only one client, every such leak makes the next attempt more likely to hang too.
 
@@ -268,9 +294,9 @@ The app settings page is a reference for the whole app, reachable via the burger
 | Tab | Contents |
 |-----|----------|
 | **Sensors** | Every readable value, grouped by topic |
-| **Controls** | Every writable value and read-only controller parameter, each with its Luxtronik parameter number and where to configure it |
+| **Controls** | Every writable value and read-only controller parameter, each with its Luxtronik parameter number and where to configure it, plus when the heating correction has no effect and how to check |
 | **Functions** | Hot water boost, thermal disinfection, solar-driven hot water heating, connection watchdog |
-| **Flows** | All 17 triggers, 14 conditions and 17 actions with their value ranges |
+| **Flows** | All 17 triggers, 14 conditions and 17 actions with their value ranges, and which heat pump they act on |
 | **Power** | How the estimated power sensor works, plus typical watt values per state |
 | **Settings** | Connection and watchdog settings, an overview of all device settings groups with their controller parameters, and the compatibility list |
 | **Debug** | All raw values and parameters read from the controller |
@@ -378,11 +404,11 @@ Not every controller supports every parameter. When a value is not reported, the
 | Error Occurred                             | `error`    | Error message as text                         |
 | Error Cleared                              | –          | When the error disappears                     |
 | Hot Water Boost (Auxiliary) Started        | `duration` | Duration in minutes                           |
-| Hot Water Boost (Auxiliary) Ended          | –          | On automatic stop                             |
+| Hot Water Boost (Auxiliary) Ended          | –          | When the boost ends, automatically or switched off |
 | Hot Water Boost (Party) Started            | `duration` | Duration in minutes                           |
-| Hot Water Boost (Party) Ended              | –          | On automatic stop                             |
-| Thermal Disinfection Ended                 | –          | On automatic stop                             |
-| Device Unavailable                         | –          | When watchdog triggers                        |
+| Hot Water Boost (Party) Ended              | –          | When the boost ends, automatically or switched off |
+| Thermal Disinfection Ended                 | –          | When the target temperature is reached (not on manual disable) |
+| Device Unavailable                         | –          | When the device becomes unreachable — a failed poll, a poll timeout or the watchdog; once per outage |
 | Device Available                           | –          | When connection is restored                   |
 | Outdoor Temperature Dropped Below … °C    | Threshold  | Threshold comparison with current value       |
 | Outdoor Temperature Rose Above … °C       | Threshold  | Threshold comparison with current value       |
@@ -432,6 +458,8 @@ Not every controller supports every parameter. When a value is not reported, the
 
 **17 triggers, 14 conditions, 17 actions.** All writing actions are serialized — see *Notes & Warnings*.
 
+Every action and condition acts on the heat pump selected in the card, so with several heat pumps paired, each flow controls the one it names.
+
 ---
 
 ## Operation Mode Codes (Reference)
@@ -476,7 +504,7 @@ The detailed heating status (`heating_state_string`) comes from the controller. 
 
 > ⚠️ **Caution:** Incorrect settings can put the heat pump into an error state. Only make changes if the function of the parameter is known.
 
-- The thermostat correction (`target_temperature.heating`) shifts the heating curve by the set value. Positive values → warmer, negative values → cooler.
+- The thermostat correction (`target_temperature.heating`) shifts the heating curve by the set value. When it seems to have no effect, see *Heating Correction*.
 - All write operations are sent to the controller immediately. A confirmation poll is automatically triggered 3 seconds after each write to reflect the updated values without waiting for the next poll interval.
 - Write operations are serialized — if two flow actions trigger writes simultaneously (e.g. "Restore hysteresis" + "Set operation mode"), they are queued and executed one after the other to avoid TCP conflicts.
 - Write protection prevents polling cycles from immediately overwriting manually set values (120s protection window).
@@ -497,7 +525,7 @@ The app communicates via TCP (port 8889) directly with the Luxtronik controller.
 |--------|---------|
 | [`lib/luxtronik2/`](lib/luxtronik2/) | The protocol library [`luxtronik2`](https://github.com/coolchip/luxtronik2) 2.7.2 (MIT), **bundled rather than pulled from npm**. Upstream has published nothing since February 2024 and the issue tracker is unattended, but the library needed fixes the app cannot apply from outside. `types.js` and `utils.js` are verbatim copies of the published tarball; the deviations in `luxtronik.js` and `utils.js` are documented in [`lib/luxtronik2/README.md`](lib/luxtronik2/README.md). |
 | [`lib/luxtronik-registers.js`](lib/luxtronik-registers.js) | Named registers — 99 calculations, 105 parameters, 43 visibilities. The library addresses registers by bare array offsets scattered through its source; this table gives them names so further sensors can be added without guessing at positions. Each entry carries the controller's own field name as a comment. |
-| [`lib/luxtronik-codes.js`](lib/luxtronik-codes.js) | Switch-off reason texts in EN/DE/NL. The bundled library maps only codes 0–9 and only to German, while controllers emit codes up to 27. |
+| [`lib/luxtronik-codes.js`](lib/luxtronik-codes.js) | Translation tables the bundled library lacks: switch-off reasons in EN/DE/NL (the library maps only codes 0–9 and only to German, while controllers emit codes up to 27), heating status texts, defrost variants, mixing circuit types, and the room unit and control mode codes behind the configuration log line. |
 | [`lib/luxtronik-discovery.js`](lib/luxtronik-discovery.js) | UDP broadcast search. Magic packet `2000;111;1;\0` to ports 4444 and 47808; a controller answers with `2500;111;…` whose third field carries its data port. Protocol taken from [python-luxtronik](https://github.com/Bouni/python-luxtronik) (`luxtronik/discover.py`). |
 
 Both tables are transcribed from [BenPru/luxtronik](https://github.com/BenPru/luxtronik), which documents and translates them. Register keys keep the upstream spelling **including the register number**, because the name alone is not unique — `P0002` and `P0105` are both called `DHW_TARGET_TEMPERATURE` and are different registers (the configured setting versus the controller's momentary target; see *Hot Water: Setpoint vs. "Target (current)"* above).
@@ -515,7 +543,7 @@ Both tables are transcribed from [BenPru/luxtronik](https://github.com/BenPru/lu
 
 ```bash
 npm install
-npm test          # 43 tests, no Homey required
+npm test          # 49 tests, no Homey required
 npm run lint
 npm run validate  # homey app validate
 npm run build     # homey app build
@@ -531,11 +559,11 @@ Lint, tests and a publish-level validation run on every push to `main` and on ev
 | File | Covers |
 |------|--------|
 | [`conversions.test.js`](test/conversions.test.js) | The unit conversions — seconds to hours, tenths and hundredths, the `-50 °C` sentinel of an unconnected sensor, and when a `0 kWh` reading means "no heat meter" rather than "nothing yet". |
-| [`codes.test.js`](test/codes.test.js) | The translation tables against the bundled library: every state code it knows must have a text, defrost variants must follow its own logic, and switch-off codes 0–27 must be complete. |
+| [`codes.test.js`](test/codes.test.js) | The translation tables against the bundled library: every state code it knows must have a text, defrost variants must follow its own logic, and switch-off codes 0–27 must be complete. Also the controller configuration line in the log: an RBE from firmware 2.0 on counts as RBE Plus, and a register the controller does not send is named as missing rather than read as 0. |
 | [`protocol.test.js`](test/protocol.test.js) | The library against a fake controller speaking the real 3003/3004/3005 protocol — short parameter lists, a reply split across TCP segments, a controller that goes quiet mid-read. |
 | [`discovery.test.js`](test/discovery.test.js) | The UDP search: valid replies, missing or nonsensical ports, foreign traffic on the same ports, and the app's own broadcast coming back. |
 | [`boost.test.js`](test/boost.test.js) | Ending a hot water boost, including a failed switch-back — the tile must reset and the poll must carry on. |
-| [`flow.test.js`](test/flow.test.js) | Flow conditions and actions with two heat pumps: every listener must act on the device chosen in the flow, not on whichever one started last, and a failed boost stop must still fail the flow. |
+| [`flow.test.js`](test/flow.test.js) | Flow conditions and actions with two heat pumps: every listener must act on the device chosen in the flow, not on whichever one started last, and a failed boost stop must still fail the flow. An action that arrives while the device is still starting must find its state ready: everything onInit sets up and an action can reach comes before the first `await`. *Device Unavailable* must fire on every way into unavailability — failed poll, poll timeout, watchdog — and only once per outage. |
 | [`manifest.test.js`](test/manifest.test.js) | The manifest against the code: every flow card registered, every capability written, every settable capability with a listener, no unreachable method, and every icon theme-aware and correctly scaled. |
 
 Each test covers a fault that actually occurred rather than a textbook case. The suite is mutation-checked: reintroducing the original defect makes the corresponding test fail.

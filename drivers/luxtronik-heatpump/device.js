@@ -4,6 +4,7 @@ const { Device } = require('homey');
 const luxtronik = require('../../lib/luxtronik2/luxtronik');
 const {
   switchoffReason, newestEntry, extendedState, defrostVariant, defrostState, mixerCanCool,
+  controllerConfig,
 } = require('../../lib/luxtronik-codes');
 const { CALCULATIONS, PARAMETERS } = require('../../lib/luxtronik-registers');
 
@@ -120,6 +121,81 @@ class LuxtronikHeatpumpDevice extends Device {
 
   async onInit() {
     this.log('LuxtronikHeatpumpDevice init:', this.getName());
+
+    // ── Zustand zuerst, vor jedem await ──────────────────────────────────────
+    // Der Treiber hängt die Flow-Listener ein, bevor dieses onInit läuft
+    // (driver.js, _registerFlowCards), und Discovery-Treffer kommen, sobald das
+    // Gerät existiert. Was während der Migrationen unten ankommt — nach einem
+    // App-Update gleicht die Titel-Synchronisation jede Capability einzeln
+    // ab —, findet so einen fertigen Zustand vor: Eine Aktion scheitert sauber
+    // mit "Nicht verbunden" statt mit einem TypeError.
+    const s = this.getSettings();
+    this._ip           = s.ip;
+    this._port         = Number(s.port) || 8889;
+    this._pollInterval = (Number(s.poll_interval) || 60) * 1000;
+    this._pump         = null;
+    this._timer        = null;
+    this._writeQueue   = Promise.resolve();
+    this._lastState    = null;
+    this._lastPollTime = null;
+    this._lastHeatingMode   = null;
+    this._lastWarmwaterMode = null;
+    this._lastCoolingMode   = null;
+    this._lastErrorState    = false;
+    this._lastRoomTemp      = null;
+    // Timestamp map: nach einem Write diese Capability für 2 Polls nicht überschreiben
+    this._writeProtectUntil = {};
+    // Erst nach dem ersten erfolgreichen Poll dürfen Einstellungen an den Controller
+    // geschrieben werden — verhindert dass Default-Werte (aus driver.compose.json)
+    // oder Stale-Values aus der vorherigen Session den Controller überschreiben,
+    // bevor die echten Werte gelesen wurden.
+    this._firstPollDone = false;
+    // Schnelladungs-Timer
+    this._boostTimer      = null;
+    this._boostPartyTimer = null;
+    this._lastSuccessfulPoll = null;
+    this._watchdogTimer      = null;
+    this._pollTimeout        = null;
+    // Verhindert überlappende Polls (parallele TCP-Verbindungen)
+    this._polling            = false;
+    // Zuletzt geloggte Regler-Konfiguration, siehe _logControllerConfig()
+    this._lastControllerConfig = null;
+    // Merker für nachgewiesene optionale Hardware, siehe _hardwarePresent().
+    // Der Stand aus dem Store kommt gleich nach den Flow-Triggern dazu.
+    this._hardwareSeen = {};
+
+    // Flow-Trigger
+    this._triggerHeatingModeChanged  = this.homey.flow.getDeviceTriggerCard('heating_operation_mode_changed');
+    this._triggerWarmwaterModeChanged = this.homey.flow.getDeviceTriggerCard('warmwater_operation_mode_changed');
+    this._triggerCoolingModeChanged   = this.homey.flow.getDeviceTriggerCard('cooling_operation_mode_changed');
+    this._triggerStateChanged         = this.homey.flow.getDeviceTriggerCard('heatpump_state_changed');
+    this._triggerErrorOccurred        = this.homey.flow.getDeviceTriggerCard('error_occurred');
+    this._triggerBoostStarted             = this.homey.flow.getDeviceTriggerCard('hotwater_boost_started');
+    this._triggerBoostEnded               = this.homey.flow.getDeviceTriggerCard('hotwater_boost_ended');
+    this._triggerBoostPartyStarted        = this.homey.flow.getDeviceTriggerCard('hotwater_boost_party_started');
+    this._triggerBoostPartyEnded          = this.homey.flow.getDeviceTriggerCard('hotwater_boost_party_ended');
+    this._triggerDeviceUnavailable        = this.homey.flow.getDeviceTriggerCard('device_unavailable');
+    this._triggerDeviceAvailable          = this.homey.flow.getDeviceTriggerCard('device_available');
+    this._triggerThermalDisinfEnded       = this.homey.flow.getDeviceTriggerCard('thermal_disinfection_ended');
+    this._triggerErrorCleared             = this.homey.flow.getDeviceTriggerCard('error_cleared');
+    this._triggerOutdoorTempDroppedBelow  = this.homey.flow.getDeviceTriggerCard('outdoor_temp_dropped_below')
+      .registerRunListener((args, state) => state.temperature <= args.temperature);
+    this._triggerOutdoorTempRoseAbove     = this.homey.flow.getDeviceTriggerCard('outdoor_temp_rose_above')
+      .registerRunListener((args, state) => state.temperature >= args.temperature);
+    this._triggerRoomTempDroppedBelow     = this.homey.flow.getDeviceTriggerCard('room_temp_dropped_below')
+      .registerRunListener((args, state) => state.temperature <= args.temperature);
+    this._triggerRoomTempRoseAbove        = this.homey.flow.getDeviceTriggerCard('room_temp_rose_above')
+      .registerRunListener((args, state) => state.temperature >= args.temperature);
+
+    // Flow-Bedingungen und -Aktionen registriert der Treiber, einmal für alle
+    // Geräte (driver.js, _registerFlowCards). Eine Karte hat App-weit nur einen
+    // Run-Listener — hier eingehängt, ersetzte jedes Gerät den des vorherigen.
+
+    // Nachgewiesene Hardware aus dem Store, damit die Kacheln einen App-Neustart
+    // überstehen. Zusammenführen statt ersetzen: was ein Poll inzwischen schon
+    // nachgewiesen hat, bleibt erhalten.
+    const storedHardware = await this.getStoreValue('hardware_seen');
+    if (storedHardware) Object.assign(this._hardwareSeen, storedHardware);
 
     // ── Capability-Migration: alte Namen → neue Namen ────────────────────────
     const CAPABILITY_RENAMES = {
@@ -267,66 +343,6 @@ class LuxtronikHeatpumpDevice extends Device {
         catch (e) { this.error('hotwater_hysteresis_restore init fehlgeschlagen:', e.message); }
       }
     }
-
-    const s = this.getSettings();
-    this._ip           = s.ip;
-    this._port         = Number(s.port) || 8889;
-    this._pollInterval = (Number(s.poll_interval) || 60) * 1000;
-    this._pump         = null;
-    this._timer        = null;
-    this._writeQueue   = Promise.resolve();
-    this._lastState    = null;
-    this._lastPollTime = null;
-    this._lastHeatingMode   = null;
-    this._lastWarmwaterMode = null;
-    this._lastCoolingMode   = null;
-    this._lastErrorState    = false;
-    this._lastRoomTemp      = null;
-    // Timestamp map: nach einem Write diese Capability für 2 Polls nicht überschreiben
-    this._writeProtectUntil = {};
-    // Erst nach dem ersten erfolgreichen Poll dürfen Einstellungen an den Controller
-    // geschrieben werden — verhindert dass Default-Werte (aus driver.compose.json)
-    // oder Stale-Values aus der vorherigen Session den Controller überschreiben,
-    // bevor die echten Werte gelesen wurden.
-    this._firstPollDone = false;
-    // Schnelladungs-Timer
-    this._boostTimer      = null;
-    this._boostPartyTimer = null;
-    this._lastSuccessfulPoll = null;
-    this._watchdogTimer      = null;
-    this._pollTimeout        = null;
-    // Verhindert überlappende Polls (parallele TCP-Verbindungen)
-    this._polling            = false;
-    // Merker für nachgewiesene optionale Hardware, siehe _hardwarePresent().
-    // Aus dem Store, damit die Kacheln einen App-Neustart überstehen.
-    this._hardwareSeen = (await this.getStoreValue('hardware_seen')) || {};
-
-    // Flow-Trigger
-    this._triggerHeatingModeChanged  = this.homey.flow.getDeviceTriggerCard('heating_operation_mode_changed');
-    this._triggerWarmwaterModeChanged = this.homey.flow.getDeviceTriggerCard('warmwater_operation_mode_changed');
-    this._triggerCoolingModeChanged   = this.homey.flow.getDeviceTriggerCard('cooling_operation_mode_changed');
-    this._triggerStateChanged         = this.homey.flow.getDeviceTriggerCard('heatpump_state_changed');
-    this._triggerErrorOccurred        = this.homey.flow.getDeviceTriggerCard('error_occurred');
-    this._triggerBoostStarted             = this.homey.flow.getDeviceTriggerCard('hotwater_boost_started');
-    this._triggerBoostEnded               = this.homey.flow.getDeviceTriggerCard('hotwater_boost_ended');
-    this._triggerBoostPartyStarted        = this.homey.flow.getDeviceTriggerCard('hotwater_boost_party_started');
-    this._triggerBoostPartyEnded          = this.homey.flow.getDeviceTriggerCard('hotwater_boost_party_ended');
-    this._triggerDeviceUnavailable        = this.homey.flow.getDeviceTriggerCard('device_unavailable');
-    this._triggerDeviceAvailable          = this.homey.flow.getDeviceTriggerCard('device_available');
-    this._triggerThermalDisinfEnded       = this.homey.flow.getDeviceTriggerCard('thermal_disinfection_ended');
-    this._triggerErrorCleared             = this.homey.flow.getDeviceTriggerCard('error_cleared');
-    this._triggerOutdoorTempDroppedBelow  = this.homey.flow.getDeviceTriggerCard('outdoor_temp_dropped_below')
-      .registerRunListener((args, state) => state.temperature <= args.temperature);
-    this._triggerOutdoorTempRoseAbove     = this.homey.flow.getDeviceTriggerCard('outdoor_temp_rose_above')
-      .registerRunListener((args, state) => state.temperature >= args.temperature);
-    this._triggerRoomTempDroppedBelow     = this.homey.flow.getDeviceTriggerCard('room_temp_dropped_below')
-      .registerRunListener((args, state) => state.temperature <= args.temperature);
-    this._triggerRoomTempRoseAbove        = this.homey.flow.getDeviceTriggerCard('room_temp_rose_above')
-      .registerRunListener((args, state) => state.temperature >= args.temperature);
-
-    // Flow-Bedingungen und -Aktionen registriert der Treiber, einmal für alle
-    // Geräte (driver.js, _registerFlowCards). Eine Karte hat App-weit nur einen
-    // Run-Listener — hier eingehängt, ersetzte jedes Gerät den des vorherigen.
 
     // Capability-Listener (UI)
     this.registerCapabilityListener('heating_operation_mode',        async (v) => this._setHeatingOperationMode(parseInt(v, 10)));
@@ -592,6 +608,8 @@ class LuxtronikHeatpumpDevice extends Device {
           extra.raw_suction_compressor = rawAt(CALCULATIONS.C0176_SUCTION_COMPRESSOR_TEMPERATURE);
           extra.raw_heat_output       = rawAt(CALCULATIONS.C0257_CURRENT_HEAT_OUTPUT);
           extra.raw_flow_heat_source  = rawAt(CALCULATIONS.C0173_HEAT_SOURCE_FLOW_RATE);
+          // Firmware der RBE, nur für _logControllerConfig().
+          extra.raw_rbe_version       = rawAt(CALCULATIONS.C0258_RBE_VERSION);
           return extra;
         },
         onProcessParameters: (parameters) => {
@@ -602,6 +620,9 @@ class LuxtronikHeatpumpDevice extends Device {
             raw_mixer1_type: rawAt(PARAMETERS.P0042_MIXING_CIRCUIT1_TYPE),
             raw_mixer2_type: rawAt(PARAMETERS.P0130_MIXING_CIRCUIT2_TYPE),
             raw_mixer3_type: rawAt(PARAMETERS.P0780_MIXING_CIRCUIT3_TYPE),
+            // Raumeinheit und Regelungsart, nur für _logControllerConfig().
+            raw_room_unit_type:       rawAt(PARAMETERS.P0033_ROOM_THERMOSTAT_TYPE),
+            raw_heating_control_mode: rawAt(PARAMETERS.P0103_HEATING_CONTROL_CIRCUIT_MODE),
           };
         },
       });
@@ -613,6 +634,18 @@ class LuxtronikHeatpumpDevice extends Device {
   }
 
   // ─── Polling ───────────────────────────────────────────────────────────────
+
+  // Gerät als nicht erreichbar markieren und "Gerät nicht erreichbar" auslösen —
+  // nur beim Übergang, weitere Fehlschläge desselben Ausfalls feuern nicht
+  // erneut. Poll-Fehler, Poll-Timeout und Watchdog laufen alle hierüber. Vorher
+  // löste nur der Poll-Fehler den Trigger aus: ausgerechnet bei stillstehendem
+  // Polling, dem Fall des Watchdogs, kam er nicht, "wieder erreichbar" aber
+  // nach jeder Wiederherstellung.
+  _markUnavailable(reason) {
+    const wasAvailable = this.getAvailable();
+    this.setUnavailable(reason).catch(() => {});
+    if (wasAvailable) this._triggerDeviceUnavailable.trigger(this, {}).catch(() => {});
+  }
 
   _startWatchdog() {
     if (this._watchdogTimer) { clearInterval(this._watchdogTimer); this._watchdogTimer = null; }
@@ -627,9 +660,7 @@ class LuxtronikHeatpumpDevice extends Device {
       if (elapsed > threshold) {
         const minutes = Math.round(elapsed / 60000);
         this.error(`Watchdog: Kein erfolgreicher Poll seit ${minutes} Minuten`);
-        this.setUnavailable(
-          (this.homey.__('errors.watchdog') || `Keine Verbindung seit ${minutes} Min.`)
-        ).catch(() => {});
+        this._markUnavailable(this.homey.__('errors.watchdog') || `Keine Verbindung seit ${minutes} Min.`);
       }
     }, checkIntervalSec * 1000);
   }
@@ -724,7 +755,7 @@ class LuxtronikHeatpumpDevice extends Device {
       this._pollTimeout = setTimeout(() => {
         this._pollTimeout = null;
         this.error(`Poll-Timeout: Keine Antwort von der Wärmepumpe nach ${Math.round(backstopMs / 1000)}s`);
-        this.setUnavailable(this.homey.__('errors.timeout') || `Keine Antwort (Timeout nach ${Math.round(backstopMs / 1000)}s)`).catch(() => {});
+        this._markUnavailable(this.homey.__('errors.timeout') || `Keine Antwort (Timeout nach ${Math.round(backstopMs / 1000)}s)`);
         // Verbindung hart verwerfen: der Socket hängt und würde beim nächsten
         // Poll verwaisen statt geschlossen zu werden.
         this._resetPump();
@@ -734,11 +765,7 @@ class LuxtronikHeatpumpDevice extends Device {
       this._pump.read((err, data) => {
         if (err) {
           this.error('Poll-Fehler:', err.message || err);
-          const wasAvail = this.getAvailable();
-          this.setUnavailable(err.message || 'Verbindungsfehler').catch(() => {});
-          if (wasAvail) {
-            this._triggerDeviceUnavailable.trigger(this, {}).catch(() => {});
-          }
+          this._markUnavailable(err.message || 'Verbindungsfehler');
           finish();
           return;
         }
@@ -776,9 +803,25 @@ class LuxtronikHeatpumpDevice extends Device {
   //   data.values.*       → Berechnete Werte / Sensoren
   //   data.parameters.*   → Einstellbare Parameter
 
+  // Raumeinheit und Regelungsart ins Log, damit sie im Diagnosebericht stehen:
+  // Davon hängt ab, ob die Heizungskorrektur (P0001) überhaupt der richtige
+  // Hebel ist. Mit einer Smart- oder RBE-Plus-Raumeinheit gilt ein Raumsollwert
+  // (P1148 — die Home-Assistant-Integration schreibt dann diesen statt P0001),
+  // und im Festwert- oder Analog-Modus läuft keine Heizkurve, die eine
+  // Korrektur verschieben könnte. Danach nur bei einer Änderung, damit das Log
+  // nicht bei jedem Poll wächst.
+  _logControllerConfig(p, v) {
+    const line = controllerConfig(p.raw_room_unit_type, v.raw_rbe_version, p.raw_heating_control_mode);
+    if (line === this._lastControllerConfig) return;
+    this._lastControllerConfig = line;
+    this.log(`Regler-Konfiguration: ${line}`);
+  }
+
   async _processData(data) {
     const v = data.values     || {};
     const p = data.parameters || {};
+
+    this._logControllerConfig(p, v);
 
     // Debug: vollständige Daten einmalig loggen
     if (!this._dataDumped) {

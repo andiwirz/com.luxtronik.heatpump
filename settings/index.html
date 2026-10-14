@@ -346,7 +346,7 @@
 
     <div class="card">
       <div class="card-header"><span class="tag tag-write">Write</span><span class="card-name"><span data-lang="de">Heizungs Thermostat</span><span data-lang="en">Heating Thermostat</span></span></div>
-      <div class="card-desc"><span data-lang="de">Korrektur −5 bis +5 °C · Ist: Vorlauftemperatur · Positiv = wärmer</span><span data-lang="en">Correction −5 to +5 °C · Actual: flow temperature · Positive = warmer</span></div>
+      <div class="card-desc"><span data-lang="de">Korrektur −5 bis +5 °C · Ist: Vorlauftemperatur · Positiv = wärmer · Wann sie nichts bewirkt: siehe <em>Heizungskorrektur</em> unten</span><span data-lang="en">Correction −5 to +5 °C · Actual: flow temperature · Positive = warmer · When it has no effect: see <em>Heating correction</em> below</span></div>
     </div>
 
     <div class="card">
@@ -528,6 +528,36 @@
         <span data-lang="en">Sensor (°C) · Target inlet temperature for the cooling circuit (parameter 132). Only visible when cooling is active. Configurable under <strong>Device Settings → Cooling</strong>.</span>
       </div>
     </div>
+
+    <div class="section-title" style="margin-top:20px;"><span data-lang="de">Heizungskorrektur</span><span data-lang="en">Heating correction</span></div>
+
+    <div class="card">
+      <div class="card-desc"><span data-lang="de">Das Heizungs-Thermostat und die Flow-Aktion schreiben Parameter 1, am Regler <strong>Temperatur +-</strong>: eine Verschiebung der Heizkurve um −5 bis +5 K in Schritten von 0,5 K. Ein Raumsollwert ist das nicht. Die Korrektur braucht eine Heizkurve, die sie verschieben kann, und einen Regler, der den Wert behält.</span><span data-lang="en">The heating thermostat and the flow action write parameter 1, the controller's <strong>Temperatur +-</strong>: a shift of the heating curve by −5 to +5 K in 0.5 K steps. It is not a room temperature. The correction needs a heating curve to shift, and a controller that keeps the value.</span></div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="settings-table">
+        <thead><tr><th><span data-lang="de">Situation</span><span data-lang="en">Situation</span></th><th><span data-lang="de">Was zu erwarten ist</span><span data-lang="en">What to expect</span></th></tr></thead>
+        <tbody>
+          <tr><td class="key"><span data-lang="de">Keine Raumeinheit, RFV oder einfache RBE; Regelungsart Heizkurve</span><span data-lang="en">No room unit, RFV or plain RBE; control mode heating curve</span></td><td><span data-lang="de">Die Kurve verschiebt sich wie gewünscht.</span><span data-lang="en">The curve shifts as intended.</span></td></tr>
+          <tr><td class="key"><span data-lang="de">Raumeinheit <strong>Smart</strong> oder <strong>RBE Plus</strong> (RBE ab Firmware 2.0)</span><span data-lang="en"><strong>Smart</strong> or <strong>RBE Plus</strong> room unit (RBE firmware 2.0 or later)</span></td><td><span data-lang="de">Der Heiz-Sollwert ist dann eine Raumtemperatur (Parameter 1148), nicht diese Korrektur — die Home-Assistant-Integration schreibt in diesem Fall jenen Wert.</span><span data-lang="en">The heating target is then a room temperature (parameter 1148) rather than this correction — the Home Assistant integration writes that one instead.</span></td></tr>
+          <tr><td class="key"><span data-lang="de">Regelungsart <strong>Festwert</strong> oder <strong>Analog-Eingang</strong></span><span data-lang="en">Control mode <strong>fixed temperature</strong> or <strong>analog input</strong></span></td><td><span data-lang="de">Die Heizkurve wird umgangen, eine Korrektur daran hat also nichts zu verschieben.</span><span data-lang="en">The heating curve is bypassed, so a correction to it has nothing to shift.</span></td></tr>
+          <tr><td class="key"><span data-lang="de">Regler-Firmware <strong>V1.90.0</strong> oder <strong>V2.90.0</strong></span><span data-lang="en">Controller firmware <strong>V1.90.0</strong> or <strong>V2.90.0</strong></span></td><td><span data-lang="de">Bekannter Fehler beim Schreiben übers Netz, auch ausserhalb von Homey nachgestellt: Je nach Gerät startet der Regler nach jedem Schreibvorgang neu oder nimmt den Wert an, ohne ihn umzusetzen. Wer auf die Firmware davor zurückging (V1.88.3 / V2.89), meldet funktionierende Schreibvorgänge; das übernimmt der Installateur oder der Hersteller-Support.</span><span data-lang="en">A known defect in the network write path, reproduced outside Homey: depending on the unit, the controller restarts after every write or accepts the value without applying it. Owners who went back to the previous firmware (V1.88.3 / V2.89) report writes working again; the installer or the manufacturer's support does that.</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="infobox">
+      <strong><span data-lang="de">Welcher Fall vorliegt, steht im Log.</span><span data-lang="en">Which one applies is in the log.</span></strong><br>
+      <span data-lang="de">Die App schreibt nach jedem Start eine Zeile wie <code>Regler-Konfiguration: Raumeinheit=keine (P0033=0), Regelungsart=Heizkurve (P0103=0)</code> — ein Diagnosebericht enthält sie. Dieselben Rohwerte stehen im Tab <em>Debug</em> (<code>raw_room_unit_type</code>, <code>raw_heating_control_mode</code>, <code>raw_rbe_version</code>), die Firmware auf der Kachel <em>Firmware Version</em>.</span>
+      <span data-lang="en">After every start the app logs a line like <code>Regler-Konfiguration: Raumeinheit=keine (P0033=0), Regelungsart=Heizkurve (P0103=0)</code> — a diagnostics report contains it. The same raw values are in the <em>Debug</em> tab (<code>raw_room_unit_type</code>, <code>raw_heating_control_mode</code>, <code>raw_rbe_version</code>), and the firmware is on the <em>Firmware Version</em> tile.</span>
+    </div>
+
+    <div class="infobox">
+      <strong><span data-lang="de">Eine grüne Flow-Karte heisst nur: empfangen.</span><span data-lang="en">A green flow card only means received.</span></strong><br>
+      <span data-lang="de">Die Quittung des Reglers wiederholt die Parameternummer, nicht den Wert — ob er ihn behalten hat, sagt sie nicht. Die Kachel zeigt zwei Minuten lang den gewünschten Wert (Schreibschutz), danach, was der Regler meldet. Springt sie zurück, hat der Regler den Wert nicht behalten.</span>
+      <span data-lang="en">The controller's acknowledgement repeats the parameter number, not the value, so it cannot say whether the value was kept. The tile shows the requested value for two minutes (write protection), then whatever the controller reports — if it springs back, the controller did not keep it.</span>
+    </div>
   </div>
 </div>
 
@@ -625,7 +655,7 @@
     <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Schnellladung (Zuheizung) gestartet / beendet</span><span data-lang="en">Hot Water Boost (Auxiliary) started / ended</span></div><div class="flow-desc"><span data-lang="de">2 Karten · „gestartet" liefert die Dauer als Token</span><span data-lang="en">2 cards · "started" provides the duration as a token</span></div></div></div>
     <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Schnellladung (Party) gestartet / beendet</span><span data-lang="en">Hot Water Boost (Party) started / ended</span></div><div class="flow-desc"><span data-lang="de">2 Karten · „gestartet" liefert die Dauer als Token</span><span data-lang="en">2 cards · "started" provides the duration as a token</span></div></div></div>
     <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Thermische Desinfektion beendet</span><span data-lang="en">Thermal Disinfection ended</span></div></div></div>
-    <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Gerät nicht erreichbar / wieder erreichbar</span><span data-lang="en">Device unavailable / available again</span></div><div class="flow-desc"><span data-lang="de">2 Karten</span><span data-lang="en">2 cards</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Gerät nicht erreichbar / wieder erreichbar</span><span data-lang="en">Device unavailable / available again</span></div><div class="flow-desc"><span data-lang="de">2 Karten · „nicht erreichbar" bei Poll-Fehler, Poll-Timeout oder Watchdog, einmal pro Ausfall</span><span data-lang="en">2 cards · "unavailable" on a failed poll, a poll timeout or the watchdog, once per outage</span></div></div></div>
     <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Aussentemperatur fiel unter / stieg über … °C</span><span data-lang="en">Outdoor temperature dropped below / rose above … °C</span></div><div class="flow-desc"><span data-lang="de">2 Karten · Schwellwert frei wählbar</span><span data-lang="en">2 cards · free threshold</span></div></div></div>
     <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Raumtemperatur fiel unter / stieg über … °C</span><span data-lang="en">Room temperature dropped below / rose above … °C</span></div><div class="flow-desc"><span data-lang="de">2 Karten · benötigt eine Raumbedieneinheit (RBE)</span><span data-lang="en">2 cards · requires a room control unit (RBE)</span></div></div></div>
   </div>
@@ -660,6 +690,8 @@
     <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Heizgrenze setzen</span><span data-lang="en">Set heating limit</span></div><div class="flow-desc"><span data-lang="de">5–30 °C · alternativ via Geräteeinstellungen</span><span data-lang="en">5–30 °C · alternatively via Device Settings</span></div></div></div>
     <div class="flow-item"><div class="flow-dot dot-action"></div><div><div class="flow-name"><span data-lang="de">Max. Aussentemperatur setzen</span><span data-lang="en">Set max. outdoor temperature</span></div><div class="flow-desc"><span data-lang="de">10–45 °C · alternativ via Geräteeinstellungen</span><span data-lang="en">10–45 °C · alternatively via Device Settings</span></div></div></div>
   </div>
+
+  <div class="infobox"><strong><span data-lang="de">Gewählte Wärmepumpe:</span><span data-lang="en">Selected heat pump:</span></strong> <span data-lang="de">Jede Aktion und Bedingung wirkt auf die Wärmepumpe, die in der Karte gewählt ist — mit mehreren Wärmepumpen steuert jeder Flow die, die er nennt.</span><span data-lang="en">Every action and condition acts on the heat pump selected in the card, so with several heat pumps paired, each flow controls the one it names.</span></div>
 
   <div class="infobox"><strong><span data-lang="de">Schreibvorgänge:</span><span data-lang="en">Writes:</span></strong> <span data-lang="de">Der Controller verträgt keine parallelen Verbindungen. Alle schreibenden Aktionen werden deshalb serialisiert — mehrere Karten in einem Flow laufen nacheinander, nicht gleichzeitig. Während eines Schreibvorgangs pausiert die App das Polling.</span><span data-lang="en">The controller does not tolerate parallel connections. All writing actions are therefore serialised — several cards in one flow run one after another, not simultaneously. Polling is paused for the duration of a write.</span></div>
 </div>

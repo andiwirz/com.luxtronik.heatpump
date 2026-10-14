@@ -85,3 +85,35 @@ test('newestEntry wählt über den Zeitstempel, nicht über die Position', () =>
   // Ungültige Datumsangaben dürfen nicht werfen.
   assert.ok(codes.newestEntry([{ code: 9, date: new Date(NaN) }]) !== undefined);
 });
+
+test('controllerConfig nennt Raumeinheit und Regelungsart samt Rohwert', () => {
+  assert.strictEqual(codes.controllerConfig(0, 0, 0),
+    'Raumeinheit=keine (P0033=0), Regelungsart=Heizkurve (P0103=0)');
+  assert.strictEqual(codes.controllerConfig(5, 0, 1),
+    'Raumeinheit=Smart (P0033=5), Regelungsart=Festwert (P0103=1)');
+  assert.strictEqual(codes.controllerConfig(1, 0, 2),
+    'Raumeinheit=RFV (P0033=1), Regelungsart=Analog-Eingang (P0103=2)');
+});
+
+test('controllerConfig: eine RBE ab Firmware 2.0 ist eine RBE Plus', () => {
+  // Mit einer RBE Plus gilt ein Raumsollwert statt der Korrektur P0001 — die
+  // Grenze muss also genau sitzen. C0258 = Major × 100 + Minor.
+  assert.match(codes.controllerConfig(4, 199, 0), /Raumeinheit=RBE \(P0033=4, RBE 1\.99\)/);
+  assert.match(codes.controllerConfig(4, 200, 0), /Raumeinheit=RBE Plus \(P0033=4, RBE 2\.00\)/);
+  assert.match(codes.controllerConfig(4, 201, 0), /Raumeinheit=RBE Plus \(P0033=4, RBE 2\.01\)/);
+});
+
+test('controllerConfig: fehlende Register werden benannt statt geraten', () => {
+  // Ältere Regler liefern kürzere Listen. Ein fehlendes Register darf nicht
+  // als "keine Raumeinheit" oder "Heizkurve" erscheinen — das wäre falsch
+  // beruhigend, weil 0 genau diese Bedeutung hat.
+  assert.strictEqual(codes.controllerConfig(undefined, undefined, undefined),
+    'Raumeinheit=nicht gemeldet (P0033), Regelungsart=nicht gemeldet (P0103)');
+  assert.match(codes.controllerConfig(4, undefined, 0), /Raumeinheit=RBE \(P0033=4, RBE-Version nicht gemeldet\)/);
+  assert.match(codes.controllerConfig(4, 0, 0), /RBE-Version nicht gemeldet/);
+});
+
+test('controllerConfig: unbekannte Codes erscheinen mit Rohwert', () => {
+  assert.strictEqual(codes.controllerConfig(7, 0, 9),
+    'Raumeinheit=unbekannt (P0033=7), Regelungsart=unbekannt (P0103=9)');
+});

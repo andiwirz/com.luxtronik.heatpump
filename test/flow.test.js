@@ -109,3 +109,73 @@ test('keine Aktion und keine Bedingung wird pro Gerät registriert', () => {
   // Treibers — und damit den aller anderen Geräte. Genau das war der Fehler.
   assert.doesNotMatch(device, /get(?:Action|Condition)Card\(/);
 });
+
+test('Aktionen finden schon während der Migrationen einen fertigen Zustand vor', () => {
+  // Der Treiber hängt die Listener ein, bevor das onInit des Geräts läuft.
+  // Nach einem App-Update gleicht die Titel-Synchronisation dort jede
+  // Capability mit einem await einzeln ab; eine Aktion in dieser Zeit traf auf
+  // einen halb belegten Zustand und scheiterte mit einem TypeError statt mit
+  // "Nicht verbunden". Jedes Feld, das onInit belegt und eine Aktion erreichen
+  // kann, muss deshalb vor dem ersten await stehen. Felder, die onInit gar nicht
+  // belegt, sind bewusst erst bei Bedarf da und werden nicht geprüft.
+  const src = device.replace(/\r\n/g, '\n');
+  const driver = fs.readFileSync(path.join(ROOT, 'drivers/luxtronik-heatpump/driver.js'), 'utf8');
+  const body = (name) => {
+    const head = new RegExp(`\\n  (?:async )?${name}\\s*\\([^)]*\\)\\s*\\{`).exec(src);
+    if (!head) return '';
+    const from = head.index + head[0].length;
+    return src.slice(from, src.indexOf('\n  }\n', from));
+  };
+  // Alle Methoden, die eine Aktion über args.device erreicht, auch mittelbar.
+  const reached = new Set();
+  const queue = [...driver.matchAll(/args\.device\.(_\w+)\(/g)].map((m) => m[1]);
+  while (queue.length) {
+    const name = queue.shift();
+    if (reached.has(name)) continue;
+    reached.add(name);
+    for (const m of body(name).matchAll(/this\.(_\w+)\(/g)) queue.push(m[1]);
+  }
+  const fields = new Set();
+  for (const name of reached) {
+    for (const m of body(name).matchAll(/this\.(_[A-Za-z]\w*)\b(?!\s*\()/g)) fields.add(m[1]);
+  }
+  const start = src.indexOf('  async onInit() {');
+  // Kommentare durch Leerzeichen ersetzen: ein "await" im Kommentar ist keins,
+  // und die Positionen bleiben gleich.
+  const onInit = src.slice(start, src.indexOf('\n  }\n', start))
+    .replace(/\/\/.*$/gm, (comment) => ' '.repeat(comment.length));
+  // Ende des synchronen Teils: Anfang der Zeile mit dem ersten await — so zählt
+  // auch `this._x = (await …)` als zu spät.
+  const syncEnd = onInit.lastIndexOf('\n', onInit.search(/\bawait\b/));
+  const late = [...fields].filter((field) => {
+    const at = onInit.search(new RegExp(`this\\.${field}\\s*=(?!=)`));
+    return at > syncEnd;
+  });
+  assert.ok(reached.size > 10 && fields.size > 10, 'Analyse hat nichts gefunden');
+  assert.deepStrictEqual(late, []);
+});
+
+test('"Gerät nicht erreichbar" feuert auf jedem Weg dorthin, aber nur einmal', () => {
+  // Poll-Fehler, Poll-Timeout und Watchdog machen das Gerät unerreichbar.
+  // Vorher löste nur der Poll-Fehler den Trigger aus — bei stillstehendem
+  // Polling, dem Fall des Watchdogs, kam er nicht, "wieder erreichbar" aber
+  // schon. Deshalb darf setUnavailable() nur in _markUnavailable() stehen.
+  const { _markUnavailable } = extractMethod('_markUnavailable');
+  const direct = device.match(/this\.setUnavailable\(/g) || [];
+  assert.strictEqual(direct.length, 1, 'setUnavailable() ausserhalb von _markUnavailable()');
+  assert.match(String(_markUnavailable), /this\.setUnavailable\(/);
+
+  // Der Watchdog schlägt bei einem Ausfall in jedem Prüfintervall erneut an;
+  // der Trigger gehört nur zum Übergang.
+  let available = true;
+  let fired = 0;
+  const dev = {
+    getAvailable: () => available,
+    setUnavailable: () => { available = false; return Promise.resolve(); },
+    _triggerDeviceUnavailable: { trigger: () => { fired++; return Promise.resolve(); } },
+    _markUnavailable,
+  };
+  dev._markUnavailable('Poll-Timeout');
+  dev._markUnavailable('Watchdog');
+  assert.strictEqual(fired, 1);
+});
