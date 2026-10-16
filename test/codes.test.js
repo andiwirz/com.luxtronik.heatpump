@@ -117,3 +117,68 @@ test('controllerConfig: unbekannte Codes erscheinen mit Rohwert', () => {
   assert.strictEqual(codes.controllerConfig(7, 0, 9),
     'Raumeinheit=unbekannt (P0033=7), Regelungsart=unbekannt (P0103=9)');
 });
+
+test('parameterLabel: Name aus der Registertabelle, sonst die Nummer', () => {
+  assert.strictEqual(codes.parameterLabel(13), 'P0013_HEATING_CURVE_NIGHT_TEMPERATURE');
+  assert.strictEqual(codes.parameterLabel(5), 'P0005');
+  assert.strictEqual(codes.parameterLabel(1190), 'P1190');
+  // Dieselben Namen, die app.js für den Debug-Tab ablegt.
+  assert.strictEqual(codes.PARAMETER_NAMES[13], codes.parameterLabel(13));
+  // Der Debug-Tab sortiert die Rohliste nach dem Text — das muss die
+  // Zahlenfolge ergeben, auch gemischt aus benannten und unbenannten Registern.
+  const labels = [2, 5, 13, 105, 1136, 1190].map(codes.parameterLabel);
+  assert.deepStrictEqual([...labels].sort(), labels);
+});
+
+// Parameterliste in Reglergrösse; `set` überschreibt einzelne Indizes.
+const params = (set = {}, length = 1200) => Array.from({ length }, (_, i) => (i in set ? set[i] : 0));
+const freshState = () => ({ streak: {}, muted: {} });
+
+test('parameterChanges: die erste Abfrage ist nur Vergleichsstand', () => {
+  assert.strictEqual(codes.parameterChanges(null, params(), freshState()), null);
+  assert.strictEqual(codes.parameterChanges(params(), params(), freshState()), null);
+});
+
+test('parameterChanges nennt Register mit Namen und Rohwert', () => {
+  // Genau die Frage aus dem Forum: Was trifft ein Schreibvorgang auf P0001?
+  assert.strictEqual(codes.parameterChanges(params(), params({ 1: 20 }), freshState()),
+    'P0001_HEATING_TARGET_CORRECTION 0 → 20');
+  // Register ohne Namen in der Tabelle erscheinen mit Nummer.
+  assert.strictEqual(codes.parameterChanges(params(), params({ 1190: -15 }), freshState()), 'P1190 0 → -15');
+});
+
+test('parameterChanges: laufende Zähler werden nach drei Abfragen stumm', () => {
+  // Die Energieaufnahme zählt bei laufender Pumpe mit jeder Abfrage hoch und
+  // würde sonst jede Minute eine Zeile schreiben.
+  const state = freshState();
+  let line;
+  for (let poll = 1; poll <= 3; poll++) {
+    line = codes.parameterChanges(params({ 1136: poll }), params({ 1136: poll + 1 }), state);
+  }
+  assert.match(line, /ab jetzt stumm: P1136_HEAT_ENERGY_INPUT/);
+  assert.strictEqual(codes.parameterChanges(params({ 1136: 4 }), params({ 1136: 5 }), state), null);
+  // Andere Register erscheinen weiter.
+  assert.match(codes.parameterChanges(params(), params({ 13: -15 }), state), /P0013_HEATING_CURVE_NIGHT_TEMPERATURE 0 → -15/);
+});
+
+test('parameterChanges: wer zwischendurch stillsteht, wird nicht stumm', () => {
+  // Zweimal kurz nacheinander am Bedienteil verstellt ist kein Zähler.
+  const state = freshState();
+  codes.parameterChanges(params(), params({ 13: -10 }), state);
+  codes.parameterChanges(params({ 13: -10 }), params({ 13: -10 }), state);
+  codes.parameterChanges(params({ 13: -10 }), params({ 13: -15 }), state);
+  assert.match(codes.parameterChanges(params({ 13: -15 }), params({ 13: -20 }), state), /-15 → -20$/);
+});
+
+test('parameterChanges: viele Änderungen auf einmal werden gezählt statt aufgelistet', () => {
+  // Eine Abfrage, die alles als 0 liest, darf keine Zeile mit 1200 Einträgen erzeugen.
+  const all = Object.fromEntries(Array.from({ length: 25 }, (_, i) => [200 + i, 7]));
+  const line = codes.parameterChanges(params(), params(all), freshState());
+  assert.strictEqual(line.split(', ').length, 20);
+  assert.match(line, / … und 5 weitere$/);
+});
+
+test('parameterChanges: eine kürzere Liste vergleicht nur, was beide haben', () => {
+  const line = codes.parameterChanges(params({}, 1200), params({ 1: 5 }, 1100), freshState());
+  assert.strictEqual(line, 'Parameterliste 1200 → 1100 Einträge · P0001_HEATING_TARGET_CORRECTION 0 → 5');
+});

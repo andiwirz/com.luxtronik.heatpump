@@ -151,6 +151,14 @@ Regler-Konfiguration: Raumeinheit=keine (P0033=0), Regelungsart=Heizkurve (P0103
 
 A diagnostics report contains that line. The same raw values are in the Debug tab of the app settings (`raw_room_unit_type`, `raw_heating_control_mode`, `raw_rbe_version`), and the firmware is on the Firmware Version tile.
 
+**Which register a setting lands in** is logged too. After every poll the app records each parameter that changed since the previous one, by name and raw value:
+
+```
+Parameteränderung: P0013_HEATING_CURVE_NIGHT_TEMPERATURE 0 → -15
+```
+
+Change a value on the controller panel and a diagnostics report shows where it went; run a flow card and it shows what the controller made of the write. This matters because controllers differ: on one unit, reading parameter 1 returned the night reduction rather than the correction shown on the home screen. Counters that move with every poll, such as the energy input, are muted after three polls in a row.
+
 **A green flow card only means the controller received the value.** Its acknowledgement repeats the parameter number, not the value, so it cannot say whether the value was kept. The tile shows the requested value for two minutes (write protection), then whatever the controller reports — if it springs back, the controller did not keep it.
 
 ---
@@ -299,7 +307,7 @@ The app settings page is a reference for the whole app, reachable via the burger
 | **Flows** | All 17 triggers, 14 conditions and 17 actions with their value ranges, and which heat pump they act on |
 | **Power** | How the estimated power sensor works, plus typical watt values per state |
 | **Settings** | Connection and watchdog settings, an overview of all device settings groups with their controller parameters, and the compatibility list |
-| **Debug** | All raw values and parameters read from the controller |
+| **Debug** | All raw values and parameters read from the controller, including the complete parameter list |
 | **Version** | App version, SDK, compatibility, protocol, library version, device class, author, GitHub link |
 
 ### Debug Tab
@@ -308,7 +316,8 @@ The app settings page is a reference for the whole app, reachable via the burger
 - Capability mapping: shows which Homey capability each key is mapped to
 - Entry count for values and parameters
 - App version and poll timestamp
-- **Copy Log** button – exports all data as formatted text for troubleshooting
+- **Raw parameter list** – every parameter as the controller stores it (temperatures in tenths), including the registers the library has no name for. Collapsed by default, it opens as soon as the filter is used. This is how to find where a controller keeps a setting: give it a distinctive value on the panel and search for it.
+- **Copy Log** button – exports all data as formatted text for troubleshooting, the raw parameter list included. It contains the heat pump's serial number and network addresses, so share it privately rather than in a public post.
 
 ---
 
@@ -525,7 +534,7 @@ The app communicates via TCP (port 8889) directly with the Luxtronik controller.
 |--------|---------|
 | [`lib/luxtronik2/`](lib/luxtronik2/) | The protocol library [`luxtronik2`](https://github.com/coolchip/luxtronik2) 2.7.2 (MIT), **bundled rather than pulled from npm**. Upstream has published nothing since February 2024 and the issue tracker is unattended, but the library needed fixes the app cannot apply from outside. `types.js` and `utils.js` are verbatim copies of the published tarball; the deviations in `luxtronik.js` and `utils.js` are documented in [`lib/luxtronik2/README.md`](lib/luxtronik2/README.md). |
 | [`lib/luxtronik-registers.js`](lib/luxtronik-registers.js) | Named registers — 99 calculations, 105 parameters, 43 visibilities. The library addresses registers by bare array offsets scattered through its source; this table gives them names so further sensors can be added without guessing at positions. Each entry carries the controller's own field name as a comment. |
-| [`lib/luxtronik-codes.js`](lib/luxtronik-codes.js) | Translation tables the bundled library lacks: switch-off reasons in EN/DE/NL (the library maps only codes 0–9 and only to German, while controllers emit codes up to 27), heating status texts, defrost variants, mixing circuit types, and the room unit and control mode codes behind the configuration log line. |
+| [`lib/luxtronik-codes.js`](lib/luxtronik-codes.js) | Translation tables the bundled library lacks: switch-off reasons in EN/DE/NL (the library maps only codes 0–9 and only to German, while controllers emit codes up to 27), heating status texts, defrost variants, mixing circuit types, and the room unit and control mode codes behind the configuration log line. Also builds the parameter-change log line. |
 | [`lib/luxtronik-discovery.js`](lib/luxtronik-discovery.js) | UDP broadcast search. Magic packet `2000;111;1;\0` to ports 4444 and 47808; a controller answers with `2500;111;…` whose third field carries its data port. Protocol taken from [python-luxtronik](https://github.com/Bouni/python-luxtronik) (`luxtronik/discover.py`). |
 
 Both tables are transcribed from [BenPru/luxtronik](https://github.com/BenPru/luxtronik), which documents and translates them. Register keys keep the upstream spelling **including the register number**, because the name alone is not unique — `P0002` and `P0105` are both called `DHW_TARGET_TEMPERATURE` and are different registers (the configured setting versus the controller's momentary target; see *Hot Water: Setpoint vs. "Target (current)"* above).
@@ -543,7 +552,7 @@ Both tables are transcribed from [BenPru/luxtronik](https://github.com/BenPru/lu
 
 ```bash
 npm install
-npm test          # 49 tests, no Homey required
+npm test          # 56 tests, no Homey required
 npm run lint
 npm run validate  # homey app validate
 npm run build     # homey app build
@@ -559,7 +568,7 @@ Lint, tests and a publish-level validation run on every push to `main` and on ev
 | File | Covers |
 |------|--------|
 | [`conversions.test.js`](test/conversions.test.js) | The unit conversions — seconds to hours, tenths and hundredths, the `-50 °C` sentinel of an unconnected sensor, and when a `0 kWh` reading means "no heat meter" rather than "nothing yet". |
-| [`codes.test.js`](test/codes.test.js) | The translation tables against the bundled library: every state code it knows must have a text, defrost variants must follow its own logic, and switch-off codes 0–27 must be complete. Also the controller configuration line in the log: an RBE from firmware 2.0 on counts as RBE Plus, and a register the controller does not send is named as missing rather than read as 0. |
+| [`codes.test.js`](test/codes.test.js) | The translation tables against the bundled library: every state code it knows must have a text, defrost variants must follow its own logic, and switch-off codes 0–27 must be complete. Also the controller configuration line in the log: an RBE from firmware 2.0 on counts as RBE Plus, and a register the controller does not send is named as missing rather than read as 0. And the parameter-change line: registers by name with their raw values, a counter muted after three polls in a row but not a setting changed twice with a pause between, at most 20 entries per line, and a shorter parameter list compared only where both have values. |
 | [`protocol.test.js`](test/protocol.test.js) | The library against a fake controller speaking the real 3003/3004/3005 protocol — short parameter lists, a reply split across TCP segments, a controller that goes quiet mid-read. |
 | [`discovery.test.js`](test/discovery.test.js) | The UDP search: valid replies, missing or nonsensical ports, foreign traffic on the same ports, and the app's own broadcast coming back. |
 | [`boost.test.js`](test/boost.test.js) | Ending a hot water boost, including a failed switch-back — the tile must reset and the poll must carry on. |

@@ -4,7 +4,7 @@ const { Device } = require('homey');
 const luxtronik = require('../../lib/luxtronik2/luxtronik');
 const {
   switchoffReason, newestEntry, extendedState, defrostVariant, defrostState, mixerCanCool,
-  controllerConfig,
+  controllerConfig, parameterChanges,
 } = require('../../lib/luxtronik-codes');
 const { CALCULATIONS, PARAMETERS } = require('../../lib/luxtronik-registers');
 
@@ -160,6 +160,10 @@ class LuxtronikHeatpumpDevice extends Device {
     this._polling            = false;
     // Zuletzt geloggte Regler-Konfiguration, siehe _logControllerConfig()
     this._lastControllerConfig = null;
+    // Rohe Parameterliste dieser und der vorigen Abfrage, siehe _logParameterChanges()
+    this._rawParameters        = null;
+    this._lastRawParameters    = null;
+    this._parameterChangeState = { streak: {}, muted: {} };
     // Merker für nachgewiesene optionale Hardware, siehe _hardwarePresent().
     // Der Stand aus dem Store kommt gleich nach den Flow-Triggern dazu.
     this._hardwareSeen = {};
@@ -613,6 +617,9 @@ class LuxtronikHeatpumpDevice extends Device {
           return extra;
         },
         onProcessParameters: (parameters) => {
+          // Kopie der ganzen Liste für _logParameterChanges(); die Bibliothek
+          // gibt nur die Register weiter, die sie benennt.
+          this._rawParameters = parameters ? Array.from(parameters) : null;
           // Typ der drei Mischkreise: sagt aus, ob überhaupt ein Kreis kühlen
           // kann, unabhängig davon ob die Kühlung gerade freigegeben ist.
           const rawAt = (index) => (parameters && typeof parameters[index] === 'number' ? parameters[index] : undefined);
@@ -817,11 +824,23 @@ class LuxtronikHeatpumpDevice extends Device {
     this.log(`Regler-Konfiguration: ${line}`);
   }
 
+  // Geänderte Parameter ins Log: Ein Diagnosebericht zeigt dann, welches
+  // Register eine Änderung am Bedienteil trifft und was der Regler aus einem
+  // Schreibvorgang der App gemacht hat. Die erste Abfrage nach dem Start dient
+  // nur als Vergleichsstand. Details und das Stummschalten laufender Zähler
+  // in parameterChanges().
+  _logParameterChanges() {
+    const line = parameterChanges(this._lastRawParameters, this._rawParameters, this._parameterChangeState);
+    this._lastRawParameters = this._rawParameters;
+    if (line) this.log(`Parameteränderung: ${line}`);
+  }
+
   async _processData(data) {
     const v = data.values     || {};
     const p = data.parameters || {};
 
     this._logControllerConfig(p, v);
+    this._logParameterChanges();
 
     // Debug: vollständige Daten einmalig loggen
     if (!this._dataDumped) {
@@ -840,6 +859,9 @@ class LuxtronikHeatpumpDevice extends Device {
         timestamp: new Date().toISOString(),
         values:     v,
         parameters: debugParams,
+        // Alle Parameter roh, auch die ohne Namen — als reine Zahlenliste, die
+        // Namen legt app.js einmal pro Start ab.
+        rawParameters: this._rawParameters,
       });
     } catch (_e) { /* ignore */ }
 

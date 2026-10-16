@@ -549,8 +549,8 @@
 
     <div class="infobox">
       <strong><span data-lang="de">Welcher Fall vorliegt, steht im Log.</span><span data-lang="en">Which one applies is in the log.</span></strong><br>
-      <span data-lang="de">Die App schreibt nach jedem Start eine Zeile wie <code>Regler-Konfiguration: Raumeinheit=keine (P0033=0), Regelungsart=Heizkurve (P0103=0)</code> — ein Diagnosebericht enthält sie. Dieselben Rohwerte stehen im Tab <em>Debug</em> (<code>raw_room_unit_type</code>, <code>raw_heating_control_mode</code>, <code>raw_rbe_version</code>), die Firmware auf der Kachel <em>Firmware Version</em>.</span>
-      <span data-lang="en">After every start the app logs a line like <code>Regler-Konfiguration: Raumeinheit=keine (P0033=0), Regelungsart=Heizkurve (P0103=0)</code> — a diagnostics report contains it. The same raw values are in the <em>Debug</em> tab (<code>raw_room_unit_type</code>, <code>raw_heating_control_mode</code>, <code>raw_rbe_version</code>), and the firmware is on the <em>Firmware Version</em> tile.</span>
+      <span data-lang="de">Die App schreibt nach jedem Start eine Zeile wie <code>Regler-Konfiguration: Raumeinheit=keine (P0033=0), Regelungsart=Heizkurve (P0103=0)</code> — ein Diagnosebericht enthält sie. Dieselben Rohwerte stehen im Tab <em>Debug</em> (<code>raw_room_unit_type</code>, <code>raw_heating_control_mode</code>, <code>raw_rbe_version</code>), die Firmware auf der Kachel <em>Firmware Version</em>. Ausserdem notiert die App nach jeder Abfrage, welche Parameter sich geändert haben, mit Namen und Rohwert — wer am Bedienteil etwas verstellt, sieht im Diagnosebericht, welches Register es trifft. Ohne Bericht geht es im Tab <em>Debug</em>: Unter <em>parameters (raw)</em> stehen alle Parameter; einen auffälligen Wert am Bedienteil einstellen und danach filtern.</span>
+      <span data-lang="en">After every start the app logs a line like <code>Regler-Konfiguration: Raumeinheit=keine (P0033=0), Regelungsart=Heizkurve (P0103=0)</code> — a diagnostics report contains it. The same raw values are in the <em>Debug</em> tab (<code>raw_room_unit_type</code>, <code>raw_heating_control_mode</code>, <code>raw_rbe_version</code>), and the firmware is on the <em>Firmware Version</em> tile. The app also records after every poll which parameters changed, by name and raw value — change something on the controller panel and a diagnostics report shows which register it lands in. Without a report, use the <em>Debug</em> tab: <em>parameters (raw)</em> lists every parameter, so set a distinctive value on the panel and filter for it.</span>
     </div>
 
     <div class="infobox">
@@ -858,6 +858,23 @@
       </table>
     </div>
 
+    <details id="debug-raw" style="margin-top:16px;">
+      <summary style="cursor:pointer;margin-bottom:6px;">
+        <span class="section-title" style="margin-bottom:0;">parameters (raw)</span>
+        <span id="debug-raw-count" style="font-size:10px;font-weight:700;background:#dbeafe;color:var(--blue);padding:1px 7px;border-radius:10px;margin-left:6px;"></span>
+      </summary>
+      <div class="infobox" style="margin-bottom:8px;">
+        <span data-lang="de">Alle Parameter so, wie der Regler sie speichert — Temperaturen in Zehnteln, 20 heisst also 2,0 °C. Auch Register, die die Bibliothek nicht benennt.</span>
+        <span data-lang="en">Every parameter as the controller stores it — temperatures in tenths, so 20 means 2.0 °C. Includes registers the library has no name for.</span>
+      </div>
+      <div class="table-wrap">
+        <table class="settings-table" id="debug-raw-table">
+          <thead><tr><th>Key</th><th>Value</th></tr></thead>
+          <tbody id="debug-raw-body"></tbody>
+        </table>
+      </div>
+    </details>
+
     <div id="debug-empty" class="infobox" style="display:none;">
       <strong>Debug</strong><br>
       <span data-lang="de">Noch keine Daten — warte auf den ersten erfolgreichen Poll.</span>
@@ -1095,8 +1112,10 @@
         document.getElementById('debug-ts-ver').textContent = '';
         document.getElementById('debug-values-count').textContent = '';
         document.getElementById('debug-params-count').textContent = '';
+        document.getElementById('debug-raw-count').textContent = '';
         renderDebugTable('debug-values-body', {});
         renderDebugTable('debug-params-body', {});
+        renderDebugTable('debug-raw-body', {});
         return;
       }
       document.getElementById('debug-empty').style.display = 'none';
@@ -1112,7 +1131,24 @@
       document.getElementById('debug-params-count').textContent = pCount;
       renderDebugTable('debug-values-body',  data.values     || {});
       renderDebugTable('debug-params-body',  data.parameters || {});
+      Homey.get('luxtronik_parameter_names', function(err, names) {
+        _paramNames = (!err && names) ? names : null;
+        var rawObj = rawParamsObject(data);
+        document.getElementById('debug-raw-count').textContent = Object.keys(rawObj).length;
+        renderDebugTable('debug-raw-body', rawObj);
+      });
     });
+  }
+  // Index → Registername, legt app.js beim Start ab. Ohne Namen erscheint "P0005".
+  var _paramNames = null;
+  function rawParamsObject(data) {
+    var raw = (data && data.rawParameters) || [];
+    var obj = {};
+    for (var i = 0; i < raw.length; i++) {
+      var label = (_paramNames && _paramNames[i]) || ('P' + ('000' + i).slice(-4));
+      obj[label] = raw[i];
+    }
+    return obj;
   }
 
   function renderDebugTable(bodyId, obj) {
@@ -1139,6 +1175,9 @@
     if (!_debugData) return;
     renderDebugTable('debug-values-body',  _debugData.values     || {});
     renderDebugTable('debug-params-body',  _debugData.parameters || {});
+    renderDebugTable('debug-raw-body',     rawParamsObject(_debugData));
+    // Beim Filtern die Rohliste aufklappen, sonst blieben Treffer dort verborgen.
+    if (document.getElementById('debug-search').value) document.getElementById('debug-raw').open = true;
   }
 
   function buildDebugText() {
@@ -1163,6 +1202,12 @@
       var valStr = (val !== null && typeof val === 'object') ? JSON.stringify(val) : String(val);
       var cap = DEBUG_CAP_MAP[key] ? '  [' + DEBUG_CAP_MAP[key] + ']' : '';
       lines.push(key + ': ' + valStr + cap);
+    });
+    var rawObj = rawParamsObject(_debugData);
+    lines.push('');
+    lines.push('--- PARAMETERS RAW (' + Object.keys(rawObj).length + ') ---');
+    Object.keys(rawObj).sort().forEach(function(key) {
+      lines.push(key + ': ' + rawObj[key]);
     });
     return lines.join('\n');
   }
