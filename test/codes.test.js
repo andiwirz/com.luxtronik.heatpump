@@ -65,11 +65,111 @@ test('switchoffReason deckt alle Codes ab, die der Regler meldet (0-27)', () => 
   assert.deepStrictEqual(missing, [], 'nicht gemappte Abschaltgründe');
 });
 
+test('plausibleLogEntries: ein nie beschriebener Fehlerspeicher liefert keinen Fehler', () => {
+  // Der Fehlerspeicher eines LWD90V, der noch nie einen Fehler hatte. Die
+  // Kachel "Letzter Fehler" zeigte daraus "7409920 - Unbekannter Fehler".
+  const garbage = [
+    { code: 6, date: new Date('1935-05-07T04:52:28Z') },
+    { code: 7409920, date: new Date('1970-04-02T18:03:20Z') },
+    { code: 0, date: new Date('1969-06-22T20:04:16Z') },
+    { code: 7392648, date: new Date('1935-05-07T04:52:28Z') },
+    { code: -1062731009, date: new Date('1936-04-28T20:52:54Z') },
+  ];
+  assert.deepStrictEqual(codes.plausibleLogEntries(garbage, 700, 999), []);
+});
+
+test('plausibleLogEntries behält echte Einträge, auch mit Datum als Text', () => {
+  const error = { code: 718, date: new Date('2026-08-15T08:14:58Z'), message: 'Max. Aussentemp.' };
+  assert.deepStrictEqual(codes.plausibleLogEntries([error], 700, 999), [error]);
+  // Abschaltgrund 0 ("Wärmepumpe Störung") ist ein gültiger Code; hier
+  // entscheidet allein das Datum.
+  const switchoff = { code: 0, date: '2026-10-16T15:59:21.000Z' };
+  assert.deepStrictEqual(codes.plausibleLogEntries([switchoff], 0, 99), [switchoff]);
+  assert.deepStrictEqual(codes.plausibleLogEntries([{ code: 0, date: new Date('1969-06-22T20:04:16Z') }], 0, 99), []);
+  assert.deepStrictEqual(codes.plausibleLogEntries([{ code: 718, date: new Date(NaN) }], 700, 999), []);
+  assert.deepStrictEqual(codes.plausibleLogEntries(undefined, 0, 99), []);
+  // Ein gültiges Datum allein genügt nicht: Der Code muss in den Bereich passen.
+  assert.deepStrictEqual(codes.plausibleLogEntries([{ code: 7409920, date: new Date('2026-08-15T08:14:58Z') }], 700, 999), []);
+});
+
+test('hotWaterEvidence: Platzhalter einer reinen Heizanlage zählen nicht', () => {
+  // LWD90V ohne Warmwasser: Fühler dauerhaft 75,0 °C, Betriebsstunden "no".
+  // Die Kachel zeigte daraus 75 °C Warmwasser.
+  for (const placeholder of [75, 0, 5]) {
+    assert.strictEqual(codes.hotWaterEvidence(placeholder, null), false, `${placeholder} °C`);
+  }
+  assert.strictEqual(codes.hotWaterEvidence(null, null), false);
+  // Ein echter Messwert belegt Warmwasser, gelaufene Warmwasserstunden auch —
+  // dann sogar bei genau 75,0 °C.
+  assert.strictEqual(codes.hotWaterEvidence(47.7, null), true);
+  assert.strictEqual(codes.hotWaterEvidence(75, 3790), true);
+});
+
 test('mixerCanCool erkennt genau die kühlfähigen Mischkreistypen', () => {
   // LuxMkTypes: 0 off, 1 discharge, 2 load, 3 cooling, 4 heating_cooling
   assert.strictEqual(codes.mixerCanCool(3), true);
   assert.strictEqual(codes.mixerCanCool(4), true);
   [0, 1, 2, undefined, null].forEach((t) => assert.strictEqual(codes.mixerCanCool(t), false, `Typ ${t}`));
+});
+
+// Kühlzähler-Lesungen nacheinander ab dem Start: [Sekundenstand, Zeitpunkt in
+// s] → Urteile.
+function coolingVerdicts(readings) {
+  const state = codes.coolingCounterState();
+  return readings.map(([seconds, at]) => codes.coolingCounterRunning(state, seconds, at * 1000));
+}
+
+test('coolingCounterRunning: gekühlt wird, solange der Kühlzähler steigt', () => {
+  // Die erste Lesung hat keinen Vergleichswert. Dann steigt der Zähler eine
+  // Minute lang mit, danach steht er.
+  assert.deepStrictEqual(
+    coolingVerdicts([[10504638, 0], [10504698, 60], [10504698, 120]]),
+    [null, true, false],
+  );
+});
+
+test('coolingCounterRunning: ohne eine einzige Kühlsekunde wird nicht gekühlt', () => {
+  // LWD90V aus dem Forum: FreigabKuehl dauerhaft 1, Kühlzähler 0, Kühlbetrieb
+  // aus — und Status und Heizungsstatus zeigten beim Heizen „Koelen“. Die
+  // Antwort ist false, nicht null: Mit null bliebe die alte Fehlanzeige nach
+  // dem Update stehen.
+  assert.deepStrictEqual(coolingVerdicts([[0, 0], [0, 60], [0, 120]]), [false, false, false]);
+});
+
+test('coolingCounterRunning: eine gestörte Abfrage ändert nichts', () => {
+  // Eine Abfrage, die jedes Register als 0 liest, beweist nichts. Urteil und
+  // Vergleichswert bleiben, sonst sähe die nächste Abfrage einen Sprung von 0
+  // auf den vollen Stand.
+  for (const glitch of [0, undefined]) {
+    assert.deepStrictEqual(
+      coolingVerdicts([[10504638, 0], [10504698, 60], [glitch, 120], [10504818, 180]]),
+      [null, true, true, true],
+      `Störwert ${glitch} während des Kühlens`,
+    );
+    assert.deepStrictEqual(
+      coolingVerdicts([[10504638, 0], [10504638, 60], [glitch, 120], [10504638, 180]]),
+      [null, false, false, false],
+      `Störwert ${glitch} im Stillstand`,
+    );
+  }
+});
+
+test('coolingCounterRunning: eine Lesung kurz nach der letzten behält das Urteil', () => {
+  // Der Bestätigungs-Poll nach einem Schreibvorgang kann Sekunden nach dem
+  // regulären kommen. Der Zähler kann dann noch denselben Stand zeigen, obwohl
+  // gekühlt wird. Zu früh heisst nicht „gestoppt“, und der Vergleichswert
+  // bleibt: Die nächste Abfrage vergleicht wieder mit 10504698.
+  assert.deepStrictEqual(
+    coolingVerdicts([[10504638, 0], [10504698, 60], [10504698, 62], [10504758, 120]]),
+    [null, true, true, true],
+  );
+});
+
+test('coolingCounterRunning: ein zurückgesetzter Zähler wird neuer Vergleichswert', () => {
+  assert.deepStrictEqual(
+    coolingVerdicts([[10504638, 0], [500, 60], [560, 120]]),
+    [null, false, true],
+  );
 });
 
 test('newestEntry wählt über den Zeitstempel, nicht über die Position', () => {

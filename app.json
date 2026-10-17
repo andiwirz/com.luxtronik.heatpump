@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.luxtronik.heatpump",
-  "version": "2.1.12",
+  "version": "2.1.13",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "name": {
@@ -2038,31 +2038,41 @@
         "measure_temp_outdoor": {
           "title": {
             "en": "Outdoor Temperature",
-            "de": "Aussentemperatur"
+            "de": "Aussentemperatur",
+            "nl": "Buitentemperatuur",
+            "fr": "Température extérieure"
           }
         },
         "measure_temp_outdoor_avg": {
           "title": {
             "en": "Outdoor Avg. Temperature",
-            "de": "Mittlere Aussentemperatur"
+            "de": "Mittlere Aussentemperatur",
+            "nl": "Gemiddelde buitentemperatuur",
+            "fr": "Température extérieure moyenne"
           }
         },
         "measure_temp_return": {
           "title": {
             "en": "Return Temperature",
-            "de": "Rücklauftemperatur"
+            "de": "Rücklauftemperatur",
+            "nl": "Retourtemperatuur",
+            "fr": "Température retour"
           }
         },
         "measure_temp_return_target": {
           "title": {
             "en": "Return Target Temperature",
-            "de": "Rücklauf Soll"
+            "de": "Rücklauf Soll",
+            "nl": "Gewenste retourtemperatuur",
+            "fr": "Consigne retour"
           }
         },
         "measure_temp_hotgas": {
           "title": {
             "en": "Hot Gas Temperature",
-            "de": "Heissgastemperatur"
+            "de": "Heissgastemperatur",
+            "nl": "Heetgastemperatuur",
+            "fr": "Température gaz chaud"
           }
         },
         "measure_temp_hotwater_target": {
@@ -2076,79 +2086,103 @@
         "measure_temp_source_in": {
           "title": {
             "en": "Heat Source Inlet",
-            "de": "Wärmequelle Eingang"
+            "de": "Wärmequelle Eingang",
+            "nl": "Warmtebron ingang",
+            "fr": "Source de chaleur entrée"
           }
         },
         "measure_temp_source_out": {
           "title": {
             "en": "Heat Source Outlet",
-            "de": "Wärmequelle Ausgang"
+            "de": "Wärmequelle Ausgang",
+            "nl": "Warmtebron uitgang",
+            "fr": "Source de chaleur sortie"
           }
         },
         "measure_temp_suction_air": {
           "title": {
             "en": "Suction Air Temperature",
-            "de": "Ansaugluft Temperatur"
+            "de": "Ansaugluft Temperatur",
+            "nl": "Aanzuigluchttemperatuur",
+            "fr": "Température air aspiré"
           }
         },
         "measure_temp_room": {
           "title": {
             "en": "Room Temperature",
-            "de": "Raumtemperatur"
+            "de": "Raumtemperatur",
+            "nl": "Ruimtetemperatuur",
+            "fr": "Température ambiante"
           }
         },
         "measure_temp_room_target": {
           "title": {
             "en": "Room Target Temperature",
-            "de": "Raumtemperatur Soll"
+            "de": "Raumtemperatur Soll",
+            "nl": "Gewenste ruimtetemperatuur",
+            "fr": "Consigne température ambiante"
           }
         },
         "meter_energy_heating": {
           "title": {
             "en": "Energy Heating",
-            "de": "Energie Heizung"
+            "de": "Energie Heizung",
+            "nl": "Energie verwarming",
+            "fr": "Énergie chauffage"
           },
           "preventTag": true
         },
         "meter_energy_hotwater": {
           "title": {
             "en": "Energy Hot Water",
-            "de": "Energie Brauchwasser"
+            "de": "Energie Brauchwasser",
+            "nl": "Energie warmwater",
+            "fr": "Énergie eau chaude"
           },
           "preventTag": true
         },
         "meter_energy_total": {
           "title": {
             "en": "Energy Total",
-            "de": "Energie Gesamt"
+            "de": "Energie Gesamt",
+            "nl": "Energie totaal",
+            "fr": "Énergie totale"
           },
           "preventTag": true
         },
         "measure_hours_compressor": {
           "title": {
             "en": "Compressor Operating Hours",
-            "de": "Betriebsstunden Verdichter"
+            "de": "Betriebsstunden Verdichter",
+            "nl": "Bedrijfsuren compressor",
+            "fr": "Heures compresseur"
           },
           "preventTag": true
         },
         "measure_hours_heating": {
           "title": {
             "en": "Heating Operating Hours",
-            "de": "Betriebsstunden Heizung"
+            "de": "Betriebsstunden Heizung",
+            "nl": "Bedrijfsuren verwarming",
+            "fr": "Heures chauffage"
           },
           "preventTag": true
         },
         "measure_hours_hotwater": {
           "title": {
             "en": "Hot Water Operating Hours",
-            "de": "Betriebsstunden Brauchwasser"
+            "de": "Betriebsstunden Brauchwasser",
+            "nl": "Bedrijfsuren warmwater",
+            "fr": "Heures eau chaude"
           },
           "preventTag": true
         },
         "measure_hours_cooling": {
           "title": {
             "en": "Cooling Operating Hours",
-            "de": "Betriebsstunden Kühlung"
+            "de": "Betriebsstunden Kühlung",
+            "nl": "Bedrijfsuren koeling",
+            "fr": "Heures refroidissement"
           },
           "preventTag": true
         },
@@ -2158,7 +2192,9 @@
           "step": 0.5,
           "title": {
             "en": "Hot Water Setpoint",
-            "de": "Warmwasser Sollwert"
+            "de": "Warmwasser Sollwert",
+            "nl": "Warmwater doeltemperatuur",
+            "fr": "Température cible eau chaude"
           },
           "preventInsights": true,
           "preventTag": true
@@ -2166,14 +2202,18 @@
         "measure_temperature": {
           "title": {
             "en": "Hot Water Actual",
-            "de": "Warmwasser Istwert"
+            "de": "Warmwasser Istwert",
+            "nl": "Warmwater actueel",
+            "fr": "Eau chaude actuelle"
           },
           "preventInsights": true
         },
         "target_temperature.heating": {
           "title": {
             "en": "Heating Correction",
-            "de": "Heizung Korrektur"
+            "de": "Heizung Korrektur",
+            "nl": "Verwarmingscorrectie",
+            "fr": "Correction de chauffage"
           },
           "min": -5,
           "max": 5,
@@ -2184,7 +2224,9 @@
         "measure_temperature.heating": {
           "title": {
             "en": "Flow Temperature",
-            "de": "Vorlauftemperatur"
+            "de": "Vorlauftemperatur",
+            "nl": "Aanvoertemperatuur",
+            "fr": "Température départ"
           },
           "preventInsights": true,
           "preventTag": true
@@ -3528,6 +3570,7 @@
       "getable": true,
       "setable": false,
       "uiComponent": "sensor",
+      "icon": "/assets/capabilities/heat_output.svg",
       "insights": true
     },
     "measure_hours_compressor": {
@@ -3679,6 +3722,7 @@
       "getable": true,
       "setable": false,
       "uiComponent": "sensor",
+      "icon": "/assets/capabilities/pressure_high.svg",
       "insights": true
     },
     "measure_pressure_low": {
@@ -3697,6 +3741,7 @@
       "getable": true,
       "setable": false,
       "uiComponent": "sensor",
+      "icon": "/assets/capabilities/pressure_low.svg",
       "insights": true
     },
     "measure_starts_compressor": {
@@ -3977,6 +4022,7 @@
       "getable": true,
       "setable": false,
       "uiComponent": "sensor",
+      "icon": "/assets/capabilities/suction_temp_compressor.svg",
       "insights": true
     },
     "measure_temp_suction_evaporator": {
@@ -3995,6 +4041,7 @@
       "getable": true,
       "setable": false,
       "uiComponent": "sensor",
+      "icon": "/assets/capabilities/suction_temp_evaporator.svg",
       "insights": true
     },
     "measure_volume_flow": {

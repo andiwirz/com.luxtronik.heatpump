@@ -6,6 +6,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
 const { extractMethod, extractConst } = require('./helpers');
+const { coolingCounterState, coolingCounterRunning } = require('../lib/luxtronik-codes');
 
 const dev = {
   ...extractMethod('_n'),
@@ -15,6 +16,86 @@ const dev = {
   ...extractMethod('_temp'),
   ...extractMethod('_energyMetered'),
 };
+
+test('_showOrClear leert eine Kachel, statt den letzten Wert stehen zu lassen', async () => {
+  // Ein Platzhalter (75 °C Warmwasser ohne Warmwasser) oder ein Unsinnsfehler
+  // stand schon auf der Kachel. _setIfValid() überspringt null — ohne Leeren
+  // bliebe der falsche Wert für immer stehen.
+  const { _showOrClear } = extractMethod('_showOrClear');
+  const make = (current) => {
+    const calls = [];
+    return {
+      calls,
+      hasCapability: () => true,
+      getCapabilityValue: () => current,
+      setCapabilityValue: (cap, value) => { calls.push(['set', cap, value]); return Promise.resolve(); },
+      _setIfValid: (cap, value) => { calls.push(['valid', cap, value]); return Promise.resolve(); },
+      error: () => {},
+      _showOrClear,
+    };
+  };
+  let dev = make(75);
+  await dev._showOrClear('measure_temp_hotwater', null);
+  assert.deepStrictEqual(dev.calls, [['set', 'measure_temp_hotwater', null]]);
+  dev = make(null);
+  await dev._showOrClear('measure_temp_hotwater', null);
+  assert.deepStrictEqual(dev.calls, [], 'schon leer: nichts schreiben');
+  dev = make(75);
+  await dev._showOrClear('measure_temp_hotwater', 47.7);
+  assert.deepStrictEqual(dev.calls, [['valid', 'measure_temp_hotwater', 47.7]]);
+});
+
+test('Protokolle und Warmwasser gehen nur geprüft auf die Kacheln', () => {
+  // Die Prüfungen nützen nur, wenn _processData sie auch benutzt: Fehler- und
+  // Abschaltprotokoll über plausibleLogEntries(), die Warmwasser-Temperatur
+  // über _hotWaterTemp(), das den Platzhalter einer Heizanlage herausnimmt.
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const { ROOT } = require('./helpers');
+  const src = fs.readFileSync(path.join(ROOT, 'drivers/luxtronik-heatpump/device.js'), 'utf8');
+  assert.doesNotMatch(src, /newestEntry\(v\.(?:errors|switch_off)\)/);
+  assert.doesNotMatch(src, /v\.errors\.map\(/);
+  assert.strictEqual((src.match(/v\.temperature_hot_water\b/g) || []).length, 1, 'Warmwasser-Temperatur ausserhalb von _hotWaterTemp() gelesen');
+  assert.match(String(extractMethod('_hotWaterTemp')._hotWaterTemp), /v\.temperature_hot_water\b/);
+});
+
+test('„Kühlen“ kommt vom Kühlzähler, nicht von der Freigabe', () => {
+  // Auf einem LWD90V stand FreigabKuehl dauerhaft auf 1, ohne eine einzige
+  // Kühlstunde, und Status und Heizungsstatus zeigten beim Heizen „Koelen“.
+  // Die Freigabe entscheidet nur noch, ob die Kühl-Kacheln erscheinen.
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const { ROOT } = require('./helpers');
+  const code = fs.readFileSync(path.join(ROOT, 'drivers/luxtronik-heatpump/device.js'), 'utf8')
+    .replace(/\r\n/g, '\n')
+    .replace(/\/\/.*$/gm, '');
+  const uses = code.split('\n').filter((line) => line.includes('FreigabKuehl'));
+  assert.strictEqual(uses.length, 1, uses.join('\n'));
+  assert.match(uses[0], /coolingDetected/);
+  assert.match(code, /coolingRuns && stateSlug === 'heating' && rawState === 0/, 'Status');
+  assert.match(code, /coolingRuns && code === 0/, 'Heizungsstatus');
+});
+
+test('_coolingRuns: ohne Vergleichswert bleibt die bisherige Anzeige', () => {
+  // Nach einem Neustart oder Ausfall fehlt dem Kühlzähler der Vergleichswert.
+  // Spränge der Status dann für eine Abfrage auf „Heizen“, feuerten „Status
+  // geändert“ und die Meldung zweimal.
+  const { _coolingRuns } = extractMethod('_coolingRuns', undefined, { coolingCounterRunning });
+  const make = (shown, counter = coolingCounterState()) => ({
+    _coolingCounter: counter,
+    getCapabilityValue: (cap) => (cap === 'heatpump_state' ? shown : null),
+    _coolingRuns,
+  });
+  assert.strictEqual(make('cooling')._coolingRuns({ raw_hours_cooling: 10504638 }), true);
+  assert.strictEqual(make('heating')._coolingRuns({ raw_hours_cooling: 10504638 }), false);
+  // Wer wegen der Freigabe fälschlich „Kühlen“ zeigt und nie gekühlt hat,
+  // kommt sofort davon los, nicht erst nach einer zweiten Abfrage.
+  assert.strictEqual(make('cooling')._coolingRuns({ raw_hours_cooling: 0 }), false);
+  // Mit Vergleichswert entscheidet der Zähler, nicht die Anzeige.
+  const baseline = () => ({ seconds: 10504638, readAt: Date.now() - 60000, running: null });
+  assert.strictEqual(make('heating', baseline())._coolingRuns({ raw_hours_cooling: 10504698 }), true);
+  assert.strictEqual(make('cooling', baseline())._coolingRuns({ raw_hours_cooling: 10504638 }), false);
+});
 
 test('_n: die Platzhalter des Reglers ergeben null, keine Zahl', () => {
   // luxtronik2 liefert 'no' für Werte, die das Visibility-Flag ausblendet.

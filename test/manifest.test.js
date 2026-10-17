@@ -16,6 +16,37 @@ const drv = app.drivers[0];
 const device = fs.readFileSync(path.join(ROOT, 'drivers/luxtronik-heatpump/device.js'), 'utf8');
 const driver = fs.readFileSync(path.join(ROOT, 'drivers/luxtronik-heatpump/driver.js'), 'utf8');
 
+test('Kacheln, Flow-Karten und Auswahlwerte gibt es in allen vier Sprachen', () => {
+  // In einem niederländischen Homey standen 21 von 22 Kacheltiteln des Treibers
+  // auf Englisch: Ihre capabilitiesOptions hatten nur EN und DE, und die
+  // überschreiben den Titel der Capability-Definition.
+  const missing = [];
+  const check = (where, title) => {
+    for (const lang of ['en', 'de', 'nl', 'fr']) if (!title || !title[lang]) missing.push(`${where} (${lang})`);
+  };
+  for (const [id, cap] of Object.entries(app.capabilities)) {
+    check(`capability ${id}`, cap.title);
+    for (const value of cap.values || []) check(`capability ${id}:${value.id}`, value.title);
+  }
+  for (const [id, options] of Object.entries(drv.capabilitiesOptions || {})) {
+    if (options.title) check(`Kachel ${id}`, options.title);
+  }
+  for (const kind of ['triggers', 'conditions', 'actions']) {
+    for (const card of app.flow[kind]) check(`${kind}/${card.id}`, card.title);
+  }
+  assert.deepStrictEqual(missing, []);
+});
+
+test('der Titelabgleich erreicht auch Kacheln ohne eigene Definition', () => {
+  // target_temperature.heating und die anderen System-Kacheln haben keine
+  // Capability-Definition; ihr Titel steht nur in den capabilitiesOptions des
+  // Treibers. Ohne diesen Rückgriff behielten bestehende Geräte die Titel ihrer
+  // Kopplung — auf Niederländisch und Französisch also Englisch.
+  const src = device.replace(/\r\n/g, '\n');
+  const start = src.indexOf('  async onInit() {');
+  assert.match(src.slice(start, src.indexOf('\n  }\n', start)), /driverOptions\[cap\] && driverOptions\[cap\]\.title/);
+});
+
 test('jede Flow-Karte im Manifest ist im Code registriert', () => {
   // Trigger löst jedes Gerät selbst aus; Bedingungen und Aktionen hängt der
   // Treiber einmal für alle Geräte ein.
@@ -69,6 +100,18 @@ test('keine private Methode ist unerreichbar', () => {
     return !new RegExp(`this\\.${m}\\b`).test(device) && !new RegExp(`\\bdevice\\.${m}\\b`).test(driver);
   });
   assert.deepStrictEqual(dead, [], 'definiert, aber nie aufgerufen');
+});
+
+test('jede sichtbare Kachel hat ein Icon', () => {
+  // Fünf Kältekreis-Kacheln zeigten in der Homey-App nur Homeys Platzhalter,
+  // ein gestricheltes Quadrat: Ihre Definitionen hatten kein Icon. Geprüft
+  // wird, was der Treiber oder der Code verwendet und was als Kachel erscheint.
+  const used = new Set([...drv.capabilities, ...[...device.matchAll(/'([a-z_]+)'/g)].map((m) => m[1])]);
+  const missing = Object.entries(app.capabilities)
+    .filter(([id, cap]) => used.has(id) && cap.uiComponent !== null)
+    .filter(([, cap]) => !cap.icon || !fs.existsSync(path.join(ROOT, cap.icon)))
+    .map(([id]) => id);
+  assert.deepStrictEqual(missing, []);
 });
 
 test('jedes Capability-Icon folgt dem Farbschema und skaliert', () => {

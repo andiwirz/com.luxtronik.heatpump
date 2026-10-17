@@ -14,5 +14,6 @@
   "getable": true,
   "setable": false,
   "uiComponent": "sensor",
+  "icon": "/assets/capabilities/pressure_high.svg",
   "insights": true
 }

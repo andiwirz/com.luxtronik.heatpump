@@ -12,6 +12,7 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
 const { ROOT, extractMethod } = require('./helpers');
+const { coolingCounterState } = require('../lib/luxtronik-codes');
 
 const app = JSON.parse(fs.readFileSync(path.join(ROOT, 'app.json'), 'utf8'));
 const device = fs.readFileSync(path.join(ROOT, 'drivers/luxtronik-heatpump/device.js'), 'utf8');
@@ -155,12 +156,26 @@ test('Aktionen finden schon während der Migrationen einen fertigen Zustand vor'
   assert.deepStrictEqual(late, []);
 });
 
+test('jeder Schreibvorgang läuft durch Warteschlange und Schutznetze', () => {
+  // _writeRaw lief früher an Warteschlange, Timeout und Socket-Wächter vorbei:
+  // Antwortete der Regler nicht, blieb das zuvor angehaltene Polling für immer
+  // stehen. Die Desinfektion schrieb sogar direkt auf die Bibliothek. Deshalb
+  // dürfen deren Schreibfunktionen nur in _writeNow() aufgerufen werden.
+  const libWrite = /this\._pump\.(?:write|writeRaw|_startWrite)\(/g;
+  const { _writeNow } = extractMethod('_writeNow');
+  const inWriteNow = (String(_writeNow).match(libWrite) || []).length;
+  assert.ok(inWriteNow >= 2, 'write und writeRaw gehören in _writeNow()');
+  assert.strictEqual((device.match(libWrite) || []).length, inWriteNow, 'Schreibfunktion der Bibliothek ausserhalb von _writeNow()');
+  const { _writeRaw } = extractMethod('_writeRaw');
+  assert.match(String(_writeRaw), /return this\._write\(/);
+});
+
 test('"Gerät nicht erreichbar" feuert auf jedem Weg dorthin, aber nur einmal', () => {
   // Poll-Fehler, Poll-Timeout und Watchdog machen das Gerät unerreichbar.
   // Vorher löste nur der Poll-Fehler den Trigger aus — bei stillstehendem
   // Polling, dem Fall des Watchdogs, kam er nicht, "wieder erreichbar" aber
   // schon. Deshalb darf setUnavailable() nur in _markUnavailable() stehen.
-  const { _markUnavailable } = extractMethod('_markUnavailable');
+  const { _markUnavailable } = extractMethod('_markUnavailable', undefined, { coolingCounterState });
   const direct = device.match(/this\.setUnavailable\(/g) || [];
   assert.strictEqual(direct.length, 1, 'setUnavailable() ausserhalb von _markUnavailable()');
   assert.match(String(_markUnavailable), /this\.setUnavailable\(/);
@@ -178,4 +193,20 @@ test('"Gerät nicht erreichbar" feuert auf jedem Weg dorthin, aber nur einmal', 
   dev._markUnavailable('Poll-Timeout');
   dev._markUnavailable('Watchdog');
   assert.strictEqual(fired, 1);
+});
+
+test('nach einem Ausfall vergleicht der Kühlzähler nicht über die Lücke', () => {
+  // Gegen den Stand von vor dem Ausfall gälte als Kühlen, was während der
+  // Lücke lief, auch wenn die Anlage inzwischen steht. Alle Wege in den
+  // Ausfall laufen über _markUnavailable(), siehe oben.
+  const { _markUnavailable } = extractMethod('_markUnavailable', undefined, { coolingCounterState });
+  const dev = {
+    getAvailable: () => true,
+    setUnavailable: () => Promise.resolve(),
+    _triggerDeviceUnavailable: { trigger: () => Promise.resolve() },
+    _coolingCounter: { seconds: 10504698, readAt: 60000, running: true },
+    _markUnavailable,
+  };
+  dev._markUnavailable('Poll-Fehler');
+  assert.deepStrictEqual(dev._coolingCounter, coolingCounterState());
 });

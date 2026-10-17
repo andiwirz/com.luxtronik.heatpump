@@ -21,8 +21,11 @@ const ROOT = path.join(__dirname, '..');
  * hängen aber an keinem Zustand, so dass sie sich einzeln herausschneiden und
  * auswerten lassen. Bricht das Herausschneiden, schlägt der Test fehl — das ist
  * gewollt, dann hat sich die Signatur geändert und der Test muss mitwandern.
+ *
+ * `imports` reicht Funktionen hinein, die die Methode aus lib/ einbindet,
+ * etwa { coolingCounterState }.
  */
-function extractMethod(name, file = 'drivers/luxtronik-heatpump/device.js') {
+function extractMethod(name, file = 'drivers/luxtronik-heatpump/device.js', imports = {}) {
   const src = fs.readFileSync(path.join(ROOT, file), 'utf8');
   const lines = src.split('\n');
   const start = lines.findIndex((l) => l.match(new RegExp('^  (?:async )?' + name + '\\s*\\(')));
@@ -41,8 +44,9 @@ function extractMethod(name, file = 'drivers/luxtronik-heatpump/device.js') {
     .map((m) => `const ${m[1]} = ${m[2]};`)
     .join('\n');
   // Als Objektmethode auswerten, damit `this` funktioniert.
+  const names = Object.keys(imports);
   // eslint-disable-next-line no-new-func
-  return new Function(`${scope}\nreturn { ${body.join('\n')} };`)();
+  return new Function(...names, `${scope}\nreturn { ${body.join('\n')} };`)(...names.map((n) => imports[n]));
 }
 
 /** Konstanten auf Modulebene aus device.js lesen (z. B. UNWIRED_SENSOR_TEMPERATURE). */

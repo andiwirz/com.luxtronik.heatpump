@@ -4,7 +4,8 @@ const { Device } = require('homey');
 const luxtronik = require('../../lib/luxtronik2/luxtronik');
 const {
   switchoffReason, newestEntry, extendedState, defrostVariant, defrostState, mixerCanCool,
-  controllerConfig, parameterChanges,
+  controllerConfig, parameterChanges, parameterLabel, plausibleLogEntries, hotWaterEvidence,
+  coolingCounterState, coolingCounterRunning,
 } = require('../../lib/luxtronik-codes');
 const { CALCULATIONS, PARAMETERS } = require('../../lib/luxtronik-registers');
 
@@ -164,6 +165,8 @@ class LuxtronikHeatpumpDevice extends Device {
     this._rawParameters        = null;
     this._lastRawParameters    = null;
     this._parameterChangeState = { streak: {}, muted: {} };
+    // Kühlzähler der letzten Abfrage, siehe _coolingRuns()
+    this._coolingCounter = coolingCounterState();
     // Merker für nachgewiesene optionale Hardware, siehe _hardwarePresent().
     // Der Stand aus dem Store kommt gleich nach den Flow-Triggern dazu.
     this._hardwareSeen = {};
@@ -321,14 +324,24 @@ class LuxtronikHeatpumpDevice extends Device {
       }
 
       const manifestCaps = (this.homey.manifest && this.homey.manifest.capabilities) || {};
+      // System- und Unter-Capabilities wie target_temperature.heating haben keine
+      // eigene Definition, ihr Titel steht nur in den capabilitiesOptions des
+      // Treibers. Ohne diesen Rückgriff blieben sie auf dem Stand der Kopplung —
+      // auf Niederländisch und Französisch also englisch.
+      const driverManifest = ((this.homey.manifest && this.homey.manifest.drivers) || [])
+        .find((d) => d.id === this.driver.id) || {};
+      const driverOptions = driverManifest.capabilitiesOptions || {};
       for (const cap of this.getCapabilities()) {
-        const def = manifestCaps[cap];
-        if (!def || !def.title) continue;
+        const title = (manifestCaps[cap] && manifestCaps[cap].title) || (driverOptions[cap] && driverOptions[cap].title);
+        if (!title) continue;
         let current = null;
         try { current = this.getCapabilityOptions(cap); } catch (e) { current = null; }
         const curTitle = current && current.title ? JSON.stringify(current.title) : null;
-        if (curTitle !== JSON.stringify(def.title)) {
-          try { await this.setCapabilityOptions(cap, { ...(current || {}), title: def.title }); }
+        if (curTitle !== JSON.stringify(title)) {
+          // Die Treiberoptionen zuerst: Bereich und Schrittweite (−5…+5 K bei der
+          // Heizungskorrektur) dürfen nicht verloren gehen, falls getCapabilityOptions()
+          // sie nicht mitliefert.
+          try { await this.setCapabilityOptions(cap, { ...(driverOptions[cap] || {}), ...(current || {}), title }); }
           catch (e) { this.error(`Titel-Sync ${cap} fehlgeschlagen:`, e.message); }
         }
       }
@@ -595,7 +608,8 @@ class LuxtronikHeatpumpDevice extends Device {
           // Betriebsstunden Kühlung. Die Bibliothek blendet sie hinter einem
           // Visibility-Flag aus, das genau dann 0 ist, wenn die Kühlung nicht
           // erkannt wurde - als Nachweis für vorhandene Kühlung damit
-          // unbrauchbar, also roh lesen.
+          // unbrauchbar, also roh lesen. Der Zähler läuft in Sekunden und
+          // sagt auch, ob gerade gekühlt wird, siehe _coolingRuns().
           extra.raw_hours_cooling = rawAt(CALCULATIONS.C0066_OPERATION_HOURS_COOLING);
           // Weitere Zähler und Fühler, die luxtronik2 nicht abbildet. Die
           // Umrechnung folgt den Datentypen von python-luxtronik, auf die sich
@@ -650,6 +664,9 @@ class LuxtronikHeatpumpDevice extends Device {
   // nach jeder Wiederherstellung.
   _markUnavailable(reason) {
     const wasAvailable = this.getAvailable();
+    // Nach dem Ausfall ist der erste Kühlzählerstand nur Vergleichswert: Gegen
+    // den Stand davor gälte als Kühlen, was während der Lücke lief.
+    this._coolingCounter = coolingCounterState();
     this.setUnavailable(reason).catch(() => {});
     if (wasAvailable) this._triggerDeviceUnavailable.trigger(this, {}).catch(() => {});
   }
@@ -884,9 +901,11 @@ class LuxtronikHeatpumpDevice extends Device {
     await this._setIfValid('measure_temp_return',       this._n(v.temperature_return));
     await this._setIfValid('measure_temp_return_target',this._n(v.temperature_target_return));
     await this._setIfValid('measure_temp_hotgas',       this._n(v.temperature_hot_gas));
-    await this._setIfValid('measure_temp_hotwater',     this._n(v.temperature_hot_water));
+    // Auf einer Anlage ohne Warmwasser null statt des Platzhalters 75 °C, siehe _hotWaterTemp()
+    const hotWaterTemp = await this._hotWaterTemp(v);
+    await this._showOrClear('measure_temp_hotwater', hotWaterTemp);
     // Mirror → built-in measure_temperature (Thermostat-Widget Ist-Wert, kein Insights-Duplikat)
-    await this._setIfValid('measure_temperature', this._n(v.temperature_hot_water));
+    await this._showOrClear('measure_temperature', hotWaterTemp);
     // Thermische Desinfektion Dauerbetrieb: Wert aus Controller lesen
     if (p.thermal_desinfection_continuous_operation !== undefined) {
       const contActive = p.thermal_desinfection_continuous_operation === 1;
@@ -894,7 +913,7 @@ class LuxtronikHeatpumpDevice extends Device {
     }
     // Brauchwasser Schnellladung (Zuheizung): automatisch beenden wenn Zieltemperatur erreicht
     if (this._boostTimer && this.getCapabilityValue('hotwater_boost') === true) {
-      const currentTemp = this._n(v.temperature_hot_water);
+      const currentTemp = hotWaterTemp;
       // Für "Speicher voll?" den momentanen Zielwert des Reglers verwenden (values[18]),
       // nicht den konfigurierten Sollwert — sonst läuft der Boost bei Sperrzeit ins Leere.
       const targetTemp  = this._n(v.temperature_hot_water_target) ?? this.getCapabilityValue('target_temperature');
@@ -907,7 +926,7 @@ class LuxtronikHeatpumpDevice extends Device {
     }
     // Brauchwasser Schnellladung (Party): automatisch beenden wenn Zieltemperatur erreicht
     if (this._boostPartyTimer && this.getCapabilityValue('hotwater_boost_party') === true) {
-      const currentTempP = this._n(v.temperature_hot_water);
+      const currentTempP = hotWaterTemp;
       const targetTempP  = this._n(v.temperature_hot_water_target) ?? this.getCapabilityValue('target_temperature');
       if (currentTempP !== null && targetTempP !== null && currentTempP >= targetTempP) {
         this.log(`Schnellladung (Party): Zieltemperatur ${targetTempP}°C erreicht (${currentTempP}°C) — beende automatisch`);
@@ -916,7 +935,7 @@ class LuxtronikHeatpumpDevice extends Device {
     }
     // Thermische Desinfektion: automatisch deaktivieren wenn Zieltemperatur erreicht
     if (this.getCapabilityValue('thermal_disinfection_continuous') === true) {
-      const currentTemp = this._n(v.temperature_hot_water);
+      const currentTemp = hotWaterTemp;
       const tdiTarget   = (this.getCapabilityValue('tdi_target_temperature') ?? 65) - 1;
       if (currentTemp !== null && currentTemp >= tdiTarget) {
         this.log(`Thermische Desinfektion: ${tdiTarget}°C erreicht (${currentTemp}°C) — deaktiviere Dauerbetrieb`);
@@ -1058,14 +1077,16 @@ class LuxtronikHeatpumpDevice extends Device {
     let stateSlug = (state1 === HEATPUMP_STATE1_ERROR)
       ? 'off'
       : (HEATPUMP_STATE_MAP[rawState] ?? 'unknown');
-    // Kühlbetrieb-Erkennung: Viele Luxtronik/AIT-Steuerungen (z. B. MSW2-6S) melden
-    // im Kühlbetrieb KEINEN state3=10 ('Kühlbetrieb'), sondern behalten state3=0
-    // ('Heizbetrieb') und signalisieren Kühlung ausschließlich über die Freigabe
-    // Kühlung (FreigabKuehl, Calc-Index 146). Nur der generische Status state3=0
-    // wird überschrieben; spezifische Heizmodi (17 Elektr. Zusatzheizung,
-    // 18 Verdichter heizt auf) bleiben 'heating'. Stabil auch wenn der Verdichter
-    // gerade taktet/aus ist, da die Umwälzung im Kühlmodus weiterläuft.
-    if (this._n(v.FreigabKuehl) === 1 && stateSlug === 'heating' && rawState === 0) {
+    // Kühlbetrieb-Erkennung: Manche Steuerungen (z. B. MSW2-6S) melden
+    // Kühlbetrieb nicht als state3=10 ('Kühlbetrieb'), sondern als state3=0
+    // ('Heizbetrieb'). Ob gekühlt wird, sagt dann der Kühlzähler, nicht die
+    // Freigabe FreigabKuehl: Die stand auf einer Anlage ohne eine einzige
+    // Kühlstunde dauerhaft auf 1, und der Status zeigte beim Heizen „Kühlen“.
+    // Nur der generische Status state3=0 wird überschrieben; spezifische
+    // Heizmodi (17 Elektr. Zusatzheizung, 18 Verdichter heizt auf) bleiben
+    // 'heating'.
+    const coolingRuns = this._coolingRuns(v);
+    if (coolingRuns && stateSlug === 'heating' && rawState === 0) {
       stateSlug = 'cooling';
     }
     if (stateSlug !== this._lastState) {
@@ -1149,7 +1170,10 @@ class LuxtronikHeatpumpDevice extends Device {
     // Diagnose-Werte: sie sagen, warum die Wärmepumpe gerade nicht läuft bzw.
     // was zuletzt schiefging - unabhängig von alarm_generic, das nur den
     // aktuellen Fehlerzustand abbildet.
-    const lastSwitchoff = newestEntry(v.switch_off);
+    // Nur Einträge, die der Regler auch geschrieben haben kann — ein nie
+    // beschriebenes Protokoll enthält Zufallswerte, siehe plausibleLogEntries().
+    const lastSwitchoff = newestEntry(plausibleLogEntries(v.switch_off, 0, 99));
+    if (!lastSwitchoff && Array.isArray(v.switch_off)) await this._showOrClear('switchoff_reason', null);
     if (lastSwitchoff) {
       // Die Bibliothek kennt nur die Codes 0-9 und nur auf Deutsch; für alles
       // darüber hinaus greift die übersetzte Tabelle aus lib/luxtronik-codes.
@@ -1161,9 +1185,11 @@ class LuxtronikHeatpumpDevice extends Device {
       if (reason) await this._setIfValid('switchoff_reason', reason);
     }
 
-    const lastError = newestEntry(v.errors);
-    if (lastError && lastError.code) {
-      await this._setIfValid('error_reason', `${lastError.code} - ${lastError.message}`);
+    // Fehlercodes des Reglers liegen zwischen 701 und 807 (Liste der
+    // Home-Assistant-Integration); 700–999 lässt Platz für neuere.
+    const lastError = newestEntry(plausibleLogEntries(v.errors, 700, 999));
+    if (lastError || Array.isArray(v.errors)) {
+      await this._showOrClear('error_reason', lastError ? `${lastError.code} - ${lastError.message}` : null);
     }
     // Heizungs-Status – über den Zustandscode (C0119) statt über den Text der
     // Bibliothek, siehe EXTENDED_STATES in lib/luxtronik-codes.
@@ -1186,9 +1212,9 @@ class LuxtronikHeatpumpDevice extends Device {
         heatingLabel = defrostState(variant, lang) || heatingLabel;
       }
 
-      // Kühlbetrieb überschreibt 'Heizbetrieb' (gleiche Logik wie heatpump_state oben):
-      // bei aktiver Freigabe Kühlung meldet die Steuerung 'Heizbetrieb' obwohl gekühlt wird.
-      if (this._n(v.FreigabKuehl) === 1 && code === 0) {
+      // Kühlbetrieb überschreibt 'Heizbetrieb', gleiche Regel wie bei
+      // heatpump_state oben.
+      if (coolingRuns && code === 0) {
         heatingLabel = extendedState(10, lang) || heatingLabel;
       }
 
@@ -1206,9 +1232,11 @@ class LuxtronikHeatpumpDevice extends Device {
       await this._setIfValid('hotwater_state_string', entry ? (entry[lang] ?? entry.en) : raw);
     }
     if (hasError && !this._lastErrorState) {
-      // Fehlermeldung aus dem Protokoll holen
-      const msg = Array.isArray(v.errors) && v.errors.length > 0
-        ? v.errors.map((e) => (typeof e === 'object' ? JSON.stringify(e) : String(e))).join(', ')
+      // Fehlermeldung aus dem Protokoll holen, ohne die Zufallswerte eines nie
+      // beschriebenen Fehlerspeichers
+      const plausibleErrors = plausibleLogEntries(v.errors, 700, 999);
+      const msg = plausibleErrors.length > 0
+        ? plausibleErrors.map((e) => JSON.stringify(e)).join(', ')
         : 'Fehler (state1=4)';
       await this._triggerErrorOccurred.trigger(this, { error: msg }).catch(() => {});
       await this._notify(this._tl(`⚠️ Fehler aktiv: ${msg}`, `⚠️ Error active: ${msg}`));
@@ -1586,27 +1614,13 @@ class LuxtronikHeatpumpDevice extends Device {
     this.log(`Kühlung Einlauftemperatur erfolgreich gesendet: ${clamped} °C`);
   }
 
+  // Rohregister schreiben, über dieselbe Warteschlange und dieselben Schutznetze
+  // wie _write(). Vorher lief das an allem vorbei: keine Warteschlange, kein
+  // Timeout, kein Socket-Wächter. Antwortete der Regler nicht — Firmware
+  // V1.90.0/V2.90.0 quittiert Schreibvorgänge gar nicht —, startete das zuvor
+  // angehaltene Polling nie wieder.
   _writeRaw(parameterIndex, setValue) {
-    return new Promise((resolve, reject) => {
-      if (!this._pump) { reject(new Error('Nicht verbunden')); return; }
-      this._stopPolling();
-      this.log(`_writeRaw: parameter[${parameterIndex}] = ${setValue} (Polling pausiert)`);
-      setTimeout(() => {
-        this._pump._startWrite(parameterIndex, setValue, (err, res) => {
-          // Polling nach dem Write immer neu starten + 3s verzögerter Bestätigungs-Poll
-          this._startPolling();
-          this._schedulePollAfterWrite();
-          if (err) {
-            const msg = (err && err.message) ? err.message : String(err);
-            this.error(`WriteRaw-Fehler (param${parameterIndex}=${setValue}): ${msg}`);
-            reject(new Error(msg));
-          } else {
-            this.log(`WriteRaw OK: param[${parameterIndex}]=${setValue}`, JSON.stringify(res));
-            resolve(res);
-          }
-        });
-      }, 200);
-    });
+    return this._write(parameterIndex, setValue);
   }
 
   // ─── Schnelladung ─────────────────────────────────────────────────────────────
@@ -1710,12 +1724,8 @@ class LuxtronikHeatpumpDevice extends Device {
   async _setThermalDisinfectionContinuous(enabled) {
     const value = enabled ? 1 : 0;
     this.log(`Thermische Desinfektion Dauerbetrieb: ${enabled ? 'ein' : 'aus'}`);
-    await new Promise((resolve, reject) => {
-      this._pump.writeRaw(27, value, (err) => {
-        if (err) return reject(err);
-        resolve();
-      });
-    });
+    this._setWriteProtect('thermal_disinfection_continuous', 120000);
+    await this._writeRaw(27, value);
     await this.setCapabilityValue('thermal_disinfection_continuous', enabled);
     this.log(`Thermische Desinfektion Dauerbetrieb erfolgreich gesetzt: ${value}`);
   }
@@ -1758,7 +1768,8 @@ class LuxtronikHeatpumpDevice extends Device {
 
   _write(parameter, value) {
     // Schreibvorgänge serialisieren: nie zwei parallele TCP-Verbindungen.
-    // result wird dem Aufrufer zurückgegeben (inkl. Fehler).
+    // `parameter` ist ein Schreibname der Bibliothek oder eine Registernummer,
+    // siehe _writeRaw(). result wird dem Aufrufer zurückgegeben (inkl. Fehler).
     // _writeQueue bekommt nur die gecatchte Version, damit die Kette nach
     // einem Fehler nicht abbricht und der nächste Write trotzdem ausgeführt wird.
     const result = this._writeQueue.then(() => this._writeNow(parameter, value));
@@ -1767,12 +1778,15 @@ class LuxtronikHeatpumpDevice extends Device {
   }
 
   _writeNow(parameter, value) {
+    // Zahl = Rohregister (writeRaw der Bibliothek), Text = Schreibname (write).
+    const raw = typeof parameter === 'number';
+    const label = raw ? parameterLabel(parameter) : parameter;
     return new Promise((resolve, reject) => {
       if (!this._pump) { reject(new Error('Nicht verbunden')); return; }
 
       // Polling stoppen damit keine konkurrierende TCP-Verbindung offen ist
       this._stopPolling();
-      this.log(`_write: ${parameter} = ${value} (Polling pausiert)`);
+      this.log(`_write: ${label} = ${value} (Polling pausiert)`);
 
       let settled = false;
       const done = (err, res) => {
@@ -1783,10 +1797,10 @@ class LuxtronikHeatpumpDevice extends Device {
         this._schedulePollAfterWrite();
         if (err) {
           const msg = (err && err.message) ? err.message : String(err);
-          this.error(`Write-Fehler (${parameter}=${value}): ${msg}`);
+          this.error(`Write-Fehler (${label}=${value}): ${msg}`);
           reject(new Error(msg));
         } else {
-          this.log(`Write OK: ${parameter}=${value}`, JSON.stringify(res));
+          this.log(`Write OK: ${label}=${value}`, JSON.stringify(res));
           resolve(res);
         }
       };
@@ -1796,18 +1810,20 @@ class LuxtronikHeatpumpDevice extends Device {
       // verwerfen — ein hängender Write-Socket blockiert den Controller genauso
       // wie ein hängender Poll-Socket.
       const writeTimeout = setTimeout(() => {
-        this.error(`Write-Timeout (${parameter}=${value})`);
+        this.error(`Write-Timeout (${label}=${value})`);
         this._resetPump();
-        done(new Error(`Write-Timeout: ${parameter}`));
+        done(new Error(`Write-Timeout: ${label}`));
       }, 13000);
 
       // Kurz warten bis eine laufende Poll-Verbindung geschlossen ist
       setTimeout(() => {
         if (!this._pump) { done(new Error('Nicht verbunden')); return; }
-        this._pump.write(parameter, value, (err, res) => done(err, res));
+        const callback = (err, res) => done(err, res);
+        if (raw) this._pump.writeRaw(parameter, value, callback);
+        else this._pump.write(parameter, value, callback);
         // luxtronik2 nutzt für Writes einen eigenen Socket (.writeClient) und setzt
         // auch dort kein Timeout.
-        this._guardSocket('writeClient', 8000, `(Write ${parameter})`);
+        this._guardSocket('writeClient', 8000, `(Write ${label})`);
       }, 1500);
     });
   }
@@ -1854,6 +1870,16 @@ class LuxtronikHeatpumpDevice extends Device {
     if (this.getCapabilityValue(capability) === value) return;
     try { await this.setCapabilityValue(capability, value); }
     catch (e) { this.error(`Fehler beim Setzen von ${capability}:`, e.message); }
+  }
+
+  // Wie _setIfValid(), aber ohne Wert wird die Kachel geleert, statt beim
+  // letzten Wert stehen zu bleiben. Für Werte, die sich als Platzhalter oder
+  // Unsinn herausstellen, nachdem eine frühere Version sie schon angezeigt hat.
+  async _showOrClear(capability, value) {
+    if (value !== null && value !== undefined) return this._setIfValid(capability, value);
+    if (!this.hasCapability(capability) || this.getCapabilityValue(capability) === null) return undefined;
+    return this.setCapabilityValue(capability, null)
+      .catch((e) => this.error(`${capability} leeren fehlgeschlagen:`, e.message));
   }
 
   _setWriteProtect(capability, ms = 120000) {
@@ -1912,6 +1938,26 @@ class LuxtronikHeatpumpDevice extends Device {
   _scaled(val, divisor) {
     const n = this._n(val);
     return n === null ? null : Math.round((n / divisor) * 100) / 100;
+  }
+
+  // Warmwasser-Temperatur, oder null auf einer Anlage ohne Warmwasser: Deren
+  // Fühlereingang meldet einen Platzhalter, auf einem LWD90V dauerhaft 75 °C,
+  // siehe hotWaterEvidence(). Einmal nachgewiesen bleibt Warmwasser vorhanden,
+  // auch wenn ein echter Speicher einmal genau 75,0 °C hat.
+  async _hotWaterTemp(v) {
+    const temp = this._n(v.temperature_hot_water);
+    const evidence = hotWaterEvidence(temp, this._n(v.hours_warmwater));
+    return (await this._hardwarePresent('hot_water', evidence ? 1 : 0)) ? temp : null;
+  }
+
+  // Kühlt die Anlage gerade? Das entscheidet der Kühlzähler, siehe
+  // coolingCounterRunning(). Fehlt noch ein Vergleichswert, bei der ersten
+  // Abfrage nach dem Start oder nach einem Ausfall, bleibt die bisherige
+  // Anzeige stehen: Ein Sprung auf „Heizen“ für eine Abfrage löste „Status
+  // geändert“ und die Meldung zweimal aus.
+  _coolingRuns(v) {
+    const running = coolingCounterRunning(this._coolingCounter, v.raw_hours_cooling, Date.now());
+    return running ?? (this.getCapabilityValue('heatpump_state') === 'cooling');
   }
 
   // Ist die Hardware hinter dieser Capability vorhanden?

@@ -14,5 +14,6 @@
   "getable": true,
   "setable": false,
   "uiComponent": "sensor",
+  "icon": "/assets/capabilities/suction_temp_evaporator.svg",
   "insights": true
 }
