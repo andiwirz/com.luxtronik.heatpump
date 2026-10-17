@@ -132,7 +132,9 @@ The `heatpump_state_string` capability shows the current heat pump state as an e
 
 ## Heating Correction
 
-The heating thermostat and the flow action *Set Heating Temperature Correction* write parameter 1, the controller's **Temperatur +-**: a shift of the heating curve by −5 to +5 K in 0.5 K steps. Positive values → warmer, negative values → cooler. It is not a room temperature.
+The heating thermostat and the flow action *Set Heating Temperature Correction* write parameter 1 — on the controller, the **+/-** on the home screen: a shift of the heating curve by −5 to +5 K in 0.5 K steps. Positive values → warmer, negative values → cooler. It is not a room temperature.
+
+Don't check it in the **Temperatur +-** entry of the heating menu. On at least some controllers that entry shifts the heating curve points once and then returns to 0, so it never shows the value — which made a working correction look as if it had been ignored.
 
 It needs a heating curve to shift, and a controller that keeps the value:
 
@@ -157,9 +159,11 @@ A diagnostics report contains that line. The same raw values are in the Debug ta
 Parameteränderung: P0013_HEATING_CURVE_NIGHT_TEMPERATURE 0 → -15
 ```
 
-Change a value on the controller panel and a diagnostics report shows where it went; run a flow card and it shows what the controller made of the write. This matters because controllers differ: on one unit, reading parameter 1 returned the night reduction rather than the correction shown on the home screen. Counters that move with every poll, such as the energy input, are muted after three polls in a row.
+Change a value on the controller panel and a diagnostics report shows where it went; run a flow card and it shows what the controller made of the write. Counters that move with every poll, such as the energy input, are muted after three polls in a row.
 
 **A green flow card only means the controller received the value.** Its acknowledgement repeats the parameter number, not the value, so it cannot say whether the value was kept. The tile shows the requested value for two minutes (write protection), then whatever the controller reports — if it springs back, the controller did not keep it.
+
+> **Known issue:** on at least one controller the *Heating Correction* tile shows the night reduction from the heating curve menu instead of the home-screen correction. Writing works there — the flow card changes the +/- on the home screen and the heating follows it — only the value read back is the wrong one. Controllers differ in where they keep this setting; the raw parameter list in the Debug tab is how to find out. Set a distinctive value with the +/- on the home screen and filter for it in tenths (+2.0 °C → `20`).
 
 ---
 
