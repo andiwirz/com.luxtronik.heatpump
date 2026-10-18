@@ -10,7 +10,7 @@ tracker is unattended, but the library needs a fix that is required for the app
 to work at all on some controllers (see below). Vendoring keeps that fix in the
 app instead of blocking on an upstream release.
 
-Files are copied verbatim apart from the three changes listed below, so they can
+Files are copied verbatim apart from the four changes listed below, so they can
 still be diffed against upstream if it ever revives.
 
 ## Local changes
@@ -62,6 +62,15 @@ The second one bites far more controllers than the first, and upstream's crash a
 874 masked it. Verified against a protocol-level fake controller across parameter
 counts from 0 to 950: upstream throws for every count below 876, the patched copy
 reads cleanly at every size.
+
+### 4. Report what was written (`luxtronik.js`, `_startWrite`)
+
+A successful write now also returns `parameter` and `value`: the register and the
+raw value that went out, after the name lookup, range clamp and ×10 of `write()`.
+The controller's acknowledgement only echoes the register number, never the value,
+so the app reads the parameter back to find out whether the value was taken — and
+for that it needs to know exactly what was sent. The existing `msg` and `echo`
+fields are unchanged.
 
 ## Remaining upstream dependency
 

@@ -297,7 +297,7 @@
 
     <div class="card">
       <div class="card-header"><span class="tag tag-read">Read</span><span class="card-name"><span data-lang="de">Abschaltgrund &amp; Letzter Fehler</span><span data-lang="en">Switch-off Reason &amp; Last Error</span></span></div>
-      <div class="card-desc"><span data-lang="de">Der Regler führt zwei Protokolle mit je fünf Einträgen: warum er zuletzt aufgehört hat zu laufen, und welche Fehler er zuletzt registriert hat. Die App zeigt jeweils den jüngsten Eintrag, den Fehler mitsamt Code.</span><span data-lang="en">The controller keeps two five-entry logs: why it last stopped running, and the errors it last recorded. The app shows the newest entry of each, the error together with its code.</span></div>
+      <div class="card-desc"><span data-lang="de">Der Regler führt zwei Protokolle mit je fünf Einträgen: warum er zuletzt aufgehört hat zu laufen, und welche Fehler er zuletzt registriert hat. Die App zeigt jeweils den jüngsten Eintrag, den Fehler mitsamt Code und in deiner Sprache.</span><span data-lang="en">The controller keeps two five-entry logs: why it last stopped running, and the errors it last recorded. The app shows the newest entry of each, the error together with its code and in your language.</span></div>
     </div>
 
     <div class="infobox">
@@ -556,9 +556,9 @@
     </div>
 
     <div class="infobox">
-      <strong><span data-lang="de">Eine grüne Flow-Karte heisst nur: empfangen.</span><span data-lang="en">A green flow card only means received.</span></strong><br>
-      <span data-lang="de">Die Quittung des Reglers wiederholt die Parameternummer, nicht den Wert — ob er ihn behalten hat, sagt sie nicht. Die Kachel zeigt zwei Minuten lang den gewünschten Wert (Schreibschutz), danach, was der Regler meldet. Springt sie zurück, hat der Regler den Wert nicht behalten.</span>
-      <span data-lang="en">The controller's acknowledgement repeats the parameter number, not the value, so it cannot say whether the value was kept. The tile shows the requested value for two minutes (write protection), then whatever the controller reports — if it springs back, the controller did not keep it.</span>
+      <strong><span data-lang="de">Eine Flow-Karte gelingt nur, wenn der Regler den Wert behält.</span><span data-lang="en">A flow card only succeeds if the controller kept the value.</span></strong><br>
+      <span data-lang="de">Die Quittung des Reglers wiederholt die Parameternummer, nicht den Wert. Deshalb liest die App nach jedem Schreibvorgang zurück: nach einer Sekunde und, fehlt der Wert noch, nach 0,5, 1 und 2 s. Meldet der Regler weiter den alten Wert — einen Wert ausserhalb seines Bereichs verwirft er ohne Fehlermeldung —, scheitert die Flow-Karte mit „Die Wärmepumpe hat den Wert nicht übernommen“, und die Kachel zeigt mit der nächsten Abfrage wieder den Wert des Reglers. Eine Geräteeinstellung, die der Regler nicht übernommen hat, nennt eine Meldung nach dem Speichern. Die letzten 20 Schreibvorgänge stehen im Tab <em>Debug</em>.</span>
+      <span data-lang="en">The controller's acknowledgement repeats the parameter number, not the value, so after every write the app reads it back: after one second and, if the value is not there yet, after 0.5, 1 and 2 s. If the controller still reports its old value — it drops a value outside its range without an error — the flow card fails with "The heat pump did not accept the value", and the tile shows the controller's value again with the next poll. A device setting the controller did not accept is named in a message after saving. The last 20 writes are in the <em>Debug</em> tab.</span>
     </div>
   </div>
 </div>
@@ -625,6 +625,7 @@
           <li><span class="step-num">3</span><span data-lang="de">Gerät wird automatisch wieder available wenn der Controller antwortet</span><span data-lang="en">Device automatically becomes available again when the controller responds</span></li>
           <li><span class="step-num">4</span><span data-lang="de">Ein laufender Poll blockiert den nächsten — es wird nie mehr als eine Verbindung gleichzeitig geöffnet</span><span data-lang="en">A running poll blocks the next one — never more than one connection at a time</span></li>
           <li><span class="step-num">5</span><span data-lang="de">Verbindungen haben ein eigenes Zeitlimit. Ohne das bleibt ein Socket für immer offen, wenn der Regler die Verbindung annimmt und dann verstummt — und da er nur einen Client bedient, macht jedes solche Leck den nächsten Versuch anfälliger.</span><span data-lang="en">Connections carry their own timeout. Without one, a socket stays open forever when the controller accepts the connection and then goes quiet — and since it serves only one client, every such leak makes the next attempt more likely to hang too.</span></li>
+          <li><span class="step-num">6</span><span data-lang="de">Eine Abfrage, in der alle Werte 0 sind oder alle laufenden Zähler auf einmal auf 0 stehen, wird verworfen und nach 5 s wiederholt. Der Regler liefert gelegentlich eine solche; übernommen sprängen Zähler zurück und Auslöser feuerten.</span><span data-lang="en">A poll in which every value is 0, or all running counters drop to 0 at once, is discarded and repeated after 5 s. The controller returns one now and then; taken over, counters would jump back and triggers would fire.</span></li>
         </ul>
         <div class="infobox"><span data-lang="de">Alle drei Zeitwerte sind unter <strong>Geräteeinstellungen → Verbindung</strong> anpassbar.</span><span data-lang="en">All three timings are adjustable under <strong>Device Settings → Connection</strong>.</span></div>
       </div>
@@ -654,7 +655,7 @@
     <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Brauchwasser-Betriebsart geändert</span><span data-lang="en">Hot water mode changed</span></div><div class="flow-desc"><span data-lang="de">Token: neue Betriebsart</span><span data-lang="en">Token: new mode</span></div></div></div>
     <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Kühlbetrieb-Betriebsart geändert</span><span data-lang="en">Cooling mode changed</span></div><div class="flow-desc"><span data-lang="de">Token: neue Betriebsart · nur bei freigegebener Kühlung</span><span data-lang="en">Token: new mode · only if cooling enabled</span></div></div></div>
     <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Wärmepumpen-Status geändert</span><span data-lang="en">Heat pump state changed</span></div><div class="flow-desc"><span data-lang="de">Token: neuer Status</span><span data-lang="en">Token: new state</span></div></div></div>
-    <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Fehler aufgetreten / Fehler quittiert</span><span data-lang="en">Error occurred / Error cleared</span></div><div class="flow-desc"><span data-lang="de">2 Karten · „aufgetreten" liefert den Fehlertext als Token</span><span data-lang="en">2 cards · "occurred" provides the error text as a token</span></div></div></div>
+    <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Fehler aufgetreten / Fehler quittiert</span><span data-lang="en">Error occurred / Error cleared</span></div><div class="flow-desc"><span data-lang="de">2 Karten · „aufgetreten" kommt bei jedem neuen Eintrag im Fehlerspeicher, auch wenn sich die Störung bis zur nächsten Abfrage von selbst erledigt hat oder während eines Neustarts auftrat; „quittiert", wenn der Fehleralarm erlischt. „Aufgetreten" liefert Fehlertext und Hinweis als Token: Code und Text in deiner Sprache, dazu die Quittierung wie am Display (z. B. „Bitte Inst. rufen") und was zu prüfen ist</span><span data-lang="en">2 cards · "occurred" fires for every new entry in the error log, also when the error cleared itself before the next poll or occurred during a restart; "cleared" when the error alarm goes off. "Occurred" provides the error text and a hint as tokens: code and text in your language, plus the acknowledgement as on the display (e.g. "Please call installer") and what to check</span></div></div></div>
     <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Schnellladung (Zuheizung) gestartet / beendet</span><span data-lang="en">Hot Water Boost (Auxiliary) started / ended</span></div><div class="flow-desc"><span data-lang="de">2 Karten · „gestartet" liefert die Dauer als Token</span><span data-lang="en">2 cards · "started" provides the duration as a token</span></div></div></div>
     <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Schnellladung (Party) gestartet / beendet</span><span data-lang="en">Hot Water Boost (Party) started / ended</span></div><div class="flow-desc"><span data-lang="de">2 Karten · „gestartet" liefert die Dauer als Token</span><span data-lang="en">2 cards · "started" provides the duration as a token</span></div></div></div>
     <div class="flow-item"><div class="flow-dot dot-trigger"></div><div><div class="flow-name"><span data-lang="de">Thermische Desinfektion beendet</span><span data-lang="en">Thermal Disinfection ended</span></div></div></div>
@@ -874,6 +875,23 @@
         <table class="settings-table" id="debug-raw-table">
           <thead><tr><th>Key</th><th>Value</th></tr></thead>
           <tbody id="debug-raw-body"></tbody>
+        </table>
+      </div>
+    </details>
+
+    <details id="debug-writes" style="margin-top:16px;">
+      <summary style="cursor:pointer;margin-bottom:6px;">
+        <span class="section-title" style="margin-bottom:0;"><span data-lang="de">Schreibvorgänge</span><span data-lang="en">Writes</span></span>
+        <span id="debug-writes-count" style="font-size:10px;font-weight:700;background:#dbeafe;color:var(--blue);padding:1px 7px;border-radius:10px;margin-left:6px;"></span>
+      </summary>
+      <div class="infobox" style="margin-bottom:8px;">
+        <span data-lang="de">Was die App zuletzt an die Wärmepumpe geschrieben hat, neueste zuerst: Rohwert vorher → geschrieben, und ob der Regler den Wert beim Zurücklesen hatte.</span>
+        <span data-lang="en">What the app last wrote to the heat pump, newest first: raw value before → written, and whether the controller held the value when read back.</span>
+      </div>
+      <div class="table-wrap">
+        <table class="settings-table" id="debug-writes-table">
+          <thead><tr><th><span data-lang="de">Zeit</span><span data-lang="en">Time</span></th><th><span data-lang="de">Schreibvorgang</span><span data-lang="en">Write</span></th></tr></thead>
+          <tbody id="debug-writes-body"></tbody>
         </table>
       </div>
     </details>
@@ -1109,6 +1127,11 @@
   };
 
   function loadDebugData() {
+    // Unabhängig von den Messwerten: geschrieben wird auch, bevor ein Poll gelang.
+    Homey.get('luxtronik_writes', function(err, writes) {
+      _debugWrites = (!err && Array.isArray(writes)) ? writes : [];
+      renderWrites();
+    });
     Homey.get('luxtronik_debug', function(err, data) {
       if (err || !data) {
         document.getElementById('debug-empty').style.display = '';
@@ -1140,6 +1163,7 @@
         var rawObj = rawParamsObject(data);
         document.getElementById('debug-raw-count').textContent = Object.keys(rawObj).length;
         renderDebugTable('debug-raw-body', rawObj);
+        renderWrites(); // jetzt mit Registernamen
       });
     });
   }
@@ -1153,6 +1177,42 @@
       obj[label] = raw[i];
     }
     return obj;
+  }
+
+  // Änderungsprotokoll, legt device.js nach jedem Schreibvorgang ab (neueste zuerst).
+  var _debugWrites = [];
+  function paramLabel(i) {
+    return (_paramNames && _paramNames[i]) || ('P' + ('000' + i).slice(-4));
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function(c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
+  }
+  function writeSummary(w) {
+    var before = (w.before === null || w.before === undefined) ? '?' : w.before;
+    return paramLabel(w.parameter) + ' ' + before + ' → ' + w.sent;
+  }
+  // Ergebnis als Text; lang 'de' oder 'en'.
+  function writeResult(w, lang) {
+    var actual = (w.actual === null || w.actual === undefined) ? '–' : w.actual;
+    if (w.accepted === true) return lang === 'de' ? '✓ übernommen' : '✓ accepted';
+    if (w.accepted === false) return lang === 'de' ? ('✗ nicht übernommen, Regler: ' + actual) : ('✗ not accepted, controller: ' + actual);
+    return lang === 'de' ? '? nicht geprüft' : '? not checked';
+  }
+  function renderWrites() {
+    var filter = (document.getElementById('debug-search').value || '').toLowerCase();
+    var tbody = document.getElementById('debug-writes-body');
+    tbody.innerHTML = '';
+    document.getElementById('debug-writes-count').textContent = _debugWrites.length || '';
+    _debugWrites.forEach(function(w) {
+      var text = (w.device || '') + ' ' + writeSummary(w) + ' ' + writeResult(w, 'de') + ' ' + writeResult(w, 'en');
+      if (filter && text.toLowerCase().indexOf(filter) === -1) return;
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td class="key" style="font-size:11px;">' + esc(new Date(w.time).toLocaleString()) +
+        (w.device ? '<br><span style="font-size:10px;color:var(--muted);">' + esc(w.device) + '</span>' : '') + '</td>' +
+        '<td style="font-family:monospace;font-size:11px;word-break:break-all;">' + esc(writeSummary(w)) + '<br>' +
+        '<span data-lang="de">' + esc(writeResult(w, 'de')) + '</span><span data-lang="en">' + esc(writeResult(w, 'en')) + '</span></td>';
+      tbody.appendChild(tr);
+    });
   }
 
   function renderDebugTable(bodyId, obj) {
@@ -1176,12 +1236,16 @@
   }
 
   function filterDebug() {
+    renderWrites();
     if (!_debugData) return;
     renderDebugTable('debug-values-body',  _debugData.values     || {});
     renderDebugTable('debug-params-body',  _debugData.parameters || {});
     renderDebugTable('debug-raw-body',     rawParamsObject(_debugData));
-    // Beim Filtern die Rohliste aufklappen, sonst blieben Treffer dort verborgen.
-    if (document.getElementById('debug-search').value) document.getElementById('debug-raw').open = true;
+    // Beim Filtern Rohliste und Schreibvorgänge aufklappen, sonst blieben Treffer dort verborgen.
+    if (document.getElementById('debug-search').value) {
+      document.getElementById('debug-raw').open = true;
+      document.getElementById('debug-writes').open = true;
+    }
   }
 
   function buildDebugText() {
@@ -1212,6 +1276,11 @@
     lines.push('--- PARAMETERS RAW (' + Object.keys(rawObj).length + ') ---');
     Object.keys(rawObj).sort().forEach(function(key) {
       lines.push(key + ': ' + rawObj[key]);
+    });
+    lines.push('');
+    lines.push('--- WRITES (' + _debugWrites.length + ') ---');
+    _debugWrites.forEach(function(w) {
+      lines.push(w.time + '  ' + (w.device || '') + '  ' + writeSummary(w) + '  ' + writeResult(w, 'en'));
     });
     return lines.join('\n');
   }

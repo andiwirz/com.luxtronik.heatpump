@@ -11,12 +11,16 @@ const luxtronik = require('../lib/luxtronik2/luxtronik');
 function i32(n) { const b = Buffer.alloc(4); b.writeInt32BE(n, 0); return b; }
 
 /**
- * Regler-Attrappe, die das echte 3003/3004/3005-Protokoll spricht.
+ * Regler-Attrappe, die das echte 3002/3003/3004/3005-Protokoll spricht.
  * `opts.paramCount` usw. steuern, wie viele Register sie meldet;
  * `opts.silent` lässt sie nach dem Verbindungsaufbau verstummen.
+ * Ein Schreibbefehl setzt das Register, ausser mit `opts.keepOnWrite`: Dann
+ * verwirft sie den Wert, wie ein Regler einen Wert ausserhalb des Bereichs.
+ * Quittiert wird so oder so nur mit der Parameternummer.
  */
 function fakeController(opts = {}) {
-  const { paramCount = 950, valueCount = 300, visCount = 300, silent = false, chunkHeader = false } = opts;
+  const { paramCount = 950, valueCount = 300, visCount = 300, silent = false, chunkHeader = false, keepOnWrite = false } = opts;
+  const params = new Int32Array(paramCount);
   return new Promise((resolve) => {
     let accepted = 0;
     const sockets = [];
@@ -31,9 +35,18 @@ function fakeController(opts = {}) {
         buf = Buffer.concat([buf, d]);
         while (buf.length >= 8) {
           const cmd = buf.readInt32BE(0);
+          if (cmd === 3002) {
+            if (buf.length < 12) break;
+            const index = buf.readInt32BE(4);
+            const value = buf.readInt32BE(8);
+            buf = buf.slice(12);
+            if (!keepOnWrite && index < paramCount) params[index] = value;
+            sock.write(Buffer.concat([i32(3002), i32(index)]));
+            continue;
+          }
           buf = buf.slice(8);
           let reply;
-          if (cmd === 3003) reply = Buffer.concat([i32(3003), i32(paramCount), Buffer.alloc(paramCount * 4)]);
+          if (cmd === 3003) reply = Buffer.concat([i32(3003), i32(paramCount), ...Array.from(params, i32)]);
           else if (cmd === 3004) reply = Buffer.concat([i32(3004), i32(0), i32(valueCount), Buffer.alloc(valueCount * 4)]);
           else if (cmd === 3005) reply = Buffer.concat([i32(3005), i32(visCount), Buffer.alloc(visCount)]);
           else continue;
@@ -54,6 +67,22 @@ function fakeController(opts = {}) {
       accepted: () => accepted,
       close: () => { sockets.forEach((s) => s.destroy()); server.close(); },
     }));
+  });
+}
+
+// Schreibbefehl der Bibliothek als Promise: `name` ist ein Schreibname, eine
+// Zahl schreibt roh.
+function write(pump, name, value) {
+  return new Promise((resolve, reject) => {
+    const callback = (err, res) => (err ? reject(err) : resolve(res));
+    if (typeof name === 'number') pump.writeRaw(name, value, callback);
+    else pump.write(name, value, callback);
+  });
+}
+
+function readRawParameters(pump) {
+  return new Promise((resolve, reject) => {
+    pump.readRaw((err, data) => (err ? reject(err) : resolve(JSON.parse(data.parameters))));
   });
 }
 
@@ -127,4 +156,37 @@ test('ein verstummter Regler lässt den Socket nicht offen', async () => {
   await new Promise((r) => setTimeout(r, 800));
   srv.close();
   assert.ok(called, 'read-Callback kam nicht, obwohl der Socket geschlossen wurde');
+});
+
+test('ein Schreibvorgang meldet Register und Rohwert, die Quittung nur die Nummer', async () => {
+  // Zum Zurücklesen muss die App wissen, was wirklich hinausging: nach der
+  // Namensauflösung, der Bereichsgrenze und dem ×10 der Bibliothek.
+  const srv = await fakeController();
+  const pump = luxtronik.createConnection('127.0.0.1', srv.port);
+  try {
+    const res = await write(pump, 'heating_target_temperature', 2.5);
+    assert.deepStrictEqual([res.echo, res.parameter, res.value], [1, 1, 25]);
+    const clamped = await write(pump, 'heating_curve_end_point', 80);
+    assert.deepStrictEqual([clamped.parameter, clamped.value], [11, 700], 'Bibliothek begrenzt auf 70 °C');
+    const raw = await write(pump, 47, 650);
+    assert.deepStrictEqual([raw.echo, raw.parameter, raw.value], [47, 47, 650]);
+  } finally {
+    srv.close();
+  }
+});
+
+test('das Zurücklesen sieht, ob der Regler einen Wert behalten hat', async () => {
+  for (const keepOnWrite of [false, true]) {
+    const srv = await fakeController({ keepOnWrite });
+    const pump = luxtronik.createConnection('127.0.0.1', srv.port);
+    try {
+      const res = await write(pump, 47, 650);
+      const parameters = await readRawParameters(pump);
+      // Die Quittung ist in beiden Fällen dieselbe; erst das Zurücklesen unterscheidet sie.
+      assert.strictEqual(res.echo, 47);
+      assert.strictEqual(parameters[47], keepOnWrite ? 0 : 650);
+    } finally {
+      srv.close();
+    }
+  }
 });

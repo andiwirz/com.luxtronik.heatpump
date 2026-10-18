@@ -84,6 +84,16 @@
             "nl": "Fout",
             "fr": "Erreur"
           }
+        },
+        {
+          "name": "hint",
+          "type": "string",
+          "title": {
+            "en": "Hint",
+            "de": "Hinweis",
+            "nl": "Aanwijzing",
+            "fr": "Conseil"
+          }
         }
       ],
       "args": []

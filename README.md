@@ -70,13 +70,15 @@ This app communicates with the **Luxtronik 2.0 / 2.1** controller, which is buil
 | <img src="assets/capabilities/temperature.svg" width="24"> | Cooling Release / Inlet Temperature | Cooling circuit setpoints (only with cooling support) |
 | <img src="assets/capabilities/alarm.svg" width="24"> | Error Alarm | Error active: Yes / No |
 | <img src="assets/capabilities/alarm.svg" width="24"> | Switch-off Reason | Why the heat pump last stopped running |
-| <img src="assets/capabilities/alarm.svg" width="24"> | Last Error | Newest plausible entry from the controller's error log, with its code |
+| <img src="assets/capabilities/alarm.svg" width="24"> | Last Error | Newest plausible entry from the controller's error log, with its code, in your language |
 | <img src="assets/capabilities/last_poll.svg" width="24"> | Last Poll | Time of last successful poll (local time) |
 | <img src="assets/capabilities/firmware_version.svg" width="24"> | Firmware Version | Controller software version |
 
 > **Switch-off Reason and Last Error are history, not live state.** The controller keeps two five-entry ring buffers and the app shows the newest record of each. An entry can be days old and stays until the controller writes a new one, so "Switch-off Reason" does not mean the heat pump is off right now — only **Error Alarm** reports a currently active fault. The buffers are not returned in chronological order, so the newest entry is picked by timestamp rather than by position. A controller that has never written a buffer returns random values from it; entries with an implausible code or a date before 2000 are ignored, and the tile stays empty rather than showing them.
 >
-> Switch-off codes are translated from [`lib/luxtronik-codes.js`](lib/luxtronik-codes.js): the bundled library only maps codes 0–9 and only to German, while controllers emit codes up to 27. Codes the controller leaves unassigned fall back to the library's text.
+> Switch-off codes are translated from [`lib/luxtronik-codes.js`](lib/luxtronik-codes.js): the bundled library only maps codes 0–9 and only to German, while controllers emit codes up to 27. Codes the controller leaves unassigned fall back to the library's text. Error codes come from [`lib/luxtronik-errors.js`](lib/luxtronik-errors.js): 88 codes with a short text and a hint in English, German, Dutch and French, where the library knows 73 codes in German only. A code missing from both reads "Unknown" rather than the library's German "Unbekannter Fehler".
+>
+> The flow triggers follow the same split. *Error Occurred* fires for every new entry in the error log — also for an error that cleared itself before the next poll, because its entry stays — and *Error Cleared* fires when the Error Alarm goes off.
 
 ### Why some tiles are missing
 
@@ -163,7 +165,7 @@ Parameteränderung: P0013_HEATING_CURVE_NIGHT_TEMPERATURE 0 → -15
 
 Change a value on the controller panel and a diagnostics report shows where it went; run a flow card and it shows what the controller made of the write. Counters that move with every poll, such as the energy input, are muted after three polls in a row.
 
-**A green flow card only means the controller received the value.** Its acknowledgement repeats the parameter number, not the value, so it cannot say whether the value was kept. The tile shows the requested value for two minutes (write protection), then whatever the controller reports — if it springs back, the controller did not keep it.
+**A flow card only succeeds if the controller kept the value.** The controller's acknowledgement repeats the parameter number, not the value, so after every write the app reads the parameter back: after one second, and if the value is not there yet, again after 0.5, 1 and 2 s, because some controllers take a moment. If the controller still reports its old value — a value outside its range is dropped without an error — the flow card fails with *The heat pump did not accept the value*, and the tile shows the controller's value again with the next poll. A device setting the controller did not accept is named in a message after saving. If the read-back itself fails, the write counts as sent but unchecked. The Debug tab lists the last 20 writes.
 
 > **Known issue:** on at least one controller (an LWD90V on firmware V3.88.0), a correction set directly with the +/- on the home screen did not reach parameter 1 — minutes later the controller still reported the previous value, so the *Heating Correction* tile did not follow. A value written from Homey does reach it, and the heating responds: the return temperature target rose by 1.6 K after +1.0. Where that controller keeps the home-screen value is still open; the raw parameter list in the Debug tab is how to find out. Set a distinctive value with the +/- on the home screen and filter for it in tenths (+2.0 °C → `20`).
 
@@ -181,6 +183,8 @@ These are two different values, and the difference matters:
 When the heat pump cannot reach the desired value — for example when the outdoor temperature is outside its operating limits — the controller lowers "Deckung WP" by 1 K at a time and keeps heating to that reduced value. The manual is explicit that the configured desired value stays untouched.
 
 The app therefore reads the thermostat setpoint from the controller parameter (symmetric with what it writes), and shows the momentary value separately on its own tile. Hot water boost stops based on the momentary value, since that is what the controller is actually regulating to.
+
+Setting the hot water setpoint writes both registers a controller may use for it, parameters 2 and 105: which one counts depends on the firmware (2 before x.88.3, 105 from then on, as measured by the Home Assistant integration), and the controller lowers parameter 2 by itself. When read back, the value therefore counts as accepted as long as one of the two holds it.
 
 ---
 
@@ -254,6 +258,8 @@ Two flow actions make it easy to maximize hot water production when solar surplu
 
 **Typical flow:** When solar surplus detected → Minimize hysteresis → when solar surplus ends → Restore hysteresis.
 
+The Home Assistant integration gives 1 K as the lowest hot water hysteresis. A controller that does not take 0.5 K keeps its previous value, and since the app reads every write back, *Minimize Hot Water Hysteresis* then fails with *The heat pump did not accept the value* instead of reporting success.
+
 The restore value is stored in the device setting **Hysteresis Restore Value (K)** and is automatically initialized from the current controller value on first app start. Adjust it to match your normal operating hysteresis if needed.
 
 ---
@@ -277,7 +283,10 @@ The following events are written directly to the **Homey Timeline**:
 | Event                                | Entry                                              |
 |--------------------------------------|----------------------------------------------------|
 | Heat pump state changes              | 🔄 `State: Heating` / `Betriebsart: Heizbetrieb`  |
-| Error becomes active                 | ⚠️ `Error active: <message>`                       |
+| Heating mode changes                 | 🌡️ `Heating mode: Automatic`                       |
+| Hot water mode changes               | 💧 `Hot water mode: Party`                         |
+| Cooling mode changes                 | ❄️ `Cooling mode: Automatic`                       |
+| New entry in the error log           | ⚠️ `Error occurred: 701 - Low pressure fault. Please call installer · …` — code, text and hint as on the *Error Occurred* trigger |
 | Error cleared                        | ✅ `Error cleared`                                 |
 | Thermal disinfection completed       | 🧫 `Thermal disinfection completed (65.2 °C)`      |
 | Hot water boost (auxiliary) started  | 💧 `Hot water boost started (60 min)`              |
@@ -285,7 +294,7 @@ The following events are written directly to the **Homey Timeline**:
 | Hot water boost (party) started      | 🎉 `Hot water boost (party) started (60 min)`      |
 | Hot water boost (party) ended        | 🎉 `Hot water boost (party) ended`                 |
 
-Timeline entries are written in the Homey interface language (German or English).
+Timeline entries are written in German on a German Homey and in English otherwise. The state names in them also exist in Dutch, the error texts and hints in Dutch and French.
 
 ---
 
@@ -300,7 +309,8 @@ Two independent safety nets, because they catch different failures:
 - Device is automatically marked as available again as soon as the controller responds, which fires *Device Available*
 - A poll that is still running blocks the next one. The controller does not tolerate parallel TCP connections, so the app never opens more than one at a time.
 - Connections carry their own inactivity timeout. Without one, a controller that accepts the connection and then goes quiet leaves the socket open forever — and since the controller serves only one client, every such leak makes the next attempt more likely to hang too.
-- Writes are no exception. Every write, raw parameters and thermal disinfection included, has the same timeouts and resumes polling afterwards, so a controller that never acknowledges a write (firmware V1.90.0 / V2.90.0) cannot stop polling for good.
+- **Discarded polls:** now and then the controller returns a poll in which every register reads 0. A poll whose measured values or parameters are all 0, or in which all counters that were running drop to 0 at once, is discarded — taken over, counters would jump back, temperatures would drop to 0 °C, triggers would fire and the device settings would be synced to 0. The app asks again after 5 seconds, and only once per series. A discarded poll does not count as successful, so if the fault persists the watchdog marks the device unavailable. A read-back after a write that gets such a poll counts as unchecked, not as rejected.
+- Writes are no exception. Every write, raw parameters and thermal disinfection included, has the same timeouts and resumes polling once the value has been read back, so a controller that never acknowledges a write (firmware V1.90.0 / V2.90.0) cannot stop polling for good. The read-back waits for a running poll and shares its single connection.
 
 ---
 
@@ -326,7 +336,8 @@ The app settings page is a reference for the whole app, reachable via the burger
 - Entry count for values and parameters
 - App version and poll timestamp
 - **Raw parameter list** – every parameter as the controller stores it (temperatures in tenths), including the registers the library has no name for. Collapsed by default, it opens as soon as the filter is used. This is how to find where a controller keeps a setting: give it a distinctive value on the panel and search for it.
-- **Copy Log** button – exports all data as formatted text for troubleshooting, the raw parameter list included. It contains the heat pump's serial number and network addresses, so share it privately rather than in a public post.
+- **Writes** – the last 20 values the app wrote to the heat pump, newest first: register, raw value before → written, and whether the controller held it when read back (accepted, not accepted with the value it kept, or not checked).
+- **Copy Log** button – exports all data as formatted text for troubleshooting, the raw parameter list and the writes included. It contains the heat pump's serial number and network addresses, and the raw list also holds the controller's web server password and access code (parameters 755–760 and 107), so share it privately rather than in a public post.
 
 ---
 
@@ -419,7 +430,7 @@ Not every controller supports every parameter. When a value is not reported, the
 | Hot Water Operation Mode Changed           | `mode`     | New mode as text                              |
 | Cooling Operation Mode Changed             | `mode`     | New mode as text (Off / Automatic)            |
 | Heat Pump Status Changed                   | `state`    | New status as text                            |
-| Error Occurred                             | `error`    | Error message as text                         |
+| Error Occurred                             | `error`, `hint` | Fires for every new entry in the controller's error log, as code and text in your language, e.g. `701 - Low pressure fault`; the hint gives the acknowledgement as shown on the display (e.g. *Please call installer*) and what to check. An error that cleared itself before the next poll or occurred while Homey restarted is reported too; entries already in the log when the app first starts are not. |
 | Error Cleared                              | –          | When the error disappears                     |
 | Hot Water Boost (Auxiliary) Started        | `duration` | Duration in minutes                           |
 | Hot Water Boost (Auxiliary) Ended          | –          | When the boost ends, automatically or switched off |
@@ -523,9 +534,9 @@ The detailed heating status (`heating_state_string`) comes from the controller. 
 > ⚠️ **Caution:** Incorrect settings can put the heat pump into an error state. Only make changes if the function of the parameter is known.
 
 - The thermostat correction (`target_temperature.heating`) shifts the heating curve by the set value. When it seems to have no effect, see *Heating Correction*.
-- All write operations are sent to the controller immediately. A confirmation poll is automatically triggered 3 seconds after each write to reflect the updated values without waiting for the next poll interval.
+- All write operations are sent to the controller immediately and read back; a flow card or control fails if the controller did not keep the value (see *Heating Correction*). A confirmation poll follows 3 seconds after the read-back to update the tiles without waiting for the next poll interval.
 - Write operations are serialized — if two flow actions trigger writes simultaneously (e.g. "Restore hysteresis" + "Set operation mode"), they are queued and executed one after the other to avoid TCP conflicts. That covers every write, including the device settings that go to raw parameters.
-- Write protection prevents polling cycles from immediately overwriting manually set values (120s protection window).
+- Write protection prevents polling cycles from immediately overwriting manually set values (120s protection window). A value the controller did not accept lifts it at once, so the next poll shows what the controller really has.
 - The cooling mode capability visibility is configurable: Auto (see *Cooling Mode*), Always show, or Always hide.
 - Room temperature capabilities (`measure_temp_room`, `measure_temp_room_target`) are only populated when an RBE room display is physically connected to the controller.
 - Polling pauses for the duration of a write, and a poll that is still running blocks the next one — the app never opens two connections to the controller at the same time.
@@ -543,7 +554,8 @@ The app communicates via TCP (port 8889) directly with the Luxtronik controller.
 |--------|---------|
 | [`lib/luxtronik2/`](lib/luxtronik2/) | The protocol library [`luxtronik2`](https://github.com/coolchip/luxtronik2) 2.7.2 (MIT), **bundled rather than pulled from npm**. Upstream has published nothing since February 2024 and the issue tracker is unattended, but the library needed fixes the app cannot apply from outside. `types.js` and `utils.js` are verbatim copies of the published tarball; the deviations in `luxtronik.js` and `utils.js` are documented in [`lib/luxtronik2/README.md`](lib/luxtronik2/README.md). |
 | [`lib/luxtronik-registers.js`](lib/luxtronik-registers.js) | Named registers — 99 calculations, 105 parameters, 43 visibilities. The library addresses registers by bare array offsets scattered through its source; this table gives them names so further sensors can be added without guessing at positions. Each entry carries the controller's own field name as a comment. |
-| [`lib/luxtronik-codes.js`](lib/luxtronik-codes.js) | Translation tables the bundled library lacks: switch-off reasons in EN/DE/NL (the library maps only codes 0–9 and only to German, while controllers emit codes up to 27), heating status texts, defrost variants, mixing circuit types, and the room unit and control mode codes behind the configuration log line. Also builds the parameter-change log line, filters the error and switch-off logs down to entries a controller can actually have written, tells a hot water sensor from the placeholder of an unconnected input, and decides from the cooling counter whether the unit is cooling. |
+| [`lib/luxtronik-codes.js`](lib/luxtronik-codes.js) | Translation tables the bundled library lacks: switch-off reasons in EN/DE/NL/FR (the library maps only codes 0–9 and only to German, while controllers emit codes up to 27), error texts and hints from `luxtronik-errors.js`, heating status texts, defrost variants, mixing circuit types, and the room unit and control mode codes behind the configuration log line. Also builds the parameter-change log line, filters the error and switch-off logs down to entries a controller can actually have written, tells a hot water sensor from the placeholder of an unconnected input, decides from the cooling counter whether the unit is cooling, reads a written value back to see whether the controller kept it, picks the new entries out of the error log, and tells an unusable poll of zeros from a real one. |
+| [`lib/luxtronik-errors.js`](lib/luxtronik-errors.js) | The controller's error codes, 88 of them, each with a short text, a hint and how it is acknowledged, in EN/DE/NL/FR. Taken from the author's own Windows app for Luxtronik controllers, whose German texts follow the Luxtronik operating manuals; the translations are machine-made and may differ from the wording on the controller display. |
 | [`lib/luxtronik-discovery.js`](lib/luxtronik-discovery.js) | UDP broadcast search. Magic packet `2000;111;1;\0` to ports 4444 and 47808; a controller answers with `2500;111;…` whose third field carries its data port. Protocol taken from [python-luxtronik](https://github.com/Bouni/python-luxtronik) (`luxtronik/discover.py`). |
 
 Both tables are transcribed from [BenPru/luxtronik](https://github.com/BenPru/luxtronik), which documents and translates them. Register keys keep the upstream spelling **including the register number**, because the name alone is not unique — `P0002` and `P0105` are both called `DHW_TARGET_TEMPERATURE` and are different registers (the configured setting versus the controller's momentary target; see *Hot Water: Setpoint vs. "Target (current)"* above).
@@ -561,7 +573,7 @@ Both tables are transcribed from [BenPru/luxtronik](https://github.com/BenPru/lu
 
 ```bash
 npm install
-npm test          # 73 tests, no Homey required
+npm test          # 109 tests, no Homey required
 npm run lint
 npm run validate  # homey app validate
 npm run build     # homey app build
@@ -576,12 +588,14 @@ Lint, tests and a publish-level validation run on every push to `main` and on ev
 
 | File | Covers |
 |------|--------|
-| [`conversions.test.js`](test/conversions.test.js) | The unit conversions — seconds to hours, tenths and hundredths, the `-50 °C` sentinel of an unconnected sensor, and when a `0 kWh` reading means "no heat meter" rather than "nothing yet". A value that turns out to be a placeholder or garbage empties its tile instead of staying on it, and the error log and hot water temperature reach their tiles only through the plausibility checks. "Cooling" in the state comes from the cooling counter, never from the release flag, and without a previous reading the state shown before stays. |
-| [`codes.test.js`](test/codes.test.js) | The translation tables against the bundled library: every state code it knows must have a text, defrost variants must follow its own logic, and switch-off codes 0–27 must be complete. Also the controller configuration line in the log: an RBE from firmware 2.0 on counts as RBE Plus, and a register the controller does not send is named as missing rather than read as 0. And the parameter-change line: registers by name with their raw values, a counter muted after three polls in a row but not a setting changed twice with a pause between, at most 20 entries per line, and a shorter parameter list compared only where both have values. The random contents of an error log that was never written are dropped, both by date and by code, and the 75 °C placeholder of a heating-only unit does not count as hot water — unless hot water hours have run. Cooling counts only while the cooling counter rises between two polls and never on a unit whose counter has never run; a glitch poll reading 0, a read seconds after the last one and a counter reset are not taken for a change. |
-| [`protocol.test.js`](test/protocol.test.js) | The library against a fake controller speaking the real 3003/3004/3005 protocol — short parameter lists, a reply split across TCP segments, a controller that goes quiet mid-read. |
+| [`conversions.test.js`](test/conversions.test.js) | The unit conversions — seconds to hours, tenths and hundredths, the `-50 °C` sentinel of an unconnected sensor, and when a `0 kWh` reading means "no heat meter" rather than "nothing yet". A value that turns out to be a placeholder or garbage empties its tile instead of staying on it, and the error log and hot water temperature reach their tiles only through the plausibility checks. The error reaches the tile and the *Error Occurred* trigger translated, with the hint as a token of its own. "Cooling" in the state comes from the cooling counter, never from the release flag, and without a previous reading the state shown before stays. |
+| [`codes.test.js`](test/codes.test.js) | The translation tables against the bundled library: every state code it knows must have a text, defrost variants must follow its own logic, and switch-off codes 0–27 must be complete. Also the controller configuration line in the log: an RBE from firmware 2.0 on counts as RBE Plus, and a register the controller does not send is named as missing rather than read as 0. And the parameter-change line: registers by name with their raw values, a counter muted after three polls in a row but not a setting changed twice with a pause between, at most 20 entries per line, and a shorter parameter list compared only where both have values. The random contents of an error log that was never written are dropped, both by date and by code, and the 75 °C placeholder of a heating-only unit does not count as hot water — unless hot water hours have run. Cooling counts only while the cooling counter rises between two polls and never on a unit whose counter has never run; a glitch poll reading 0, a read seconds after the last one and a counter reset are not taken for a change. A written value counts as accepted only once the controller reports it back, with further reads after 0.5, 1 and 2 s for a controller that takes a moment; without a single successful read it stays unchecked. Every error code the library knows has a text and a hint in all four languages, an unknown code reads "Unknown" in the user's language, the hint starts with the acknowledgement as on the display, and every switch-off reason exists in French too. New error log entries are reported oldest first and only once, never the entries already there at first start, and the first entry after an empty log is not lost. A poll of nothing but zeros is unusable, as is one where every counter that was running drops to 0 at once; a single counter reset is not. |
+| [`protocol.test.js`](test/protocol.test.js) | The library against a fake controller speaking the real 3002/3003/3004/3005 protocol — short parameter lists, a reply split across TCP segments, a controller that goes quiet mid-read. A write reports the register and raw value that went out, and only reading back tells a kept value from a dropped one: the acknowledgement is the same. |
 | [`discovery.test.js`](test/discovery.test.js) | The UDP search: valid replies, missing or nonsensical ports, foreign traffic on the same ports, and the app's own broadcast coming back. |
 | [`boost.test.js`](test/boost.test.js) | Ending a hot water boost, including a failed switch-back — the tile must reset and the poll must carry on. |
 | [`flow.test.js`](test/flow.test.js) | Flow conditions and actions with two heat pumps: every listener must act on the device chosen in the flow, not on whichever one started last, and a failed boost stop must still fail the flow. An action that arrives while the device is still starting must find its state ready: everything onInit sets up and an action can reach comes before the first `await`. *Device Unavailable* must fire on every way into unavailability — failed poll, poll timeout, watchdog — and only once per outage, and after an outage the cooling counter starts afresh instead of comparing across the gap. Every write, raw registers included, goes through the write queue and its timeouts: the library's write functions may only be called in one place. |
+| [`poll.test.js`](test/poll.test.js) | What a poll takes over and what it reports. A poll of nothing but zeros reaches no tile and no trigger, does not count as successful and is repeated once after 5 s; a single reset counter still gets through. *Error Occurred* fires for an error that cleared itself before the next poll and for one that occurred during a restart, oldest first and in the user's language, but not for entries already in the log after an update, and the known state of the log survives a restart. |
+| [`write.test.js`](test/write.test.js) | Writing with read-back: a flow action fails when the controller keeps its old value, lifts the write protection and still resumes polling; a read-back that fails leaves the write unchecked rather than failed. The hot water setpoint counts as accepted while either of its two registers holds it, device settings name what was not accepted, the read-back waits for a running poll and holds the single connection while it reads, a read-back of nothing but zeros counts as unchecked, and no write bypasses it. |
 | [`manifest.test.js`](test/manifest.test.js) | The manifest against the code: every flow card registered, every capability written, every settable capability with a listener, no unreachable method, and every icon theme-aware and correctly scaled, with no visible tile left on Homey's placeholder icon. Tiles, flow cards and selection values exist in all four languages, and the title sync also reaches tiles without a capability definition of their own. |
 
 Each test covers a fault that actually occurred rather than a textbook case. The suite is mutation-checked: reintroducing the original defect makes the corresponding test fail.

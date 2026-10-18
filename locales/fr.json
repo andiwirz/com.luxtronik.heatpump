@@ -1,4 +1,8 @@
 {
+  "errors": {
+    "not_accepted": "La pompe à chaleur n'a pas accepté la valeur (paramètre __parameter__). Elle se situe probablement hors de la plage autorisée par le régulateur.",
+    "settings_not_accepted": "La pompe à chaleur n'a pas accepté : __settings__. Après la prochaine interrogation, ces réglages affichent à nouveau les valeurs du régulateur."
+  },
   "app": {
     "name": "Luxtronik Gestionnaire de Pompe à Chaleur",
     "description": "Contrôlez et surveillez votre pompe à chaleur Luxtronik 2.0"

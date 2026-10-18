@@ -59,6 +59,27 @@ test('Protokolle und Warmwasser gehen nur geprüft auf die Kacheln', () => {
   assert.match(String(extractMethod('_hotWaterTemp')._hotWaterTemp), /v\.temperature_hot_water\b/);
 });
 
+test('Kachel und Auslöser zeigen den Fehler übersetzt, mit Hinweis als eigenem Token', () => {
+  // Vorher kam der deutsche Text der Bibliothek auf die Kachel, auch auf
+  // Niederländisch, und das Token des Auslösers war die ganze Liste als JSON.
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const { ROOT } = require('./helpers');
+  const src = fs.readFileSync(path.join(ROOT, 'drivers/luxtronik-heatpump/device.js'), 'utf8');
+  const app = JSON.parse(fs.readFileSync(path.join(ROOT, 'app.json'), 'utf8'));
+  assert.doesNotMatch(src, /lastError\.message/);
+  assert.doesNotMatch(src, /JSON\.stringify\(e\)/);
+  assert.match(src, /errorText\(lastError\.code, /, 'Kachel');
+  const tokens = app.flow.triggers.find((t) => t.id === 'error_occurred').tokens.map((t) => t.name);
+  assert.deepStrictEqual(tokens, ['error', 'hint']);
+  // Der Auslöser kommt nur aus _reportNewErrors(), mit Text und Hinweis des Eintrags.
+  const { _reportNewErrors } = extractMethod('_reportNewErrors');
+  assert.strictEqual((src.match(/_triggerErrorOccurred\.trigger\(/g) || []).length, 1, 'Auslöser ausserhalb von _reportNewErrors()');
+  assert.match(String(_reportNewErrors), /_triggerErrorOccurred\.trigger\(this, \{ error, hint \}\)/);
+  assert.match(String(_reportNewErrors), /errorText\(entry\.code, lang\)/);
+  assert.match(String(_reportNewErrors), /errorHint\(entry\.code, lang\)/);
+});
+
 test('„Kühlen“ kommt vom Kühlzähler, nicht von der Freigabe', () => {
   // Auf einem LWD90V stand FreigabKuehl dauerhaft auf 1, ohne eine einzige
   // Kühlstunde, und Status und Heizungsstatus zeigten beim Heizen „Koelen“.

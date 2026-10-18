@@ -1,4 +1,8 @@
 {
+  "errors": {
+    "not_accepted": "The heat pump did not accept the value (parameter __parameter__). It is probably outside the range the controller allows.",
+    "settings_not_accepted": "The heat pump did not accept: __settings__. After the next poll these settings show the controller's values again."
+  },
   "app": {
     "name": "Luxtronik Heat Pump Manager",
     "description": "Control and monitor your Luxtronik 2.0 heat pump"

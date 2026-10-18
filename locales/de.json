@@ -1,4 +1,8 @@
 {
+  "errors": {
+    "not_accepted": "Die Wärmepumpe hat den Wert nicht übernommen (Parameter __parameter__). Vermutlich liegt er ausserhalb des Bereichs, den der Regler zulässt.",
+    "settings_not_accepted": "Die Wärmepumpe hat nicht übernommen: __settings__. Nach der nächsten Abfrage zeigen diese Einstellungen wieder die Werte des Reglers."
+  },
   "app": {
     "name": "Luxtronik Wärmepumpen Manager",
     "description": "Steuern und überwachen Sie Ihre Luxtronik 2.0 Wärmepumpe"

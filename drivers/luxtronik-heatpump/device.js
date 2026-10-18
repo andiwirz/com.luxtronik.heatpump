@@ -5,7 +5,8 @@ const luxtronik = require('../../lib/luxtronik2/luxtronik');
 const {
   switchoffReason, newestEntry, extendedState, defrostVariant, defrostState, mixerCanCool,
   controllerConfig, parameterChanges, parameterLabel, plausibleLogEntries, hotWaterEvidence,
-  coolingCounterState, coolingCounterRunning,
+  coolingCounterState, coolingCounterRunning, readBack, writeLogLine, errorText, errorHint,
+  newErrors, faultyReading,
 } = require('../../lib/luxtronik-codes');
 const { CALCULATIONS, PARAMETERS } = require('../../lib/luxtronik-registers');
 
@@ -82,6 +83,9 @@ const UNWIRED_SENSOR_TEMPERATURE = -50;
 // Darunter ist 0 kWh noch kein Beweis für einen fehlenden Zähler, sondern
 // womöglich eine frisch in Betrieb genommene Anlage.
 const ENERGY_METER_MIN_HOURS = 24;
+
+// So viele Schreibvorgänge hält das Änderungsprotokoll für den Debug-Tab.
+const WRITE_LOG_ENTRIES = 20;
 
 // heatpump_state1 = Grob-Status (0=läuft, 1=steht, 4=Fehler)
 // Nur für Fehlerkennung verwendet
@@ -167,6 +171,14 @@ class LuxtronikHeatpumpDevice extends Device {
     this._parameterChangeState = { streak: {}, muted: {} };
     // Kühlzähler der letzten Abfrage, siehe _coolingRuns()
     this._coolingCounter = coolingCounterState();
+    // Rohe Messwerte dieser und der letzten brauchbaren Abfrage, und wie viele
+    // Abfragen in Folge verworfen wurden, siehe _discardFaultyPoll()
+    this._rawValues      = null;
+    this._lastGoodValues = null;
+    this._faultyPolls    = 0;
+    // Zeitpunkt des neuesten bekannten Eintrags im Fehlerspeicher, siehe
+    // _reportNewErrors(). Der Stand aus dem Store kommt gleich dazu.
+    this._errorsKnownUntil = null;
     // Merker für nachgewiesene optionale Hardware, siehe _hardwarePresent().
     // Der Stand aus dem Store kommt gleich nach den Flow-Triggern dazu.
     this._hardwareSeen = {};
@@ -203,6 +215,10 @@ class LuxtronikHeatpumpDevice extends Device {
     // nachgewiesen hat, bleibt erhalten.
     const storedHardware = await this.getStoreValue('hardware_seen');
     if (storedHardware) Object.assign(this._hardwareSeen, storedHardware);
+    // Bekannter Fehlerspeicher aus dem Store: Störungen, die während eines
+    // Neustarts auftraten, kommen so beim ersten Poll als neu an.
+    const knownErrors = await this.getStoreValue('errors_known_until');
+    if (typeof knownErrors === 'number') this._errorsKnownUntil = knownErrors;
 
     // ── Capability-Migration: alte Namen → neue Namen ────────────────────────
     const CAPABILITY_RENAMES = {
@@ -519,11 +535,16 @@ class LuxtronikHeatpumpDevice extends Device {
     // Verbindung einmal sicherstellen statt vor jedem einzelnen Schreibvorgang.
     if (CONTROLLER_SETTINGS.some((s) => changedKeys.includes(s.setting))) this._ensurePump();
 
+    // Einstellungen, deren Wert der Regler nicht übernommen hat, für die Meldung am Ende.
+    const rejected = [];
     for (const { setting, capability, min, max, write, label } of CONTROLLER_SETTINGS) {
       if (!changedKeys.includes(setting) || !_shouldWrite(capability)) continue;
       const val = parseFloat(newSettings[setting]);
       if (!(val >= min && val <= max)) continue;
-      await write.call(this, val).catch((e) => this.error(`${label} Schreiben fehlgeschlagen:`, e.message));
+      await write.call(this, val).catch((e) => {
+        this.error(`${label} Schreiben fehlgeschlagen:`, e.message);
+        if (e.notAccepted) rejected.push(setting);
+      });
     }
 
     // Leistungssensor sofort aktualisieren ohne auf den nächsten Poll zu warten
@@ -572,6 +593,16 @@ class LuxtronikHeatpumpDevice extends Device {
     this._startPolling();
     // Neu starten, damit ein geändertes Prüfintervall sofort greift.
     this._startWatchdog();
+
+    // Den zurückgegebenen Text zeigt Homey als Meldung an. Ohne sie sähe man
+    // nur, dass die Einstellung nach der nächsten Abfrage wieder den Wert des
+    // Reglers zeigt.
+    if (rejected.length) {
+      const settings = rejected.map((id) => this._settingLabel(id)).join(', ');
+      return this.homey.__('errors.settings_not_accepted', { settings })
+        || `Die Wärmepumpe hat nicht übernommen: ${settings}.`;
+    }
+    return undefined;
   }
 
   // ─── Verbindung ────────────────────────────────────────────────────────────
@@ -584,6 +615,8 @@ class LuxtronikHeatpumpDevice extends Device {
         // dort nur den "kein Sensor"-Platzhalter (−3.7 °C). luxtronik2 mappt 227/228 nicht,
         // daher hier per onProcessValues nachreichen.
         onProcessValues: (values) => {
+          // Kopie aller Messwerte für _discardFaultyPoll()
+          this._rawValues = values ? Array.from(values) : null;
           const extra = {};
           // values ist array-ähnlich (kein echtes Array → kein Array.isArray-Guard).
           // Indizes direkt prüfen; ältere Firmware ohne RBE liefert hier undefined → Skip.
@@ -793,6 +826,7 @@ class LuxtronikHeatpumpDevice extends Device {
           finish();
           return;
         }
+        if (this._discardFaultyPoll()) { finish(); return; }
         const wasUnavail = !this.getAvailable();
         this.setAvailable().catch(() => {});
         if (wasUnavail) {
@@ -1186,10 +1220,13 @@ class LuxtronikHeatpumpDevice extends Device {
     }
 
     // Fehlercodes des Reglers liegen zwischen 701 und 807 (Liste der
-    // Home-Assistant-Integration); 700–999 lässt Platz für neuere.
+    // Home-Assistant-Integration); 700–999 lässt Platz für neuere. Den Text
+    // liefert lib/luxtronik-errors in der Sprache des Nutzers: Die Bibliothek
+    // kennt weniger Codes und hat nur deutsche Texte.
     const lastError = newestEntry(plausibleLogEntries(v.errors, 700, 999));
+    const lastErrorText = lastError ? `${lastError.code} - ${errorText(lastError.code, this.homey.i18n.getLanguage())}` : null;
     if (lastError || Array.isArray(v.errors)) {
-      await this._showOrClear('error_reason', lastError ? `${lastError.code} - ${lastError.message}` : null);
+      await this._showOrClear('error_reason', lastErrorText);
     }
     // Heizungs-Status – über den Zustandscode (C0119) statt über den Text der
     // Bibliothek, siehe EXTENDED_STATES in lib/luxtronik-codes.
@@ -1231,16 +1268,7 @@ class LuxtronikHeatpumpDevice extends Device {
       const entry = HOTWATER_STATE_MAP[raw];
       await this._setIfValid('hotwater_state_string', entry ? (entry[lang] ?? entry.en) : raw);
     }
-    if (hasError && !this._lastErrorState) {
-      // Fehlermeldung aus dem Protokoll holen, ohne die Zufallswerte eines nie
-      // beschriebenen Fehlerspeichers
-      const plausibleErrors = plausibleLogEntries(v.errors, 700, 999);
-      const msg = plausibleErrors.length > 0
-        ? plausibleErrors.map((e) => JSON.stringify(e)).join(', ')
-        : 'Fehler (state1=4)';
-      await this._triggerErrorOccurred.trigger(this, { error: msg }).catch(() => {});
-      await this._notify(this._tl(`⚠️ Fehler aktiv: ${msg}`, `⚠️ Error active: ${msg}`));
-    }
+    await this._reportNewErrors(v);
     if (!hasError && this._lastErrorState === true) {
       await this._triggerErrorCleared.trigger(this, {}).catch(() => {});
       await this._notify(this._tl('✅ Fehler behoben', '✅ Error cleared'));
@@ -1431,9 +1459,14 @@ class LuxtronikHeatpumpDevice extends Device {
     await this.setCapabilityValue('target_temperature', clamped).catch(() => {});
     this._setWriteProtect('target_temperature', 120000);
     // parameter 2 (warmwater_target_temperature) = Standard WW-Sollwert
-    await this._write('warmwater_target_temperature', clamped);
+    const p2 = await this._writeChecked('warmwater_target_temperature', clamped);
     // parameter 105 (temperature_hot_water_target) = alternativer WW-Sollwert auf manchen Firmware-Varianten
-    await this._write('temperature_hot_water_target', clamped).catch(() => {});
+    const p105 = await this._writeChecked('temperature_hot_water_target', clamped).catch(() => null);
+    // Welches der beiden Register der Regler auswertet, hängt von der Firmware
+    // ab (BenPru/luxtronik: P0002 bis x.88.2, P0105 ab x.88.3), und P0002 senkt
+    // er selbst ab, wenn die Wärmepumpe den Wert nicht erreicht. Übernommen ist
+    // der Wert deshalb, solange eines der beiden Register ihn hält.
+    if (p2.accepted === false && (!p105 || p105.accepted === false)) throw this._notAccepted('2/105');
     this.log(`Brauchwasser Soll-Temperatur erfolgreich gesendet: ${clamped} °C`);
   }
 
@@ -1756,36 +1789,176 @@ class LuxtronikHeatpumpDevice extends Device {
       && Number(s.power_standby) > 0;
   }
 
-  // Debounced Poll nach Write: mehrere schnelle Writes lösen nur einen Poll aus
-  _schedulePollAfterWrite(delayMs = 3000) {
+  // Debounced Poll nach Write: mehrere schnelle Writes lösen nur einen Poll aus.
+  // Dient auch der erneuten Abfrage nach einer verworfenen, mit eigenem Logtext.
+  _schedulePollAfterWrite(delayMs = 3000, reason = 'Bestätigungs-Poll nach Write') {
     if (this._pollAfterWriteTimer) clearTimeout(this._pollAfterWriteTimer);
     this._pollAfterWriteTimer = setTimeout(() => {
       this._pollAfterWriteTimer = null;
-      this.log('Bestätigungs-Poll nach Write');
+      this.log(reason);
       this._doPoll();
     }, delayMs);
   }
 
-  _write(parameter, value) {
-    // Schreibvorgänge serialisieren: nie zwei parallele TCP-Verbindungen.
-    // `parameter` ist ein Schreibname der Bibliothek oder eine Registernummer,
-    // siehe _writeRaw(). result wird dem Aufrufer zurückgegeben (inkl. Fehler).
-    // _writeQueue bekommt nur die gecatchte Version, damit die Kette nach
-    // einem Fehler nicht abbricht und der nächste Write trotzdem ausgeführt wird.
-    const result = this._writeQueue.then(() => this._writeNow(parameter, value));
+  // Verwirft eine gestörte Abfrage, siehe faultyReading(): keine Kachel, kein
+  // Auslöser, kein Abgleich der Einstellungen. Sie zählt auch nicht als
+  // gelungener Poll; hält die Störung an, meldet der Watchdog das Gerät
+  // irgendwann als nicht erreichbar. Nach der ersten verworfenen Abfrage in
+  // Folge wird nach 5 s erneut gefragt, danach erst wieder im Takt: Ein
+  // dauerhaft gestörter Regler soll nicht alle paar Sekunden abgefragt werden.
+  _discardFaultyPoll() {
+    if (!faultyReading(this._lastGoodValues, this._rawValues || [], this._rawParameters || [])) {
+      this._faultyPolls = 0;
+      this._lastGoodValues = this._rawValues;
+      return false;
+    }
+    this._faultyPolls++;
+    this.error(`Abfrage verworfen: Messwerte bzw. Zähler auf einmal 0 (${this._faultyPolls}. in Folge)`);
+    if (this._faultyPolls === 1) this._schedulePollAfterWrite(5000, 'Erneute Abfrage nach verworfener Abfrage');
+    return true;
+  }
+
+  // Schreibt einen Wert und prüft, ob der Regler ihn übernommen hat. Wirft,
+  // wenn nicht: Eine Flow-Aktion scheitert dann sichtbar, statt Erfolg zu
+  // melden. Vorher stand ein verworfener Wert dank Schreibschutz zwei Minuten
+  // auf der Kachel und sprang danach kommentarlos zurück.
+  async _write(parameter, value) {
+    const result = await this._writeChecked(parameter, value);
+    if (result.accepted === false) throw this._notAccepted(result.parameter);
+    return result;
+  }
+
+  // Wie _write(), wirft aber nicht, wenn der Regler den Wert verwirft, sondern
+  // liefert das Ergebnis { parameter, value, accepted, actual }, siehe
+  // readBack(). Schreibvorgänge laufen nacheinander: nie zwei parallele
+  // TCP-Verbindungen. `parameter` ist ein Schreibname der Bibliothek oder eine
+  // Registernummer, siehe _writeRaw(). _writeQueue bekommt nur die gecatchte
+  // Version, damit die Kette nach einem Fehler nicht abbricht und der nächste
+  // Write trotzdem ausgeführt wird.
+  _writeChecked(parameter, value) {
+    const result = this._writeQueue.then(() => this._writeAndReadBack(parameter, value));
     this._writeQueue = result.catch(() => {});
     return result;
   }
 
+  // Schreiben und Zurücklesen als ein Schritt der Warteschlange, solange das
+  // Polling pausiert: Auch das Zurücklesen braucht die einzige Verbindung des
+  // Reglers.
+  async _writeAndReadBack(parameter, value) {
+    try {
+      const sent = await this._writeNow(parameter, value);
+      // Stand vor dem Schreiben aus der letzten Lesung, fürs Protokoll.
+      const before = this._rawParameters ? this._rawParameters[sent.parameter] : undefined;
+      const check = await readBack(() => this._readParameters(), sent.parameter, sent.value, (ms) => this._sleep(ms));
+      this._recordWrite(sent.parameter, before, sent.value, check);
+      return { parameter: sent.parameter, value: sent.value, ...check };
+    } finally {
+      this._startPolling();
+      this._schedulePollAfterWrite();
+    }
+  }
+
+  // Liest die Parameterliste einmal, zum Zurücklesen nach einem Schreibvorgang.
+  // Anders als ein Poll fasst das keine Kachel an und macht das Gerät bei einem
+  // Fehler nicht unerreichbar: Geschrieben ist geschrieben, nur die Kontrolle
+  // fehlt dann. Eine laufende Abfrage wartet es ab, denn der Regler verträgt
+  // nur eine Verbindung.
+  async _readParameters() {
+    const waitUntil = Date.now() + (this._pollTimeoutSec() + 5) * 1000;
+    while (this._polling && Date.now() < waitUntil) await this._sleep(250);
+    if (this._polling) throw new Error('Abfrage läuft noch');
+    if (!this._ensurePump()) throw new Error('Nicht verbunden');
+    const timeoutMs = Math.min(this._pollTimeoutSec(), 10) * 1000;
+    this._polling = true;
+    try {
+      const parameters = await new Promise((resolve, reject) => {
+        // Backstop wie beim Poll: greift, wenn selbst das Schliessen des
+        // Sockets keinen Callback auslöst.
+        const backstop = setTimeout(() => {
+          this._resetPump();
+          reject(new Error(`Keine Antwort nach ${Math.round(timeoutMs / 1000) + 5}s`));
+        }, timeoutMs + 5000);
+        this._pump.readRaw((err, data) => {
+          clearTimeout(backstop);
+          if (err) { reject(err instanceof Error ? err : new Error(String(err))); return; }
+          try {
+            const read = JSON.parse(data.parameters);
+            // Eine gestörte Abfrage beweist nichts und zählt wie ein Lesefehler.
+            if (faultyReading(null, JSON.parse(data.values), read)) reject(new Error('Abfrage verworfen: alle Werte 0'));
+            else resolve(read);
+          } catch (e) { reject(e); }
+        });
+        this._guardSocket('client', timeoutMs, '(Zurücklesen)');
+      });
+      // Neuester Stand, auch als "vorher" für den nächsten Schreibvorgang.
+      this._rawParameters = parameters;
+      return parameters;
+    } finally {
+      this._polling = false;
+    }
+  }
+
+  _sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  // Änderungsprotokoll: eine Zeile im App-Log, damit ein Diagnosebericht
+  // zeigt, was die App geschrieben hat und ob der Regler es behielt, und die
+  // letzten Einträge für den Debug-Tab der Einstellungsseite.
+  _recordWrite(parameter, before, sent, check) {
+    const line = writeLogLine(parameter, before, sent, check);
+    if (check.accepted === false) this.error(`Schreiben: ${line}`);
+    else this.log(`Schreiben: ${line}`);
+    try {
+      const entries = this.homey.settings.get('luxtronik_writes') || [];
+      entries.unshift({
+        time: new Date().toISOString(),
+        device: this.getName(),
+        parameter,
+        before: before ?? null,
+        sent,
+        actual: check.actual ?? null,
+        accepted: check.accepted,
+      });
+      this.homey.settings.set('luxtronik_writes', entries.slice(0, WRITE_LOG_ENTRIES));
+    } catch (_e) { /* ignore */ }
+  }
+
+  // Fehler für einen Wert, den der Regler nicht übernommen hat. Hebt den
+  // Schreibschutz auf, damit die nächste Abfrage sofort wieder zeigt, was der
+  // Regler wirklich hat. Am Kennzeichen notAccepted erkennt onSettings den Fall.
+  _notAccepted(parameter) {
+    this._writeProtectUntil = {};
+    const error = new Error(this.homey.__('errors.not_accepted', { parameter })
+      || `Die Wärmepumpe hat den Wert nicht übernommen (Parameter ${parameter}).`);
+    error.notAccepted = true;
+    return error;
+  }
+
+  // Beschriftung einer Geräteeinstellung in der Sprache des Nutzers, für Meldungen.
+  _settingLabel(id) {
+    const flat = (items) => items.flatMap((item) => (item.children ? flat(item.children) : [item]));
+    const driver = ((this.homey.manifest && this.homey.manifest.drivers) || []).find((d) => d.id === this.driver.id) || {};
+    const setting = flat(driver.settings || []).find((s) => s.id === id);
+    const label = (setting && setting.label) || {};
+    return label[this.homey.i18n.getLanguage()] || label.en || id;
+  }
+
   _writeNow(parameter, value) {
     // Zahl = Rohregister (writeRaw der Bibliothek), Text = Schreibname (write).
+    // Löst mit der Quittung der Bibliothek auf, die Register und Rohwert des
+    // Schreibvorgangs enthält. Das Polling startet _writeAndReadBack() wieder,
+    // erst nach dem Zurücklesen.
     const raw = typeof parameter === 'number';
     const label = raw ? parameterLabel(parameter) : parameter;
     return new Promise((resolve, reject) => {
       if (!this._pump) { reject(new Error('Nicht verbunden')); return; }
 
-      // Polling stoppen damit keine konkurrierende TCP-Verbindung offen ist
+      // Polling stoppen damit keine konkurrierende TCP-Verbindung offen ist.
+      // Auch den Bestätigungs-Poll eines vorigen Schreibvorgangs: Er käme
+      // sonst womöglich während dieses Schreibvorgangs.
       this._stopPolling();
+      if (this._pollAfterWriteTimer) { clearTimeout(this._pollAfterWriteTimer); this._pollAfterWriteTimer = null; }
       this.log(`_write: ${label} = ${value} (Polling pausiert)`);
 
       let settled = false;
@@ -1793,8 +1966,6 @@ class LuxtronikHeatpumpDevice extends Device {
         if (settled) return;
         settled = true;
         clearTimeout(writeTimeout);
-        this._startPolling();
-        this._schedulePollAfterWrite();
         if (err) {
           const msg = (err && err.message) ? err.message : String(err);
           this.error(`Write-Fehler (${label}=${value}): ${msg}`);
@@ -1958,6 +2129,29 @@ class LuxtronikHeatpumpDevice extends Device {
   _coolingRuns(v) {
     const running = coolingCounterRunning(this._coolingCounter, v.raw_hours_cooling, Date.now());
     return running ?? (this.getCapabilityValue('heatpump_state') === 'cooling');
+  }
+
+  // Meldet jeden neuen Eintrag im Fehlerspeicher über "Fehler aufgetreten" und
+  // die Timeline, siehe newErrors(). Vorher löste nur der Wechsel von
+  // Statuszeile 1 auf 4 aus: Eine Störung, die sich bis zur nächsten Abfrage
+  // von selbst erledigte oder während eines Neustarts auftrat, ging verloren,
+  // und eine anstehende kam nach jedem Neustart erneut. Den Stand hält der
+  // Store über Neustarts hinweg.
+  async _reportNewErrors(v) {
+    if (!Array.isArray(v.errors)) return;
+    const { fresh, knownUntil } = newErrors(plausibleLogEntries(v.errors, 700, 999), this._errorsKnownUntil);
+    const lang = this.homey.i18n.getLanguage();
+    for (const entry of fresh) {
+      const error = `${entry.code} - ${errorText(entry.code, lang)}`;
+      const hint = errorHint(entry.code, lang) || '';
+      await this._triggerErrorOccurred.trigger(this, { error, hint }).catch(() => {});
+      await this._notify(this._tl(`⚠️ Fehler aufgetreten: ${error}`, `⚠️ Error occurred: ${error}`) + (hint ? `. ${hint}` : ''));
+    }
+    if (knownUntil !== this._errorsKnownUntil) {
+      this._errorsKnownUntil = knownUntil;
+      await this.setStoreValue('errors_known_until', knownUntil)
+        .catch((e) => this.error('Stand des Fehlerspeichers speichern fehlgeschlagen:', e.message));
+    }
   }
 
   // Ist die Hardware hinter dieser Capability vorhanden?

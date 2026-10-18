@@ -6,6 +6,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
 const codes = require('../lib/luxtronik-codes');
+const errors = require('../lib/luxtronik-errors');
 const types = require('../lib/luxtronik2/types');
 
 test('extendedState deckt jeden Zustandscode ab, den die Bibliothek kennt', () => {
@@ -35,8 +36,56 @@ test('extendedState: Codes 15 und 18 kennt nur diese App', () => {
 });
 
 test('Sprachen ohne Übersetzung fallen auf Englisch zurück, nicht auf leer', () => {
-  assert.strictEqual(codes.extendedState(0, 'fr'), codes.extendedState(0, 'en'));
-  assert.strictEqual(codes.switchoffReason(9, 'fr'), codes.switchoffReason(9, 'en'));
+  assert.strictEqual(codes.extendedState(0, 'fr'), codes.extendedState(0, 'en'), 'Heizungsstatus gibt es nicht auf Französisch');
+  assert.strictEqual(codes.switchoffReason(9, 'it'), codes.switchoffReason(9, 'en'));
+  assert.strictEqual(codes.errorText(701, 'it'), codes.errorText(701, 'en'));
+  assert.strictEqual(codes.errorHint(701, 'it'), codes.errorHint(701, 'en'));
+});
+
+test('errorText: jeder Code der Bibliothek hat Text und Hinweis in allen vier Sprachen', () => {
+  // Auf einer niederländischen Homey stand auf der Kachel "Unbekannter
+  // Fehler": Die Bibliothek kennt ihre Codes nur auf Deutsch.
+  const missing = [];
+  for (const code of Object.keys(types.errorCodes).map(Number).filter((c) => c > 0)) {
+    for (const lang of ['de', 'en', 'nl', 'fr']) {
+      const entry = errors.ERRORS[code];
+      if (!entry || !entry.text[lang] || !entry.hint[lang]) missing.push(`${code} ${lang}`);
+    }
+  }
+  assert.deepStrictEqual(missing, []);
+  assert.strictEqual(codes.errorText(701, 'nl'), 'Lagedrukstoring');
+});
+
+test('die Fehlertabelle ist vollständig: Text, Hinweis und Quittierung', () => {
+  const problems = [];
+  for (const [code, entry] of Object.entries(errors.ERRORS)) {
+    for (const lang of ['de', 'en', 'nl', 'fr']) {
+      if (!entry.text[lang]) problems.push(`${code}: Text ${lang}`);
+      if (!entry.hint[lang]) problems.push(`${code}: Hinweis ${lang}`);
+    }
+    if (entry.reset !== null && !errors.ERROR_RESETS[entry.reset]) problems.push(`${code}: Quittierung ${entry.reset}`);
+  }
+  assert.deepStrictEqual(problems, []);
+});
+
+test('errorText: ein unbekannter Code heisst "Unbekannt", in der Sprache des Nutzers', () => {
+  // Die Bibliothek liefert dafür "Unbekannter Fehler", auch auf Niederländisch.
+  assert.strictEqual(codes.errorText(950, 'nl'), 'Onbekend');
+  assert.strictEqual(codes.errorText(950, 'de'), 'Unbekannt');
+});
+
+test('errorHint: die Quittierung steht vorne, wie in der zweiten Zeile des Displays', () => {
+  assert.match(codes.errorHint(701, 'de'), /^Bitte Inst\. rufen · Niederdruck-Pressostat/);
+  assert.match(codes.errorHint(718, 'en'), /^Automatic RESET in hh:mm · /);
+  // 731 (Zeitüberschreitung TDI) hat keine Quittierung, nur den Hinweis.
+  assert.strictEqual(codes.errorHint(731, 'de'), errors.ERRORS[731].hint.de);
+  assert.strictEqual(codes.errorHint(950, 'de'), null);
+});
+
+test('switchoffReason: jeder Abschaltgrund auch auf Französisch', () => {
+  const missing = Object.entries(codes.SWITCHOFF_REASONS).filter(([, entry]) => !entry.fr).map(([code]) => code);
+  assert.deepStrictEqual(missing, []);
+  assert.strictEqual(codes.switchoffReason(3, 'fr'), 'Délestage');
 });
 
 test('defrostVariant folgt derselben Logik wie die Bibliothek', () => {
@@ -92,6 +141,63 @@ test('plausibleLogEntries behält echte Einträge, auch mit Datum als Text', () 
   assert.deepStrictEqual(codes.plausibleLogEntries([{ code: 7409920, date: new Date('2026-08-15T08:14:58Z') }], 700, 999), []);
 });
 
+// Einträge im Fehlerspeicher, wie plausibleLogEntries() sie liefert.
+const entry = (code, iso) => ({ code, date: new Date(iso) });
+
+test('newErrors: beim allerersten Mal gilt der Fehlerspeicher als bekannt', () => {
+  // Sonst käme nach dem Update jede alte Störung als neu.
+  const log = [entry(701, '2026-03-01T10:00:00Z'), entry(702, '2026-09-12T08:30:00Z')];
+  const { fresh, knownUntil } = codes.newErrors(log, null);
+  assert.deepStrictEqual(fresh, []);
+  assert.strictEqual(knownUntil, Date.parse('2026-09-12T08:30:00Z'));
+});
+
+test('newErrors: neue Einträge kommen einzeln, ältester zuerst', () => {
+  // Auch Störungen, die sich bis zur nächsten Abfrage von selbst erledigt
+  // haben: Statuszeile 1 stand dann nie auf 4, der Eintrag bleibt.
+  const known = Date.parse('2026-09-12T08:30:00Z');
+  const log = [entry(702, '2026-09-12T08:30:00Z'), entry(715, '2026-10-18T07:10:00Z'), entry(702, '2026-10-18T06:00:00Z')];
+  const { fresh, knownUntil } = codes.newErrors(log, known);
+  assert.deepStrictEqual(fresh.map((e) => e.code), [702, 715]);
+  assert.strictEqual(knownUntil, Date.parse('2026-10-18T07:10:00Z'));
+  assert.deepStrictEqual(codes.newErrors(log, knownUntil).fresh, [], 'derselbe Speicher meldet nichts mehr');
+});
+
+test('newErrors: nach einem leeren Speicher kommt schon der erste Eintrag', () => {
+  const first = codes.newErrors([], null);
+  assert.strictEqual(first.knownUntil, 0);
+  const next = codes.newErrors([entry(701, '2026-10-18T07:10:00Z')], first.knownUntil);
+  assert.deepStrictEqual(next.fresh.map((e) => e.code), [701]);
+});
+
+// Messwerte einer Abfrage: an den Stellen der fünf Zähler laufende Werte.
+function readingWith(counters = {}) {
+  const values = new Array(260).fill(0);
+  values[10] = 215; // Vorlauf 21,5 °C, damit nicht alles 0 ist
+  Object.assign(values, { 56: 74595599, 57: 6126, 63: 74595600, 64: 70000000, 151: 771093 }, counters);
+  return values;
+}
+
+test('faultyReading: eine Abfrage aus lauter Nullen ist unbrauchbar', () => {
+  // BenPru/luxtronik: Gelegentlich liest eine Abfrage jedes Register als 0.
+  assert.strictEqual(codes.faultyReading(null, new Array(260).fill(0), [1, 2]), true);
+  assert.strictEqual(codes.faultyReading(null, readingWith(), new Array(1100).fill(0)), true, 'alle Parameter 0');
+  assert.strictEqual(codes.faultyReading(null, readingWith(), [1, 2]), false);
+});
+
+test('faultyReading: alle laufenden Zähler auf einmal 0 sind eine Störung, einer ist ein Zurücksetzen', () => {
+  const previous = readingWith();
+  const countersZero = { 56: 0, 57: 0, 63: 0, 64: 0, 151: 0 };
+  assert.strictEqual(codes.faultyReading(previous, readingWith(countersZero), [1]), true, 'Vorlauf noch da, Zähler alle 0');
+  assert.strictEqual(codes.faultyReading(previous, readingWith({ 151: 0 }), [1]), false, 'Wärmemenge zurückgesetzt');
+  assert.strictEqual(codes.faultyReading(previous, readingWith({ 56: 0, 57: 0 }), [1]), false, 'nur ein Teil der Zähler');
+  // Liefen vorher weniger als zwei, gibt es nichts zu vergleichen.
+  const oneRunning = Object.assign(new Array(260).fill(0), { 10: 215, 57: 6126 });
+  assert.strictEqual(codes.faultyReading(oneRunning, readingWith({ 57: 0 }), [1]), false);
+  // Ohne vorige Abfrage zählt nur die Regel mit den lauter Nullen.
+  assert.strictEqual(codes.faultyReading(null, readingWith(countersZero), [1]), false);
+});
+
 test('hotWaterEvidence: Platzhalter einer reinen Heizanlage zählen nicht', () => {
   // LWD90V ohne Warmwasser: Fühler dauerhaft 75,0 °C, Betriebsstunden "no".
   // Die Kachel zeigte daraus 75 °C Warmwasser.
@@ -110,6 +216,69 @@ test('mixerCanCool erkennt genau die kühlfähigen Mischkreistypen', () => {
   assert.strictEqual(codes.mixerCanCool(3), true);
   assert.strictEqual(codes.mixerCanCool(4), true);
   [0, 1, 2, undefined, null].forEach((t) => assert.strictEqual(codes.mixerCanCool(t), false, `Typ ${t}`));
+});
+
+// Zurücklesen gegen nachgebaute Lesungen: jede Zahl ist der Wert, den der
+// Regler bei dieser Lesung für das Register meldet, ein Error eine gescheiterte
+// Lesung. Gewartet wird nicht, die Wartezeiten werden nur mitgeschrieben.
+async function readBackWith(reads, index = 47, expected = 700) {
+  const waits = [];
+  let count = 0;
+  const read = async () => {
+    const next = reads[count++];
+    if (next instanceof Error) throw next;
+    const parameters = [];
+    parameters[index] = next;
+    return parameters;
+  };
+  const result = await codes.readBack(read, index, expected, async (ms) => { waits.push(ms); });
+  return { ...result, waits, reads: count };
+}
+
+test('readBack: ein übernommener Wert ist mit der ersten Lesung bestätigt', async () => {
+  const result = await readBackWith([700]);
+  assert.strictEqual(result.accepted, true);
+  assert.deepStrictEqual(result.waits, [1000]);
+});
+
+test('readBack: ein Regler, der verzögert übernimmt, bekommt weitere Lesungen', async () => {
+  // BenPru/luxtronik #729: Ein LWC407 mit V1.88.3 zeigte den geschriebenen Wert
+  // erst nach einer Weile.
+  const result = await readBackWith([650, 650, 700]);
+  assert.strictEqual(result.accepted, true);
+  assert.deepStrictEqual(result.waits, [1000, 500, 1000]);
+});
+
+test('readBack: hält der Regler den alten Wert, ist der neue nicht übernommen', async () => {
+  // So sieht ein Wert ausserhalb des Bereichs aus: Der Regler quittiert den
+  // Schreibbefehl und verwirft den Wert.
+  const result = await readBackWith([650, 650, 650, 650]);
+  assert.deepStrictEqual([result.accepted, result.actual], [false, 650]);
+  assert.deepStrictEqual(result.waits, [1000, 500, 1000, 2000]);
+});
+
+test('readBack: ohne eine gelungene Lesung ist nichts geprüft', async () => {
+  // Geschrieben ist geschrieben, nur die Kontrolle fehlt: kein Fehlschlag.
+  const busy = new Error('heatpump busy');
+  const result = await readBackWith([busy]);
+  assert.strictEqual(result.accepted, null);
+  assert.strictEqual(result.error, busy);
+  assert.strictEqual(result.reads, 1, 'nach einem Lesefehler keine weitere Lesung');
+});
+
+test('readBack: scheitert eine spätere Lesung, zählt die letzte gelungene', async () => {
+  const result = await readBackWith([650, new Error('Timeout')]);
+  assert.deepStrictEqual([result.accepted, result.actual], [false, 650]);
+});
+
+test('writeLogLine nennt Register, Rohwerte und Ergebnis', () => {
+  assert.strictEqual(
+    codes.writeLogLine(1, 0, 20, { accepted: true, actual: 20 }),
+    'P0001_HEATING_TARGET_CORRECTION 0 → 20: übernommen',
+  );
+  assert.match(codes.writeLogLine(47, 650, 750, { accepted: false, actual: 650 }), /650 → 750: nicht übernommen, Regler meldet 650$/);
+  assert.match(codes.writeLogLine(979, undefined, 150, { accepted: false, actual: undefined }), / \? → 150: nicht übernommen, Regler meldet kein solches Register$/);
+  assert.match(codes.writeLogLine(1, 0, 20, { accepted: null, error: new Error('Timeout') }), /nicht geprüft, Zurücklesen fehlgeschlagen \(Timeout\)$/);
 });
 
 // Kühlzähler-Lesungen nacheinander ab dem Start: [Sekundenstand, Zeitpunkt in

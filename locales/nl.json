@@ -1,4 +1,8 @@
 {
+  "errors": {
+    "not_accepted": "De warmtepomp heeft de waarde niet overgenomen (parameter __parameter__). Waarschijnlijk ligt die buiten het bereik dat de regelaar toestaat.",
+    "settings_not_accepted": "De warmtepomp heeft niet overgenomen: __settings__. Na de volgende uitlezing tonen deze instellingen weer de waarden van de regelaar."
+  },
   "app": {
     "name": "Luxtronik Warmtepomp Manager",
     "description": "Bedien en monitor uw Luxtronik 2.0 warmtepomp"
