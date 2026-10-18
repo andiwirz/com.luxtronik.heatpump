@@ -61,15 +61,15 @@
         "defrost": "Dégivrage",
         "off": "Arrêt",
         "external": "Externe",
-        "cooling": "Refroidissement",
+        "cooling": "Rafraîchissement",
         "standby": "Veille",
         "unknown": "Inconnu"
       }
     }
   },
   "cooling": {
-    "enabled": "Refroidissement activé",
-    "disabled": "Refroidissement désactivé"
+    "enabled": "Rafraîchissement activé",
+    "disabled": "Rafraîchissement désactivé"
   },
   "flow": {
     "triggers": {

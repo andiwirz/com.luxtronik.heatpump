@@ -4,7 +4,7 @@
     "en": "Cooling mode !{{is|is not}}",
     "de": "Kühlbetrieb-Betriebsart !{{ist|ist nicht}}",
     "nl": "Koelingsmodus !{{is|is niet}}",
-    "fr": "Mode refroidissement !{{est|n'est pas}}"
+    "fr": "Mode rafraîchissement !{{est|n'est pas}}"
   },
   "args": [
     {
@@ -47,6 +47,6 @@
     "en": "The cooling mode is [[mode]]",
     "de": "Die Kühlbetrieb-Betriebsart ist [[mode]]",
     "nl": "De koelingsmodus is [[mode]]",
-    "fr": "Le mode refroidissement est [[mode]]"
+    "fr": "Le mode rafraîchissement est [[mode]]"
   }
 }

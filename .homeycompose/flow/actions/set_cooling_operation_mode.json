@@ -4,7 +4,7 @@
     "en": "Set cooling mode",
     "de": "Kühlbetrieb-Betriebsart setzen",
     "nl": "Koelingsmodus instellen",
-    "fr": "Définir le mode refroidissement"
+    "fr": "Définir le mode rafraîchissement"
   },
   "args": [
     {
@@ -47,6 +47,6 @@
     "en": "Set cooling mode to [[mode]]",
     "de": "Kühlbetrieb-Betriebsart auf [[mode]] setzen",
     "nl": "Koelingsmodus instellen op [[mode]]",
-    "fr": "Définir le mode refroidissement sur [[mode]]"
+    "fr": "Définir le mode rafraîchissement sur [[mode]]"
   }
 }

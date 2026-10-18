@@ -37,6 +37,34 @@ test('Kacheln, Flow-Karten und Auswahlwerte gibt es in allen vier Sprachen', () 
   assert.deepStrictEqual(missing, []);
 });
 
+test('Geräteeinstellungen gibt es in allen vier Sprachen', () => {
+  // 41 der 42 Einstellungen standen auf Niederländisch und Französisch nur auf
+  // Englisch, und sieben englische Gruppennamen enthielten Deutsch.
+  const missing = [];
+  const walk = (items) => {
+    for (const item of items) {
+      const where = item.id || item.label.en;
+      const texts = [['Beschriftung', item.label], ['Hinweis', item.hint], ...(item.values || []).map((v) => [`Wert ${v.id}`, v.label])];
+      for (const [kind, text] of texts) {
+        if (!text) continue;
+        for (const lang of ['en', 'de', 'nl', 'fr']) if (!text[lang]) missing.push(`${where} ${kind} (${lang})`);
+      }
+      if (item.type === 'group' && /[äöüß]|Heiz|Warmwasser|Kühlung|Zuheizer|Absenkung/.test(item.label.en)) missing.push(`${where}: Deutsch im englischen Namen`);
+      if (item.children) walk(item.children);
+    }
+  };
+  walk(drv.settings);
+  assert.deepStrictEqual(missing, []);
+});
+
+test('Kühlen heisst auf Französisch überall gleich', () => {
+  // Kacheln und Flow-Karten sagten "refroidissement", Heizungsstatus, Abschalt-
+  // gründe und Fehlertexte nach der Betriebsanleitung "rafraîchissement".
+  const texts = [JSON.stringify(app), fs.readFileSync(path.join(ROOT, 'locales/fr.json'), 'utf8'), device,
+    fs.readFileSync(path.join(ROOT, 'lib/luxtronik-codes.js'), 'utf8'), fs.readFileSync(path.join(ROOT, 'lib/luxtronik-errors.js'), 'utf8')];
+  assert.deepStrictEqual(texts.flatMap((t) => t.match(/[Rr]efroidissement/g) || []), []);
+});
+
 test('der Titelabgleich erreicht auch Kacheln ohne eigene Definition', () => {
   // target_temperature.heating und die anderen System-Kacheln haben keine
   // Capability-Definition; ihr Titel steht nur in den capabilitiesOptions des
@@ -102,13 +130,30 @@ test('keine private Methode ist unerreichbar', () => {
   assert.deepStrictEqual(dead, [], 'definiert, aber nie aufgerufen');
 });
 
+// Capabilities, die onInit von alten Geräten entfernt, und alle übrigen, die
+// Treiber oder Code verwenden.
+const removedLine = (device.match(/const REMOVE_CAPABILITIES = \[[^\]]*\];/) || [''])[0];
+const removedCapabilities = new Set((removedLine.match(/'([^']+)'/g) || []).map((s) => s.slice(1, -1)));
+const usedCapabilities = new Set([
+  ...drv.capabilities.map((c) => c.split('.')[0]),
+  ...[...(device.replace(removedLine, '') + driver).matchAll(/'([a-z_]+)'/g)].map((m) => m[1]),
+]);
+
+test('jede Capability-Definition wird verwendet oder von alten Geräten entfernt', () => {
+  // cooling_enabled hing in 2.0.23 und 2.0.24 an Geräten und blieb danach als
+  // Definition liegen, ohne dass etwas sie benutzte oder von den Geräten nahm.
+  const orphans = Object.keys(app.capabilities).filter((id) => !usedCapabilities.has(id) && !removedCapabilities.has(id));
+  assert.deepStrictEqual(orphans, []);
+  assert.ok(removedCapabilities.has('cooling_enabled'));
+});
+
 test('jede sichtbare Kachel hat ein Icon', () => {
   // Fünf Kältekreis-Kacheln zeigten in der Homey-App nur Homeys Platzhalter,
   // ein gestricheltes Quadrat: Ihre Definitionen hatten kein Icon. Geprüft
-  // wird, was der Treiber oder der Code verwendet und was als Kachel erscheint.
-  const used = new Set([...drv.capabilities, ...[...device.matchAll(/'([a-z_]+)'/g)].map((m) => m[1])]);
+  // wird, was der Treiber oder der Code verwendet und was als Kachel erscheint;
+  // was onInit von alten Geräten entfernt, braucht keins.
   const missing = Object.entries(app.capabilities)
-    .filter(([id, cap]) => used.has(id) && cap.uiComponent !== null)
+    .filter(([id, cap]) => usedCapabilities.has(id) && cap.uiComponent !== null)
     .filter(([, cap]) => !cap.icon || !fs.existsSync(path.join(ROOT, cap.icon)))
     .map(([id]) => id);
   assert.deepStrictEqual(missing, []);

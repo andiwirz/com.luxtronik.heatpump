@@ -59,6 +59,29 @@ test('Protokolle und Warmwasser gehen nur geprüft auf die Kacheln', () => {
   assert.match(String(extractMethod('_hotWaterTemp')._hotWaterTemp), /v\.temperature_hot_water\b/);
 });
 
+test('Timeline-Status und Warmwasserstatus gibt es in allen vier Sprachen', () => {
+  // Auf einer französischen Homey stand in der Timeline "State: heating", der
+  // interne Name: Die Tabelle hatte kein Französisch und fiel auf den Namen
+  // zurück statt auf Englisch.
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const { ROOT } = require('./helpers');
+  const src = fs.readFileSync(path.join(ROOT, 'drivers/luxtronik-heatpump/device.js'), 'utf8').replace(/\r\n/g, '\n');
+  const table = (name) => {
+    const start = src.indexOf(`const ${name} = {`);
+    // eslint-disable-next-line no-new-func
+    return new Function(`return ${src.slice(start + `const ${name} = `.length, src.indexOf('\n};', start) + 2)};`)();
+  };
+  const missing = [];
+  for (const name of ['STATE_TIMELINE_LABELS', 'HOTWATER_STATE_MAP']) {
+    for (const [key, entry] of Object.entries(table(name))) {
+      for (const lang of ['en', 'de', 'nl', 'fr']) if (!entry[lang]) missing.push(`${name}.${key} ${lang}`);
+    }
+  }
+  assert.deepStrictEqual(missing, []);
+  assert.match(src, /labels\[this\.homey\.i18n\.getLanguage\(\)\] \|\| labels\.en \|\| stateSlug/, 'Rückfall auf Englisch');
+});
+
 test('Kachel und Auslöser zeigen den Fehler übersetzt, mit Hinweis als eigenem Token', () => {
   // Vorher kam der deutsche Text der Bibliothek auf die Kachel, auch auf
   // Niederländisch, und das Token des Auslösers war die ganze Liste als JSON.

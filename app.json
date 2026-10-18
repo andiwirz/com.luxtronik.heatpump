@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.luxtronik.heatpump",
-  "version": "2.1.14",
+  "version": "2.1.15",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "name": {
@@ -112,7 +112,7 @@
           "en": "Cooling mode changed",
           "de": "Kühlbetrieb-Betriebsart geändert",
           "nl": "Koelingsmodus gewijzigd",
-          "fr": "Mode refroidissement modifié"
+          "fr": "Mode rafraîchissement modifié"
         },
         "tokens": [
           {
@@ -592,7 +592,7 @@
           "en": "Cooling mode !{{is|is not}}",
           "de": "Kühlbetrieb-Betriebsart !{{ist|ist nicht}}",
           "nl": "Koelingsmodus !{{is|is niet}}",
-          "fr": "Mode refroidissement !{{est|n'est pas}}"
+          "fr": "Mode rafraîchissement !{{est|n'est pas}}"
         },
         "args": [
           {
@@ -635,7 +635,7 @@
           "en": "The cooling mode is [[mode]]",
           "de": "Die Kühlbetrieb-Betriebsart ist [[mode]]",
           "nl": "De koelingsmodus is [[mode]]",
-          "fr": "Le mode refroidissement est [[mode]]"
+          "fr": "Le mode rafraîchissement est [[mode]]"
         }
       },
       {
@@ -895,7 +895,7 @@
                   "en": "Cooling",
                   "de": "Kühlen",
                   "nl": "Koelen",
-                  "fr": "Refroidissement"
+                  "fr": "Rafraîchissement"
                 }
               },
               {
@@ -1289,7 +1289,7 @@
           "en": "Set cooling mode",
           "de": "Kühlbetrieb-Betriebsart setzen",
           "nl": "Koelingsmodus instellen",
-          "fr": "Définir le mode refroidissement"
+          "fr": "Définir le mode rafraîchissement"
         },
         "args": [
           {
@@ -1332,7 +1332,7 @@
           "en": "Set cooling mode to [[mode]]",
           "de": "Kühlbetrieb-Betriebsart auf [[mode]] setzen",
           "nl": "Koelingsmodus instellen op [[mode]]",
-          "fr": "Définir le mode refroidissement sur [[mode]]"
+          "fr": "Définir le mode rafraîchissement sur [[mode]]"
         }
       },
       {
@@ -2192,7 +2192,7 @@
             "en": "Cooling Operating Hours",
             "de": "Betriebsstunden Kühlung",
             "nl": "Bedrijfsuren koeling",
-            "fr": "Heures refroidissement"
+            "fr": "Heures rafraîchissement"
           },
           "preventTag": true
         },
@@ -2257,7 +2257,9 @@
           "type": "group",
           "label": {
             "en": "General",
-            "de": "Allgemein"
+            "de": "Allgemein",
+            "nl": "Algemeen",
+            "fr": "Général"
           },
           "children": [
             {
@@ -2265,12 +2267,16 @@
               "type": "checkbox",
               "label": {
                 "en": "Show Refresh button",
-                "de": "Aktualisieren-Button anzeigen"
+                "de": "Aktualisieren-Button anzeigen",
+                "nl": "Knop Vernieuwen tonen",
+                "fr": "Afficher le bouton Actualiser"
               },
               "value": false,
               "hint": {
                 "en": "Shows a Refresh button on the device tile that triggers an immediate poll of the heat pump data.",
-                "de": "Zeigt einen Aktualisieren-Button auf der Gerätekachel, der sofort eine neue Abfrage der Wärmepumpendaten auslöst."
+                "de": "Zeigt einen Aktualisieren-Button auf der Gerätekachel, der sofort eine neue Abfrage der Wärmepumpendaten auslöst.",
+                "nl": "Toont een knop Vernieuwen op de apparaattegel, die de gegevens van de warmtepomp meteen opnieuw uitleest.",
+                "fr": "Affiche un bouton Actualiser sur la tuile de l'appareil, qui relit immédiatement les données de la pompe à chaleur."
               }
             }
           ]
@@ -2279,7 +2285,9 @@
           "type": "group",
           "label": {
             "en": "Connection",
-            "de": "Verbindung"
+            "de": "Verbindung",
+            "nl": "Verbinding",
+            "fr": "Connexion"
           },
           "children": [
             {
@@ -2287,11 +2295,15 @@
               "type": "text",
               "label": {
                 "en": "IP Address",
-                "de": "IP-Adresse"
+                "de": "IP-Adresse",
+                "nl": "IP-adres",
+                "fr": "Adresse IP"
               },
               "hint": {
                 "en": "The IP address of the Luxtronik controller.",
-                "de": "Die IP-Adresse des Luxtronik-Controllers."
+                "de": "Die IP-Adresse des Luxtronik-Controllers.",
+                "nl": "Het IP-adres van de Luxtronik-regelaar.",
+                "fr": "L'adresse IP du régulateur Luxtronik."
               }
             },
             {
@@ -2299,12 +2311,16 @@
               "type": "number",
               "label": {
                 "en": "Port",
-                "de": "Port"
+                "de": "Port",
+                "nl": "Poort",
+                "fr": "Port"
               },
               "value": 8889,
               "hint": {
                 "en": "Default: 8889",
-                "de": "Standard: 8889"
+                "de": "Standard: 8889",
+                "nl": "Standaard: 8889",
+                "fr": "Par défaut : 8889"
               }
             },
             {
@@ -2312,12 +2328,16 @@
               "type": "number",
               "label": {
                 "en": "Poll Interval (seconds)",
-                "de": "Abfrageintervall (Sekunden)"
+                "de": "Abfrageintervall (Sekunden)",
+                "nl": "Uitleesinterval (seconden)",
+                "fr": "Intervalle d'interrogation (secondes)"
               },
               "value": 60,
               "hint": {
                 "en": "How often to query the heat pump (min. 10 s).",
-                "de": "Wie oft die Wärmepumpe abgefragt wird (min. 10 s)."
+                "de": "Wie oft die Wärmepumpe abgefragt wird (min. 10 s).",
+                "nl": "Hoe vaak de warmtepomp wordt uitgelezen (min. 10 s).",
+                "fr": "Fréquence d'interrogation de la pompe à chaleur (min. 10 s)."
               }
             },
             {
@@ -2325,12 +2345,16 @@
               "type": "number",
               "label": {
                 "en": "Hot Water Boost Duration (minutes)",
-                "de": "Schnellladung Dauer (Minuten)"
+                "de": "Schnellladung Dauer (Minuten)",
+                "nl": "Duur warmwater-snellading (minuten)",
+                "fr": "Durée du boost eau chaude (minutes)"
               },
               "value": 60,
               "hint": {
                 "en": "How long the hot water boost runs before switching back to Automatic.",
-                "de": "Wie lange die Schnelladung läuft, bevor automatisch zurückgeschaltet wird."
+                "de": "Wie lange die Schnelladung läuft, bevor automatisch zurückgeschaltet wird.",
+                "nl": "Hoe lang de warmwater-snellading duurt voordat terug wordt geschakeld naar Automatisch.",
+                "fr": "Durée du boost eau chaude avant le retour en mode Automatique."
               }
             },
             {
@@ -2338,14 +2362,18 @@
               "type": "number",
               "label": {
                 "en": "Poll Timeout (seconds)",
-                "de": "Abfrage-Timeout (Sekunden)"
+                "de": "Abfrage-Timeout (Sekunden)",
+                "nl": "Time-out uitlezing (seconden)",
+                "fr": "Délai d'interrogation (secondes)"
               },
               "value": 30,
               "min": 10,
               "max": 120,
               "hint": {
                 "en": "Maximum time to wait for a response from the controller before marking the device unavailable (default: 30 s).",
-                "de": "Maximale Wartezeit auf eine Antwort des Controllers bevor das Gerät als nicht erreichbar markiert wird (Standard: 30 s)."
+                "de": "Maximale Wartezeit auf eine Antwort des Controllers bevor das Gerät als nicht erreichbar markiert wird (Standard: 30 s).",
+                "nl": "Maximale wachttijd op een antwoord van de regelaar voordat het apparaat als onbereikbaar wordt gemarkeerd (standaard: 30 s).",
+                "fr": "Temps d'attente maximal d'une réponse du régulateur avant que l'appareil soit marqué comme injoignable (par défaut : 30 s)."
               }
             },
             {
@@ -2353,14 +2381,18 @@
               "type": "number",
               "label": {
                 "en": "Watchdog Threshold (× poll interval)",
-                "de": "Watchdog-Schwellwert (× Abfrageintervall)"
+                "de": "Watchdog-Schwellwert (× Abfrageintervall)",
+                "nl": "Watchdog-drempel (× uitleesinterval)",
+                "fr": "Seuil du chien de garde (× intervalle d'interrogation)"
               },
               "value": 3,
               "min": 2,
               "max": 10,
               "hint": {
                 "en": "Number of missed poll intervals before the watchdog marks the device unavailable (default: 3).",
-                "de": "Anzahl verpasster Abfrageintervalle bevor der Watchdog das Gerät als nicht erreichbar markiert (Standard: 3)."
+                "de": "Anzahl verpasster Abfrageintervalle bevor der Watchdog das Gerät als nicht erreichbar markiert (Standard: 3).",
+                "nl": "Aantal gemiste uitleesintervallen voordat de watchdog het apparaat als onbereikbaar markeert (standaard: 3).",
+                "fr": "Nombre d'intervalles d'interrogation manqués avant que le chien de garde marque l'appareil comme injoignable (par défaut : 3)."
               }
             },
             {
@@ -2368,14 +2400,18 @@
               "type": "number",
               "label": {
                 "en": "Watchdog Check Interval (seconds)",
-                "de": "Watchdog-Prüfintervall (Sekunden)"
+                "de": "Watchdog-Prüfintervall (Sekunden)",
+                "nl": "Controle-interval watchdog (seconden)",
+                "fr": "Intervalle de contrôle du chien de garde (secondes)"
               },
               "value": 60,
               "min": 10,
               "max": 300,
               "hint": {
                 "en": "How often the watchdog checks if a successful poll has occurred. Should be <= poll interval × watchdog threshold (default: 60 s).",
-                "de": "Wie oft der Watchdog prüft ob eine erfolgreiche Abfrage stattgefunden hat. Sollte <= Abfrageintervall × Watchdog-Schwellwert sein (Standard: 60 s)."
+                "de": "Wie oft der Watchdog prüft ob eine erfolgreiche Abfrage stattgefunden hat. Sollte <= Abfrageintervall × Watchdog-Schwellwert sein (Standard: 60 s).",
+                "nl": "Hoe vaak de watchdog controleert of er een geslaagde uitlezing was. Moet <= uitleesinterval × watchdog-drempel zijn (standaard: 60 s).",
+                "fr": "Fréquence à laquelle le chien de garde vérifie qu'une interrogation a réussi. Doit être <= intervalle d'interrogation × seuil du chien de garde (par défaut : 60 s)."
               }
             }
           ]
@@ -2383,8 +2419,10 @@
         {
           "type": "group",
           "label": {
-            "en": "Heizkurve / Heating Curve",
-            "de": "Heizkurve"
+            "en": "Heating Curve",
+            "de": "Heizkurve",
+            "nl": "Stooklijn",
+            "fr": "Courbe de chauffe"
           },
           "children": [
             {
@@ -2392,14 +2430,18 @@
               "type": "number",
               "label": {
                 "en": "Heating Curve Endpoint (°C)",
-                "de": "Heizkurve Endpunkt (°C)"
+                "de": "Heizkurve Endpunkt (°C)",
+                "nl": "Stooklijn eindpunt (°C)",
+                "fr": "Point final courbe de chauffe (°C)"
               },
               "value": 40,
               "min": 20,
               "max": 70,
               "hint": {
                 "en": "Endpoint of the heating curve at maximum design temperature (parameter 11). Defines the target supply temperature at the lowest outdoor temperature. Changing this setting writes the value directly to the controller.",
-                "de": "Endpunkt der Heizkurve bei maximaler Auslegungstemperatur (Parameter 11). Legt die Vorlauf-Solltemperatur bei tiefster Aussentemperatur fest. Änderung wird direkt am Controller gespeichert."
+                "de": "Endpunkt der Heizkurve bei maximaler Auslegungstemperatur (Parameter 11). Legt die Vorlauf-Solltemperatur bei tiefster Aussentemperatur fest. Änderung wird direkt am Controller gespeichert.",
+                "nl": "Eindpunt van de stooklijn bij de maximale ontwerptemperatuur (parameter 11). Bepaalt de gewenste aanvoertemperatuur bij de laagste buitentemperatuur. Een wijziging wordt direct in de regelaar opgeslagen.",
+                "fr": "Point final de la courbe de chauffe à la température de dimensionnement maximale (paramètre 11). Fixe la température de départ visée à la température extérieure la plus basse. Une modification est enregistrée directement dans le régulateur."
               }
             },
             {
@@ -2407,14 +2449,18 @@
               "type": "number",
               "label": {
                 "en": "Heating Curve Parallel Offset (°C)",
-                "de": "Heizkurve Parallelverschiebung (°C)"
+                "de": "Heizkurve Parallelverschiebung (°C)",
+                "nl": "Stooklijn parallelverschuiving (°C)",
+                "fr": "Décalage courbe de chauffe (°C)"
               },
               "value": 20,
               "min": 5,
               "max": 35,
               "hint": {
                 "en": "Parallel offset of the heating curve (parameter 12). Shifts the entire curve up or down without changing the slope. Changing this setting writes the value directly to the controller.",
-                "de": "Parallelverschiebung der Heizkurve (Parameter 12). Verschiebt die gesamte Kurve ohne die Steigung zu ändern. Änderung wird direkt am Controller gespeichert."
+                "de": "Parallelverschiebung der Heizkurve (Parameter 12). Verschiebt die gesamte Kurve ohne die Steigung zu ändern. Änderung wird direkt am Controller gespeichert.",
+                "nl": "Parallelverschuiving van de stooklijn (parameter 12). Verschuift de hele lijn omhoog of omlaag zonder de helling te veranderen. Een wijziging wordt direct in de regelaar opgeslagen.",
+                "fr": "Décalage parallèle de la courbe de chauffe (paramètre 12). Déplace toute la courbe vers le haut ou le bas sans changer sa pente. Une modification est enregistrée directement dans le régulateur."
               }
             },
             {
@@ -2422,14 +2468,18 @@
               "type": "number",
               "label": {
                 "en": "MK1 Curve Endpoint (°C)",
-                "de": "MK1 Kurve Endpunkt (°C)"
+                "de": "MK1 Kurve Endpunkt (°C)",
+                "nl": "MK1 stooklijn eindpunt (°C)",
+                "fr": "Point final courbe MK1 (°C)"
               },
               "value": 40,
               "min": 20,
               "max": 70,
               "hint": {
                 "en": "Endpoint of the MK1 mixing circuit heating curve (parameter 14). Changing this setting writes the value directly to the controller.",
-                "de": "Endpunkt der Heizkurve für Mischkreis MK1 (Parameter 14). Änderung wird direkt am Controller gespeichert."
+                "de": "Endpunkt der Heizkurve für Mischkreis MK1 (Parameter 14). Änderung wird direkt am Controller gespeichert.",
+                "nl": "Eindpunt van de stooklijn van mengcircuit MK1 (parameter 14). Een wijziging wordt direct in de regelaar opgeslagen.",
+                "fr": "Point final de la courbe de chauffe du circuit mélangé MK1 (paramètre 14). Une modification est enregistrée directement dans le régulateur."
               }
             },
             {
@@ -2437,14 +2487,18 @@
               "type": "number",
               "label": {
                 "en": "MK1 Curve Parallel Offset (°C)",
-                "de": "MK1 Kurve Parallelverschiebung (°C)"
+                "de": "MK1 Kurve Parallelverschiebung (°C)",
+                "nl": "MK1 stooklijn parallelverschuiving (°C)",
+                "fr": "Décalage courbe MK1 (°C)"
               },
               "value": 20,
               "min": 5,
               "max": 35,
               "hint": {
                 "en": "Parallel offset of the MK1 mixing circuit heating curve (parameter 15). Changing this setting writes the value directly to the controller.",
-                "de": "Parallelverschiebung der Heizkurve für Mischkreis MK1 (Parameter 15). Änderung wird direkt am Controller gespeichert."
+                "de": "Parallelverschiebung der Heizkurve für Mischkreis MK1 (Parameter 15). Änderung wird direkt am Controller gespeichert.",
+                "nl": "Parallelverschuiving van de stooklijn van mengcircuit MK1 (parameter 15). Een wijziging wordt direct in de regelaar opgeslagen.",
+                "fr": "Décalage parallèle de la courbe de chauffe du circuit mélangé MK1 (paramètre 15). Une modification est enregistrée directement dans le régulateur."
               }
             }
           ]
@@ -2452,8 +2506,10 @@
         {
           "type": "group",
           "label": {
-            "en": "Betriebsgrenzen Aussentemperatur / Outdoor Temperature Limits",
-            "de": "Betriebsgrenzen Aussentemperatur"
+            "en": "Outdoor Temperature Limits",
+            "de": "Betriebsgrenzen Aussentemperatur",
+            "nl": "Bedrijfsgrenzen buitentemperatuur",
+            "fr": "Limites de température extérieure"
           },
           "children": [
             {
@@ -2461,14 +2517,18 @@
               "type": "number",
               "label": {
                 "en": "Heating Limit (°C)",
-                "de": "Heizgrenze (°C)"
+                "de": "Heizgrenze (°C)",
+                "nl": "Verwarmingsgrens (°C)",
+                "fr": "Limite de chauffage (°C)"
               },
               "value": 15,
               "min": 5,
               "max": 30,
               "hint": {
                 "en": "Outdoor temperature above which heating is switched off (parameter 700). Example: 15 °C → heating active only when outdoor temp < 15 °C. Hot water continues to run. Typical: 15–18 °C (underfloor), 16–20 °C (radiators), 12–15 °C (well-insulated buildings). Changing this setting writes the value directly to the controller.",
-                "de": "Aussentemperatur, oberhalb derer der Heizbetrieb abschaltet (Parameter 700). Beispiel: 15 °C → Heizung aktiv nur wenn Aussentemperatur < 15 °C. Warmwasserbetrieb läuft weiter. Typisch: 15–18 °C (FBH), 16–20 °C (Radiatoren), 12–15 °C (gut gedämmte Gebäude). Änderung wird direkt am Controller gespeichert."
+                "de": "Aussentemperatur, oberhalb derer der Heizbetrieb abschaltet (Parameter 700). Beispiel: 15 °C → Heizung aktiv nur wenn Aussentemperatur < 15 °C. Warmwasserbetrieb läuft weiter. Typisch: 15–18 °C (FBH), 16–20 °C (Radiatoren), 12–15 °C (gut gedämmte Gebäude). Änderung wird direkt am Controller gespeichert.",
+                "nl": "Buitentemperatuur waarboven de verwarming wordt uitgeschakeld (parameter 700). Voorbeeld: 15 °C → verwarming alleen actief bij een buitentemperatuur < 15 °C. Warm water blijft werken. Gebruikelijk: 15–18 °C (vloerverwarming), 16–20 °C (radiatoren), 12–15 °C (goed geïsoleerde gebouwen). Een wijziging wordt direct in de regelaar opgeslagen.",
+                "fr": "Température extérieure au-dessus de laquelle le chauffage s'arrête (paramètre 700). Exemple : 15 °C → chauffage actif seulement si la température extérieure < 15 °C. L'eau chaude continue de fonctionner. Valeurs usuelles : 15–18 °C (plancher chauffant), 16–20 °C (radiateurs), 12–15 °C (bâtiments bien isolés). Une modification est enregistrée directement dans le régulateur."
               }
             },
             {
@@ -2476,14 +2536,18 @@
               "type": "number",
               "label": {
                 "en": "Max. Outdoor Temperature (°C)",
-                "de": "Max. Aussentemperatur (°C)"
+                "de": "Max. Aussentemperatur (°C)",
+                "nl": "Max. buitentemperatuur (°C)",
+                "fr": "Température extérieure max. (°C)"
               },
               "value": 35,
               "min": 10,
               "max": 45,
               "hint": {
                 "en": "Maximum outdoor temperature stored in the controller (parameter 91). Above this value the heat pump switches to a defined operating state (e.g. no heating, cooling release). Changing this setting writes the value directly to the controller.",
-                "de": "Maximale Aussentemperatur am Controller (Parameter 91). Oberhalb dieses Werts wechselt die Wärmepumpe in einen definierten Betriebszustand (z.B. kein Heizen, Kühlfreigabe). Änderung wird direkt am Controller gespeichert."
+                "de": "Maximale Aussentemperatur am Controller (Parameter 91). Oberhalb dieses Werts wechselt die Wärmepumpe in einen definierten Betriebszustand (z.B. kein Heizen, Kühlfreigabe). Änderung wird direkt am Controller gespeichert.",
+                "nl": "Maximale buitentemperatuur in de regelaar (parameter 91). Boven deze waarde schakelt de warmtepomp naar een vastgelegde bedrijfstoestand (bijv. geen verwarming, koelvrijgave). Een wijziging wordt direct in de regelaar opgeslagen.",
+                "fr": "Température extérieure maximale enregistrée dans le régulateur (paramètre 91). Au-dessus de cette valeur, la pompe à chaleur passe dans un état de fonctionnement défini (p. ex. pas de chauffage, libération du rafraîchissement). Une modification est enregistrée directement dans le régulateur."
               }
             },
             {
@@ -2491,14 +2555,18 @@
               "type": "number",
               "label": {
                 "en": "Min. Outdoor Temperature (°C)",
-                "de": "Min. Aussentemperatur (°C)"
+                "de": "Min. Aussentemperatur (°C)",
+                "nl": "Min. buitentemperatuur (°C)",
+                "fr": "Température extérieure min. (°C)"
               },
               "value": -20,
               "min": -30,
               "max": 10,
               "hint": {
                 "en": "Minimum outdoor temperature stored in the controller (parameter 92). Below this value the heat pump may switch to a defined operating state. Changing this setting writes the value directly to the controller.",
-                "de": "Minimale Aussentemperatur am Controller (Parameter 92). Unterhalb dieses Werts wechselt die Wärmepumpe ggf. in einen definierten Betriebszustand. Änderung wird direkt am Controller gespeichert."
+                "de": "Minimale Aussentemperatur am Controller (Parameter 92). Unterhalb dieses Werts wechselt die Wärmepumpe ggf. in einen definierten Betriebszustand. Änderung wird direkt am Controller gespeichert.",
+                "nl": "Minimale buitentemperatuur in de regelaar (parameter 92). Onder deze waarde kan de warmtepomp naar een vastgelegde bedrijfstoestand schakelen. Een wijziging wordt direct in de regelaar opgeslagen.",
+                "fr": "Température extérieure minimale enregistrée dans le régulateur (paramètre 92). En dessous de cette valeur, la pompe à chaleur peut passer dans un état de fonctionnement défini. Une modification est enregistrée directement dans le régulateur."
               }
             },
             {
@@ -2506,14 +2574,18 @@
               "type": "number",
               "label": {
                 "en": "Setback Temperature Limit (°C)",
-                "de": "Absenk-Temperaturgrenze (°C)"
+                "de": "Absenk-Temperaturgrenze (°C)",
+                "nl": "Verlaging temperatuurgrens (°C)",
+                "fr": "Limite d'abaissement (°C)"
               },
               "value": -10,
               "min": -20,
               "max": 10,
               "hint": {
-                "en": "Outdoor temperature threshold below which the setback mode is activated (parameter 111). Changing this setting writes the value directly to the controller.",
-                "de": "Aussentemperatur-Schwellwert, unterhalb dessen die Absenkung aktiviert wird (Parameter 111). Änderung wird direkt am Controller gespeichert."
+                "en": "Setback only applies while the outdoor temperature is above this value (parameter 111); below it the heat pump heats normally even during setback times. Changing this setting writes the value directly to the controller.",
+                "de": "Die Absenkung wirkt nur, solange die Aussentemperatur über diesem Wert liegt (Parameter 111); darunter heizt die Wärmepumpe auch in den Absenkzeiten normal. Änderung wird direkt am Controller gespeichert.",
+                "nl": "De verlaging werkt alleen zolang de buitentemperatuur boven deze waarde ligt (parameter 111); daaronder verwarmt de warmtepomp ook tijdens de verlagingstijden normaal. Een wijziging wordt direct in de regelaar opgeslagen.",
+                "fr": "L'abaissement ne s'applique que tant que la température extérieure est supérieure à cette valeur (paramètre 111) ; en dessous, la pompe à chaleur chauffe normalement même pendant les plages d'abaissement. Une modification est enregistrée directement dans le régulateur."
               }
             }
           ]
@@ -2521,8 +2593,10 @@
         {
           "type": "group",
           "label": {
-            "en": "Heizkreis-Temperaturgrenzen / Heating Circuit Limits",
-            "de": "Heizkreis-Temperaturgrenzen"
+            "en": "Heating Circuit Limits",
+            "de": "Heizkreis-Temperaturgrenzen",
+            "nl": "Temperatuurgrenzen verwarmingscircuit",
+            "fr": "Limites du circuit de chauffage"
           },
           "children": [
             {
@@ -2530,14 +2604,18 @@
               "type": "number",
               "label": {
                 "en": "Return Temperature Hysteresis (K)",
-                "de": "Rücklauf-Hysterese (K)"
+                "de": "Rücklauf-Hysterese (K)",
+                "nl": "Retourtemperatuur hysterese (K)",
+                "fr": "Hystérésis retour (K)"
               },
               "value": 3,
               "min": 0.5,
               "max": 10,
               "hint": {
                 "en": "Defines how far the return temperature must drop below the heating-curve setpoint before the heat pump restarts (parameter 88). Only effective if supported by the controller. Larger value = longer run times, fewer starts, better COP. Typical: 2–4 K (underfloor heating), 3–6 K (radiators). Changing this setting writes the value directly to the controller.",
-                "de": "Legt fest, wie weit die Rücklauftemperatur unter den Heizkurven-Sollwert fallen muss, bevor die WP erneut startet (Parameter 88). Nur wirksam wenn vom Controller unterstützt. Grösserer Wert = längere Laufzeiten, weniger Starts, besserer COP. Typisch: 2–4 K (FBH), 3–6 K (Radiatoren). Änderung wird direkt am Controller gespeichert."
+                "de": "Legt fest, wie weit die Rücklauftemperatur unter den Heizkurven-Sollwert fallen muss, bevor die WP erneut startet (Parameter 88). Nur wirksam wenn vom Controller unterstützt. Grösserer Wert = längere Laufzeiten, weniger Starts, besserer COP. Typisch: 2–4 K (FBH), 3–6 K (Radiatoren). Änderung wird direkt am Controller gespeichert.",
+                "nl": "Bepaalt hoever de retourtemperatuur onder het stooklijn-setpoint moet dalen voordat de warmtepomp opnieuw start (parameter 88). Alleen werkzaam als de regelaar het ondersteunt. Grotere waarde = langere looptijden, minder starts, betere COP. Gebruikelijk: 2–4 K (vloerverwarming), 3–6 K (radiatoren). Een wijziging wordt direct in de regelaar opgeslagen.",
+                "fr": "Définit de combien la température de retour doit descendre sous la consigne de la courbe de chauffe avant que la pompe à chaleur redémarre (paramètre 88). Effectif uniquement si le régulateur le prend en charge. Valeur plus grande = cycles plus longs, moins de démarrages, meilleur COP. Valeurs usuelles : 2–4 K (plancher chauffant), 3–6 K (radiateurs). Une modification est enregistrée directement dans le régulateur."
               }
             },
             {
@@ -2545,14 +2623,18 @@
               "type": "number",
               "label": {
                 "en": "Supply Temperature Limit (°C)",
-                "de": "Vorlauftemperatur-Grenze (°C)"
+                "de": "Vorlauftemperatur-Grenze (°C)",
+                "nl": "Aanvoertemperatuur grens (°C)",
+                "fr": "Limite température départ (°C)"
               },
               "value": 55,
               "min": 20,
               "max": 70,
               "hint": {
                 "en": "Maximum supply temperature limit for the heating circuit (parameter 149). The heat pump will not exceed this value. Changing this setting writes the value directly to the controller.",
-                "de": "Maximale Vorlauftemperatur-Grenze für den Heizkreis (Parameter 149). Die WP überschreitet diesen Wert nicht. Änderung wird direkt am Controller gespeichert."
+                "de": "Maximale Vorlauftemperatur-Grenze für den Heizkreis (Parameter 149). Die WP überschreitet diesen Wert nicht. Änderung wird direkt am Controller gespeichert.",
+                "nl": "Maximale aanvoertemperatuur voor het verwarmingscircuit (parameter 149). De warmtepomp overschrijdt deze waarde niet. Een wijziging wordt direct in de regelaar opgeslagen.",
+                "fr": "Température de départ maximale du circuit de chauffage (paramètre 149). La pompe à chaleur ne dépasse pas cette valeur. Une modification est enregistrée directement dans le régulateur."
               }
             },
             {
@@ -2560,14 +2642,18 @@
               "type": "number",
               "label": {
                 "en": "Return Temperature Limit (°C)",
-                "de": "Rücklauftemperatur-Grenze (°C)"
+                "de": "Rücklauftemperatur-Grenze (°C)",
+                "nl": "Retourtemperatuur grens (°C)",
+                "fr": "Limite température retour (°C)"
               },
               "value": 45,
               "min": 20,
               "max": 65,
               "hint": {
                 "en": "Maximum return temperature limit for the heating circuit (parameter 87). Changing this setting writes the value directly to the controller.",
-                "de": "Maximale Rücklauftemperatur-Grenze für den Heizkreis (Parameter 87). Änderung wird direkt am Controller gespeichert."
+                "de": "Maximale Rücklauftemperatur-Grenze für den Heizkreis (Parameter 87). Änderung wird direkt am Controller gespeichert.",
+                "nl": "Maximale retourtemperatuur voor het verwarmingscircuit (parameter 87). Een wijziging wordt direct in de regelaar opgeslagen.",
+                "fr": "Température de retour maximale du circuit de chauffage (paramètre 87). Une modification est enregistrée directement dans le régulateur."
               }
             },
             {
@@ -2575,14 +2661,18 @@
               "type": "number",
               "label": {
                 "en": "Return Temperature Min. (°C)",
-                "de": "Rücklauftemperatur Minimum (°C)"
+                "de": "Rücklauftemperatur Minimum (°C)",
+                "nl": "Retourtemperatuur minimum (°C)",
+                "fr": "Température retour min. (°C)"
               },
               "value": 15,
               "min": 5,
               "max": 30,
               "hint": {
-                "en": "Minimum return temperature target for the heating circuit (parameter 979). Prevents the return temperature from dropping below this value. Changing this setting writes the value directly to the controller.",
-                "de": "Minimale Rücklauftemperatur-Vorgabe für den Heizkreis (Parameter 979). Verhindert, dass die Rücklauftemperatur unter diesen Wert fällt. Änderung wird direkt am Controller gespeichert."
+                "en": "Minimum return temperature target for the heating circuit (parameter 979). The heating curve's return target never drops below this value. Changing this setting writes the value directly to the controller.",
+                "de": "Minimale Rücklauf-Solltemperatur für den Heizkreis (Parameter 979). Das Rücklauf-Soll der Heizkurve sinkt nicht unter diesen Wert. Änderung wird direkt am Controller gespeichert.",
+                "nl": "Minimale gewenste retourtemperatuur voor het verwarmingscircuit (parameter 979). Het retour-setpoint van de stooklijn zakt niet onder deze waarde. Een wijziging wordt direct in de regelaar opgeslagen.",
+                "fr": "Consigne de retour minimale du circuit de chauffage (paramètre 979). La consigne de retour de la courbe de chauffe ne descend pas sous cette valeur. Une modification est enregistrée directement dans le régulateur."
               }
             }
           ]
@@ -2590,8 +2680,10 @@
         {
           "type": "group",
           "label": {
-            "en": "Absenkung / Setback",
-            "de": "Absenkung"
+            "en": "Setback",
+            "de": "Absenkung",
+            "nl": "Verlaging",
+            "fr": "Abaissement"
           },
           "children": [
             {
@@ -2599,14 +2691,18 @@
               "type": "number",
               "label": {
                 "en": "Heating Setback Delta (K)",
-                "de": "Absenkung Heizung Delta (K)"
+                "de": "Absenkung Heizung Delta (K)",
+                "nl": "Verlaging verwarming delta (K)",
+                "fr": "Réduction chauffage Delta (K)"
               },
               "value": -5,
               "min": -15,
               "max": 10,
               "hint": {
                 "en": "Temperature delta applied to the heating curve during setback mode (parameter 13). Negative value lowers the target temperature. Changing this setting writes the value directly to the controller.",
-                "de": "Temperaturdelta für den Absenkbetrieb der Heizung (Parameter 13). Negativer Wert senkt die Solltemperatur ab. Änderung wird direkt am Controller gespeichert."
+                "de": "Temperaturdelta für den Absenkbetrieb der Heizung (Parameter 13). Negativer Wert senkt die Solltemperatur ab. Änderung wird direkt am Controller gespeichert.",
+                "nl": "Temperatuurverschil dat tijdens de verlaging op de stooklijn wordt toegepast (parameter 13). Een negatieve waarde verlaagt de gewenste temperatuur. Een wijziging wordt direct in de regelaar opgeslagen.",
+                "fr": "Écart de température appliqué à la courbe de chauffe pendant l'abaissement (paramètre 13). Une valeur négative abaisse la température de consigne. Une modification est enregistrée directement dans le régulateur."
               }
             },
             {
@@ -2614,14 +2710,18 @@
               "type": "number",
               "label": {
                 "en": "MK1 Setback Delta (K)",
-                "de": "Absenkung MK1 Delta (K)"
+                "de": "Absenkung MK1 Delta (K)",
+                "nl": "Verlaging MK1 delta (K)",
+                "fr": "Réduction MK1 Delta (K)"
               },
               "value": -5,
               "min": -15,
               "max": 10,
               "hint": {
                 "en": "Temperature delta applied to the MK1 mixing circuit during setback mode (parameter 16). Negative value lowers the target temperature. Changing this setting writes the value directly to the controller.",
-                "de": "Temperaturdelta für den Absenkbetrieb von Mischkreis MK1 (Parameter 16). Negativer Wert senkt die Solltemperatur ab. Änderung wird direkt am Controller gespeichert."
+                "de": "Temperaturdelta für den Absenkbetrieb von Mischkreis MK1 (Parameter 16). Negativer Wert senkt die Solltemperatur ab. Änderung wird direkt am Controller gespeichert.",
+                "nl": "Temperatuurverschil dat tijdens de verlaging op mengcircuit MK1 wordt toegepast (parameter 16). Een negatieve waarde verlaagt de gewenste temperatuur. Een wijziging wordt direct in de regelaar opgeslagen.",
+                "fr": "Écart de température appliqué au circuit mélangé MK1 pendant l'abaissement (paramètre 16). Une valeur négative abaisse la température de consigne. Une modification est enregistrée directement dans le régulateur."
               }
             }
           ]
@@ -2629,8 +2729,10 @@
         {
           "type": "group",
           "label": {
-            "en": "Warmwasser / Hot Water",
-            "de": "Warmwasser"
+            "en": "Hot Water",
+            "de": "Warmwasser",
+            "nl": "Warmwater",
+            "fr": "Eau chaude"
           },
           "children": [
             {
@@ -2638,14 +2740,18 @@
               "type": "number",
               "label": {
                 "en": "Thermal Disinfection Setpoint (°C)",
-                "de": "Thermische Desinfektion Soll (°C)"
+                "de": "Thermische Desinfektion Soll (°C)",
+                "nl": "Thermische desinfectie streefwaarde (°C)",
+                "fr": "Consigne désinfection thermique (°C)"
               },
               "value": 65,
               "min": 50,
               "max": 80,
               "hint": {
                 "en": "Target temperature for thermal disinfection (parameter 47). The continuous disinfection mode auto-stops when the hot water temperature reaches this value minus 1 °C. Changing this setting writes the value directly to the controller.",
-                "de": "Zieltemperatur für die Thermische Desinfektion (Parameter 47). Der Dauerbetrieb stoppt automatisch, wenn die Warmwassertemperatur diesen Wert minus 1 °C erreicht. Änderung wird direkt am Controller gespeichert."
+                "de": "Zieltemperatur für die Thermische Desinfektion (Parameter 47). Der Dauerbetrieb stoppt automatisch, wenn die Warmwassertemperatur diesen Wert minus 1 °C erreicht. Änderung wird direkt am Controller gespeichert.",
+                "nl": "Doeltemperatuur voor de thermische desinfectie (parameter 47). De continue desinfectie stopt automatisch zodra de warmwatertemperatuur deze waarde min 1 °C bereikt. Een wijziging wordt direct in de regelaar opgeslagen.",
+                "fr": "Température cible de la désinfection thermique (paramètre 47). Le mode continu s'arrête automatiquement dès que l'eau chaude atteint cette valeur moins 1 °C. Une modification est enregistrée directement dans le régulateur."
               }
             },
             {
@@ -2653,14 +2759,18 @@
               "type": "number",
               "label": {
                 "en": "Hot Water Hysteresis (K)",
-                "de": "Warmwasser-Hysterese (K)"
+                "de": "Warmwasser-Hysterese (K)",
+                "nl": "Warmwater hysterese (K)",
+                "fr": "Hystérésis eau chaude (K)"
               },
               "value": 5,
               "min": 0.5,
               "max": 10,
               "hint": {
                 "en": "Defines how far the hot water temperature must drop below the setpoint before reheating starts (parameter 74). Example: setpoint 50 °C, hysteresis 5 K → reheating at 45 °C. Larger value = fewer compressor starts. Changing this setting writes the value directly to the controller.",
-                "de": "Legt fest, wie weit die Warmwassertemperatur unter den Sollwert fallen muss, bevor die Nachheizung startet (Parameter 74). Beispiel: Sollwert 50 °C, Hysterese 5 K → Nachheizung bei 45 °C. Grösserer Wert = weniger Verdichterstarts. Änderung wird direkt am Controller gespeichert."
+                "de": "Legt fest, wie weit die Warmwassertemperatur unter den Sollwert fallen muss, bevor die Nachheizung startet (Parameter 74). Beispiel: Sollwert 50 °C, Hysterese 5 K → Nachheizung bei 45 °C. Grösserer Wert = weniger Verdichterstarts. Änderung wird direkt am Controller gespeichert.",
+                "nl": "Bepaalt hoever de warmwatertemperatuur onder het setpoint moet dalen voordat het naverwarmen start (parameter 74). Voorbeeld: setpoint 50 °C, hysterese 5 K → naverwarmen bij 45 °C. Grotere waarde = minder compressorstarts. Een wijziging wordt direct in de regelaar opgeslagen.",
+                "fr": "Définit de combien la température de l'eau chaude doit descendre sous la consigne avant que le réchauffage démarre (paramètre 74). Exemple : consigne 50 °C, hystérésis 5 K → réchauffage à 45 °C. Valeur plus grande = moins de démarrages du compresseur. Une modification est enregistrée directement dans le régulateur."
               }
             },
             {
@@ -2668,7 +2778,9 @@
               "type": "number",
               "label": {
                 "en": "Hysteresis Restore Value (K)",
-                "de": "Hysterese-Wiederherstellungswert (K)"
+                "de": "Hysterese-Wiederherstellungswert (K)",
+                "nl": "Herstelwaarde hysterese (K)",
+                "fr": "Valeur de restauration de l'hystérésis (K)"
               },
               "value": 0,
               "min": 0.5,
@@ -2676,7 +2788,9 @@
               "step": 0.5,
               "hint": {
                 "en": "Value restored by the 'Restore hot water hysteresis' flow action. Set this to your normal hysteresis (e.g. 5 K). This value is not synced from the controller.",
-                "de": "Wert, der durch die Flow-Aktion 'Warmwasser-Hysterese wiederherstellen' gesetzt wird. Hier den normalen Hysterese-Wert eintragen (z.B. 5 K). Wird nicht vom Controller synchronisiert."
+                "de": "Wert, der durch die Flow-Aktion 'Warmwasser-Hysterese wiederherstellen' gesetzt wird. Hier den normalen Hysterese-Wert eintragen (z.B. 5 K). Wird nicht vom Controller synchronisiert.",
+                "nl": "Waarde die de flow-actie 'Warmwaterhysterese herstellen' instelt. Vul hier je normale hysterese in (bijv. 5 K). Wordt niet uit de regelaar gesynchroniseerd.",
+                "fr": "Valeur réglée par l'action de flux « Restaurer l'hystérésis eau chaude ». Indiquez ici votre hystérésis habituelle (p. ex. 5 K). Elle n'est pas synchronisée depuis le régulateur."
               }
             }
           ]
@@ -2684,8 +2798,10 @@
         {
           "type": "group",
           "label": {
-            "en": "Zuheizer / 2. Verdichter",
-            "de": "Zuheizer / 2. Verdichter"
+            "en": "Auxiliary Heater / 2nd Compressor",
+            "de": "Zuheizer / 2. Verdichter",
+            "nl": "Bijverwarming / 2e compressor",
+            "fr": "Appoint / 2e compresseur"
           },
           "children": [
             {
@@ -2693,14 +2809,18 @@
               "type": "number",
               "label": {
                 "en": "ZWE Enable Temperature (°C)",
-                "de": "ZWE Freigabe-Temperatur (°C)"
+                "de": "ZWE Freigabe-Temperatur (°C)",
+                "nl": "ZWE vrijgavetemperatuur (°C)",
+                "fr": "Température d'activation ZWE (°C)"
               },
               "value": -5,
               "min": -20,
               "max": 20,
               "hint": {
                 "en": "Outdoor temperature below which the auxiliary heater (ZWE) is enabled (parameter 90). Changing this setting writes the value directly to the controller.",
-                "de": "Aussentemperatur, unterhalb derer der Zuheizer (ZWE) freigegeben wird (Parameter 90). Änderung wird direkt am Controller gespeichert."
+                "de": "Aussentemperatur, unterhalb derer der Zuheizer (ZWE) freigegeben wird (Parameter 90). Änderung wird direkt am Controller gespeichert.",
+                "nl": "Buitentemperatuur waaronder de bijverwarming (ZWE) wordt vrijgegeven (parameter 90). Een wijziging wordt direct in de regelaar opgeslagen.",
+                "fr": "Température extérieure en dessous de laquelle l'appoint (ZWE) est libéré (paramètre 90). Une modification est enregistrée directement dans le régulateur."
               }
             },
             {
@@ -2708,14 +2828,18 @@
               "type": "number",
               "label": {
                 "en": "2nd Compressor Heating Temp. (°C)",
-                "de": "2. Verdichter Aussentemp. Heizen (°C)"
+                "de": "2. Verdichter Aussentemp. Heizen (°C)",
+                "nl": "2e compressor buitentemp. verwarmen (°C)",
+                "fr": "2e compresseur temp. ext. chauffage (°C)"
               },
               "value": -10,
               "min": -20,
               "max": 30,
               "hint": {
                 "en": "Outdoor temperature below which the 2nd compressor is activated for heating (parameter 95). Changing this setting writes the value directly to the controller.",
-                "de": "Aussentemperatur, unterhalb derer der 2. Verdichter für den Heizbetrieb zugeschaltet wird (Parameter 95). Änderung wird direkt am Controller gespeichert."
+                "de": "Aussentemperatur, unterhalb derer der 2. Verdichter für den Heizbetrieb zugeschaltet wird (Parameter 95). Änderung wird direkt am Controller gespeichert.",
+                "nl": "Buitentemperatuur waaronder de 2e compressor voor verwarming wordt bijgeschakeld (parameter 95). Een wijziging wordt direct in de regelaar opgeslagen.",
+                "fr": "Température extérieure en dessous de laquelle le 2e compresseur est enclenché pour le chauffage (paramètre 95). Une modification est enregistrée directement dans le régulateur."
               }
             },
             {
@@ -2723,14 +2847,18 @@
               "type": "number",
               "label": {
                 "en": "2nd Compressor Hot Water Temp. (°C)",
-                "de": "2. Verdichter Vorlauftemp. Warmwasser (°C)"
+                "de": "2. Verdichter Vorlauftemp. Warmwasser (°C)",
+                "nl": "2e compressor aanvoertemp. warmwater (°C)",
+                "fr": "2e compresseur temp. départ eau chaude (°C)"
               },
               "value": 60,
               "min": 10,
               "max": 70,
               "hint": {
                 "en": "Supply temperature threshold for activating the 2nd compressor during hot water preparation (parameter 96). Changing this setting writes the value directly to the controller.",
-                "de": "Vorlauftemperatur-Schwellwert für die Zuschaltung des 2. Verdichters bei der Warmwasserbereitung (Parameter 96). Änderung wird direkt am Controller gespeichert."
+                "de": "Vorlauftemperatur-Schwellwert für die Zuschaltung des 2. Verdichters bei der Warmwasserbereitung (Parameter 96). Änderung wird direkt am Controller gespeichert.",
+                "nl": "Aanvoertemperatuur-drempel voor het bijschakelen van de 2e compressor bij de warmwaterbereiding (parameter 96). Een wijziging wordt direct in de regelaar opgeslagen.",
+                "fr": "Seuil de température de départ pour enclencher le 2e compresseur pendant la production d'eau chaude (paramètre 96). Une modification est enregistrée directement dans le régulateur."
               }
             }
           ]
@@ -2738,8 +2866,10 @@
         {
           "type": "group",
           "label": {
-            "en": "Kühlung / Cooling",
-            "de": "Kühlung"
+            "en": "Cooling",
+            "de": "Kühlung",
+            "nl": "Koeling",
+            "fr": "Rafraîchissement"
           },
           "children": [
             {
@@ -2749,17 +2879,17 @@
                 "en": "Cooling capabilities visibility",
                 "de": "Anzeige Kühlungs-Capabilities",
                 "nl": "Zichtbaarheid koelingsmogelijkheden",
-                "fr": "Affichage des fonctions de refroidissement"
+                "fr": "Affichage des fonctions de rafraîchissement"
               },
               "value": "auto",
               "values": [
                 {
                   "id": "auto",
                   "label": {
-                    "en": "Auto (show when controller enables cooling)",
-                    "de": "Automatisch (anzeigen wenn Controller Kühlung freigibt)",
-                    "nl": "Automatisch (tonen als controller koeling vrijgeeft)",
-                    "fr": "Auto (afficher si le contrôleur active le refroidissement)"
+                    "en": "Auto (show when cooling is detected)",
+                    "de": "Automatisch (anzeigen, wenn Kühlung erkannt wird)",
+                    "nl": "Automatisch (tonen als koeling wordt herkend)",
+                    "fr": "Auto (afficher si le rafraîchissement est détecté)"
                   }
                 },
                 {
@@ -2782,10 +2912,10 @@
                 }
               ],
               "hint": {
-                "en": "'Auto' shows cooling only when the controller reports cooling as enabled (FreigabKuehl=1). Use 'Always show' if cooling disappears from the tile even though your heat pump supports it. Use 'Always hide' if you never use cooling.",
-                "de": "'Automatisch' zeigt Kühlung nur wenn der Controller Kühlung freigibt (FreigabKuehl=1). 'Immer anzeigen' verwenden wenn die Kühlung auf der Kachel verschwindet, obwohl die Wärmepumpe Kühlung unterstützt. 'Immer ausblenden' wenn Kühlung nie genutzt wird.",
-                "nl": "'Automatisch' toont koeling alleen als de controller dit vrijgeeft. Gebruik 'Altijd tonen' als koeling verdwijnt van de tegel terwijl uw warmtepomp koeling ondersteunt.",
-                "fr": "'Auto' affiche le refroidissement uniquement si le contrôleur le libère. Utilisez 'Toujours afficher' si le refroidissement disparaît de la tuile malgré le support matériel."
+                "en": "'Auto' shows the cooling tiles once the app detects cooling: the controller releases it, the cooling hours are above zero, or a mixing circuit is set up for cooling. Use 'Always show' if cooling disappears from the tile even though your heat pump supports it, and 'Always hide' if you never use cooling.",
+                "de": "'Automatisch' zeigt die Kühl-Kacheln, sobald die App Kühlung erkennt: Der Regler gibt sie frei, die Kühl-Betriebsstunden liegen über null, oder ein Mischkreis ist für Kühlung eingerichtet. 'Immer anzeigen' verwenden, wenn die Kühlung auf der Kachel verschwindet, obwohl die Wärmepumpe Kühlung unterstützt, 'Immer ausblenden', wenn Kühlung nie genutzt wird.",
+                "nl": "'Automatisch' toont de koeltegels zodra de app koeling herkent: de regelaar geeft ze vrij, de koeluren liggen boven nul, of een mengcircuit is voor koeling ingericht. Gebruik 'Altijd tonen' als koeling van de tegel verdwijnt terwijl je warmtepomp koeling ondersteunt, en 'Altijd verbergen' als je koeling nooit gebruikt.",
+                "fr": "« Auto » affiche les tuiles de rafraîchissement dès que l'application détecte le rafraîchissement : le régulateur le libère, les heures de rafraîchissement sont supérieures à zéro, ou un circuit mélangé est configuré pour le rafraîchissement. Utilisez « Toujours afficher » si le rafraîchissement disparaît de la tuile alors que votre pompe à chaleur le prend en charge, et « Toujours masquer » si vous ne l'utilisez jamais."
               }
             },
             {
@@ -2793,14 +2923,18 @@
               "type": "number",
               "label": {
                 "en": "Cooling Release Temperature (°C)",
-                "de": "Kühlung Freigabe-Temperatur (°C)"
+                "de": "Kühlung Freigabe-Temperatur (°C)",
+                "nl": "Koeling vrijgavetemperatuur (°C)",
+                "fr": "Température de libération rafraîchissement (°C)"
               },
               "value": 22,
               "min": 10,
               "max": 40,
               "hint": {
                 "en": "Outdoor temperature above which cooling is released (parameter 110). Only relevant if the controller supports cooling. Changing this setting writes the value directly to the controller.",
-                "de": "Aussentemperatur, oberhalb derer die Kühlung freigegeben wird (Parameter 110). Nur relevant wenn der Controller Kühlung unterstützt. Änderung wird direkt am Controller gespeichert."
+                "de": "Aussentemperatur, oberhalb derer die Kühlung freigegeben wird (Parameter 110). Nur relevant wenn der Controller Kühlung unterstützt. Änderung wird direkt am Controller gespeichert.",
+                "nl": "Buitentemperatuur waarboven de koeling wordt vrijgegeven (parameter 110). Alleen relevant als de regelaar koeling ondersteunt. Een wijziging wordt direct in de regelaar opgeslagen.",
+                "fr": "Température extérieure au-dessus de laquelle le rafraîchissement est libéré (paramètre 110). Utile uniquement si le régulateur prend en charge le rafraîchissement. Une modification est enregistrée directement dans le régulateur."
               }
             },
             {
@@ -2808,14 +2942,18 @@
               "type": "number",
               "label": {
                 "en": "Cooling Inlet Temperature (°C)",
-                "de": "Kühlung Einlauftemperatur (°C)"
+                "de": "Kühlung Einlauftemperatur (°C)",
+                "nl": "Koeling inlaattemperatuur (°C)",
+                "fr": "Température d'entrée rafraîchissement (°C)"
               },
               "value": 18,
               "min": 5,
               "max": 30,
               "hint": {
                 "en": "Target inlet temperature for the cooling circuit (parameter 132). Changing this setting writes the value directly to the controller.",
-                "de": "Ziel-Einlauftemperatur für den Kühlkreis (Parameter 132). Änderung wird direkt am Controller gespeichert."
+                "de": "Ziel-Einlauftemperatur für den Kühlkreis (Parameter 132). Änderung wird direkt am Controller gespeichert.",
+                "nl": "Gewenste inlaattemperatuur voor het koelcircuit (parameter 132). Een wijziging wordt direct in de regelaar opgeslagen.",
+                "fr": "Température d'entrée visée pour le circuit de rafraîchissement (paramètre 132). Une modification est enregistrée directement dans le régulateur."
               }
             }
           ]
@@ -2824,7 +2962,9 @@
           "type": "group",
           "label": {
             "en": "Power Sensor (Estimated)",
-            "de": "Leistungssensor (Schätzwert)"
+            "de": "Leistungssensor (Schätzwert)",
+            "nl": "Vermogenssensor (geschat)",
+            "fr": "Capteur de puissance (estimé)"
           },
           "children": [
             {
@@ -2832,12 +2972,16 @@
               "type": "checkbox",
               "label": {
                 "en": "Enable power sensor",
-                "de": "Leistungssensor aktivieren"
+                "de": "Leistungssensor aktivieren",
+                "nl": "Vermogenssensor inschakelen",
+                "fr": "Activer le capteur de puissance"
               },
               "value": false,
               "hint": {
                 "en": "Shows estimated power consumption (W) per heat pump state. Configure the watt values for your installation before enabling. If Heating, Hot Water and Standby are all set to a value > 0, a cumulative energy meter (kWh) is also activated automatically and appears in the Homey Energy dashboard.",
-                "de": "Zeigt den geschätzten Stromverbrauch (W) je Wärmepumpen-Status. Bitte die Watt-Werte vor dem Aktivieren für Ihre Anlage konfigurieren. Wenn Heizen, Warmwasser und Standby alle > 0 gesetzt sind, wird zusätzlich ein kumulierter Energiezähler (kWh) automatisch aktiviert und im Homey Energie-Dashboard angezeigt."
+                "de": "Zeigt den geschätzten Stromverbrauch (W) je Wärmepumpen-Status. Bitte die Watt-Werte vor dem Aktivieren für Ihre Anlage konfigurieren. Wenn Heizen, Warmwasser und Standby alle > 0 gesetzt sind, wird zusätzlich ein kumulierter Energiezähler (kWh) automatisch aktiviert und im Homey Energie-Dashboard angezeigt.",
+                "nl": "Toont het geschatte stroomverbruik (W) per toestand van de warmtepomp. Stel de wattwaarden voor je installatie in voordat je dit inschakelt. Als Verwarmen, Warm water en Stand-by allemaal > 0 zijn, wordt ook automatisch een cumulatieve energiemeter (kWh) ingeschakeld, die in het Homey Energie-dashboard verschijnt.",
+                "fr": "Affiche la consommation électrique estimée (W) selon l'état de la pompe à chaleur. Réglez les valeurs en watts de votre installation avant d'activer. Si Chauffage, Eau chaude et Veille sont tous > 0, un compteur d'énergie cumulé (kWh) est aussi activé automatiquement et apparaît dans le tableau de bord Énergie de Homey."
               }
             },
             {
@@ -2845,14 +2989,18 @@
               "type": "number",
               "label": {
                 "en": "Heating (W)",
-                "de": "Heizen (W)"
+                "de": "Heizen (W)",
+                "nl": "Verwarmen (W)",
+                "fr": "Chauffage (W)"
               },
               "value": 0,
               "min": 0,
               "max": 20000,
               "hint": {
                 "en": "Typical heat pumps consume 800–3000 W during heating. Required for the energy meter (kWh).",
-                "de": "Typische Wärmepumpen benötigen im Heizbetrieb 800–3000 W. Pflichtfeld für den Energiezähler (kWh)."
+                "de": "Typische Wärmepumpen benötigen im Heizbetrieb 800–3000 W. Pflichtfeld für den Energiezähler (kWh).",
+                "nl": "Gangbare warmtepompen verbruiken 800–3000 W tijdens het verwarmen. Verplicht voor de energiemeter (kWh).",
+                "fr": "Une pompe à chaleur courante consomme 800–3000 W en chauffage. Obligatoire pour le compteur d'énergie (kWh)."
               }
             },
             {
@@ -2860,14 +3008,18 @@
               "type": "number",
               "label": {
                 "en": "Hot Water (W)",
-                "de": "Warmwasser (W)"
+                "de": "Warmwasser (W)",
+                "nl": "Warm water (W)",
+                "fr": "Eau chaude (W)"
               },
               "value": 0,
               "min": 0,
               "max": 20000,
               "hint": {
                 "en": "Typical heat pumps consume 1200–3000 W during hot water heating. Required for the energy meter (kWh).",
-                "de": "Typische Wärmepumpen benötigen bei der Warmwasserbereitung 1200–3000 W. Pflichtfeld für den Energiezähler (kWh)."
+                "de": "Typische Wärmepumpen benötigen bei der Warmwasserbereitung 1200–3000 W. Pflichtfeld für den Energiezähler (kWh).",
+                "nl": "Gangbare warmtepompen verbruiken 1200–3000 W bij de warmwaterbereiding. Verplicht voor de energiemeter (kWh).",
+                "fr": "Une pompe à chaleur courante consomme 1200–3000 W en production d'eau chaude. Obligatoire pour le compteur d'énergie (kWh)."
               }
             },
             {
@@ -2875,14 +3027,18 @@
               "type": "number",
               "label": {
                 "en": "Swimming Pool (W)",
-                "de": "Schwimmbad (W)"
+                "de": "Schwimmbad (W)",
+                "nl": "Zwembad (W)",
+                "fr": "Piscine (W)"
               },
               "value": 0,
               "min": 0,
               "max": 20000,
               "hint": {
                 "en": "Typical heat pumps consume 800–3000 W during pool heating.",
-                "de": "Typische Wärmepumpen benötigen beim Schwimmbadheizen 800–3000 W."
+                "de": "Typische Wärmepumpen benötigen beim Schwimmbadheizen 800–3000 W.",
+                "nl": "Gangbare warmtepompen verbruiken 800–3000 W bij het verwarmen van het zwembad.",
+                "fr": "Une pompe à chaleur courante consomme 800–3000 W pour chauffer la piscine."
               }
             },
             {
@@ -2890,14 +3046,18 @@
               "type": "number",
               "label": {
                 "en": "EVU Lock (W)",
-                "de": "EVU-Sperre (W)"
+                "de": "EVU-Sperre (W)",
+                "nl": "EVU-blokkering (W)",
+                "fr": "Blocage EVU (W)"
               },
               "value": 0,
               "min": 0,
               "max": 20000,
               "hint": {
                 "en": "Typical heat pumps consume 10–25 W during EVU lock (controller only).",
-                "de": "Typische Wärmepumpen benötigen während der EVU-Sperre 10–25 W (nur Steuerung)."
+                "de": "Typische Wärmepumpen benötigen während der EVU-Sperre 10–25 W (nur Steuerung).",
+                "nl": "Gangbare warmtepompen verbruiken 10–25 W tijdens de EVU-blokkering (alleen de regelaar).",
+                "fr": "Une pompe à chaleur courante consomme 10–25 W pendant le blocage EVU (régulateur seul)."
               }
             },
             {
@@ -2905,14 +3065,18 @@
               "type": "number",
               "label": {
                 "en": "Defrost (W)",
-                "de": "Abtauen (W)"
+                "de": "Abtauen (W)",
+                "nl": "Ontdooien (W)",
+                "fr": "Dégivrage (W)"
               },
               "value": 0,
               "min": 0,
               "max": 20000,
               "hint": {
                 "en": "Typical heat pumps consume 1200–3000 W during defrost.",
-                "de": "Typische Wärmepumpen benötigen beim Abtauen 1200–3000 W."
+                "de": "Typische Wärmepumpen benötigen beim Abtauen 1200–3000 W.",
+                "nl": "Gangbare warmtepompen verbruiken 1200–3000 W tijdens het ontdooien.",
+                "fr": "Une pompe à chaleur courante consomme 1200–3000 W pendant le dégivrage."
               }
             },
             {
@@ -2920,14 +3084,18 @@
               "type": "number",
               "label": {
                 "en": "Off (W)",
-                "de": "Aus (W)"
+                "de": "Aus (W)",
+                "nl": "Uit (W)",
+                "fr": "Arrêt (W)"
               },
               "value": 0,
               "min": 0,
               "max": 20000,
               "hint": {
                 "en": "Typical heat pumps consume 10–25 W when off (controller, controls).",
-                "de": "Typische Wärmepumpen benötigen im Aus-Zustand 10–25 W (Steuerung, Regelung)."
+                "de": "Typische Wärmepumpen benötigen im Aus-Zustand 10–25 W (Steuerung, Regelung).",
+                "nl": "Gangbare warmtepompen verbruiken 10–25 W in uitgeschakelde toestand (regelaar, besturing).",
+                "fr": "Une pompe à chaleur courante consomme 10–25 W à l'arrêt (régulateur, commande)."
               }
             },
             {
@@ -2935,14 +3103,18 @@
               "type": "number",
               "label": {
                 "en": "External (W)",
-                "de": "Extern (W)"
+                "de": "Extern (W)",
+                "nl": "Extern (W)",
+                "fr": "Externe (W)"
               },
               "value": 0,
               "min": 0,
               "max": 20000,
               "hint": {
                 "en": "External mode means the auxiliary heater (boiler) is active instead of the heat pump. If the boiler is metered separately, enter only the heat pump's own consumption (controller, pumps), typically 10–100 W.",
-                "de": "Extern bedeutet, dass der Zuheizer (Boiler) aktiv ist und nicht die Wärmepumpe selbst heizt. Wenn der Heizstab separat gemessen wird, hier nur den Verbrauch der Wärmepumpe selbst angeben (Steuerung, Pumpen), typisch 10–100 W."
+                "de": "Extern bedeutet, dass der Zuheizer (Boiler) aktiv ist und nicht die Wärmepumpe selbst heizt. Wenn der Heizstab separat gemessen wird, hier nur den Verbrauch der Wärmepumpe selbst angeben (Steuerung, Pumpen), typisch 10–100 W.",
+                "nl": "Extern betekent dat de bijverwarming (ketel) actief is in plaats van de warmtepomp. Wordt de ketel apart gemeten, vul dan alleen het verbruik van de warmtepomp zelf in (regelaar, pompen), meestal 10–100 W.",
+                "fr": "Externe signifie que l'appoint (chaudière) fonctionne à la place de la pompe à chaleur. Si l'appoint est mesuré séparément, indiquez seulement la consommation de la pompe à chaleur elle-même (régulateur, pompes), généralement 10–100 W."
               }
             },
             {
@@ -2950,14 +3122,18 @@
               "type": "number",
               "label": {
                 "en": "Cooling (W)",
-                "de": "Kühlen (W)"
+                "de": "Kühlen (W)",
+                "nl": "Koelen (W)",
+                "fr": "Rafraîchissement (W)"
               },
               "value": 0,
               "min": 0,
               "max": 20000,
               "hint": {
                 "en": "Typical heat pumps consume 500–2500 W during cooling.",
-                "de": "Typische Wärmepumpen benötigen im Kühlbetrieb 500–2500 W."
+                "de": "Typische Wärmepumpen benötigen im Kühlbetrieb 500–2500 W.",
+                "nl": "Gangbare warmtepompen verbruiken 500–2500 W tijdens het koelen.",
+                "fr": "Une pompe à chaleur courante consomme 500–2500 W en rafraîchissement."
               }
             },
             {
@@ -2965,14 +3141,18 @@
               "type": "number",
               "label": {
                 "en": "Standby (W)",
-                "de": "Standby (W)"
+                "de": "Standby (W)",
+                "nl": "Stand-by (W)",
+                "fr": "Veille (W)"
               },
               "value": 0,
               "min": 0,
               "max": 20000,
               "hint": {
                 "en": "Typical heat pumps consume 10–25 W in standby (controller, controls). Required for the energy meter (kWh).",
-                "de": "Typische Wärmepumpen benötigen im Standby 10–25 W (Steuerung, Regelung). Pflichtfeld für den Energiezähler (kWh)."
+                "de": "Typische Wärmepumpen benötigen im Standby 10–25 W (Steuerung, Regelung). Pflichtfeld für den Energiezähler (kWh).",
+                "nl": "Gangbare warmtepompen verbruiken 10–25 W in stand-by (regelaar, besturing). Verplicht voor de energiemeter (kWh).",
+                "fr": "Une pompe à chaleur courante consomme 10–25 W en veille (régulateur, commande). Obligatoire pour le compteur d'énergie (kWh)."
               }
             },
             {
@@ -2980,7 +3160,9 @@
               "type": "number",
               "label": {
                 "en": "Unknown (W)",
-                "de": "Unbekannt (W)"
+                "de": "Unbekannt (W)",
+                "nl": "Onbekend (W)",
+                "fr": "Inconnu (W)"
               },
               "value": 0,
               "min": 0,
@@ -3013,7 +3195,7 @@
         "en": "Cooling Enabled",
         "de": "Kühlung freigegeben",
         "nl": "Koeling vrijgegeven",
-        "fr": "Refroidissement activé"
+        "fr": "Rafraîchissement activé"
       },
       "getable": true,
       "setable": false,
@@ -3034,7 +3216,7 @@
         "en": "Cooling Inlet Temperature",
         "de": "Kühlung Einlauftemperatur",
         "nl": "Koeling inlaattemperatuur",
-        "fr": "Température d'entrée refroidissement"
+        "fr": "Température d'entrée rafraîchissement"
       },
       "units": {
         "en": "°C",
@@ -3053,7 +3235,7 @@
         "en": "Cooling Operation Mode",
         "de": "Kühlbetrieb Betriebsart",
         "nl": "Koeling bedrijfsmodus",
-        "fr": "Mode de refroidissement"
+        "fr": "Mode de rafraîchissement"
       },
       "values": [
         {
@@ -3087,7 +3269,7 @@
         "en": "Cooling Release Temperature",
         "de": "Kühlung Freigabe-Temperatur",
         "nl": "Koeling vrijgavetemperatuur",
-        "fr": "Température de libération refroidissement"
+        "fr": "Température de libération rafraîchissement"
       },
       "units": {
         "en": "°C",
@@ -3412,7 +3594,7 @@
             "en": "Cooling",
             "de": "Kühlen",
             "nl": "Koelen",
-            "fr": "Refroidissement"
+            "fr": "Rafraîchissement"
           }
         },
         {
@@ -3627,7 +3809,7 @@
         "en": "Cooling Hours",
         "de": "Betriebsstunden Kühlung",
         "nl": "Bedrijfsuren koeling",
-        "fr": "Heures refroidissement"
+        "fr": "Heures rafraîchissement"
       },
       "units": {
         "en": "h",

@@ -35,8 +35,22 @@ test('extendedState: Codes 15 und 18 kennt nur diese App', () => {
   assert.ok(!Object.prototype.hasOwnProperty.call(types.extendetStateMessages, 18));
 });
 
+test('Heizungsstatus und Abtau-Varianten gibt es in allen vier Sprachen', () => {
+  // Auf Französisch fiel der Heizungsstatus bisher auf Englisch zurück.
+  const missing = [];
+  for (const [table, entries] of [['EXTENDED_STATES', codes.EXTENDED_STATES], ['DEFROST_VARIANTS', codes.DEFROST_VARIANTS]]) {
+    for (const [key, entry] of Object.entries(entries)) {
+      for (const lang of ['en', 'de', 'nl', 'fr']) if (!entry[lang]) missing.push(`${table}.${key} ${lang}`);
+    }
+  }
+  assert.deepStrictEqual(missing, []);
+  assert.strictEqual(codes.extendedState(0, 'fr'), 'Chauffage');
+  assert.strictEqual(codes.defrostState('air', 'fr'), 'Dégivrage d\'air');
+});
+
 test('Sprachen ohne Übersetzung fallen auf Englisch zurück, nicht auf leer', () => {
-  assert.strictEqual(codes.extendedState(0, 'fr'), codes.extendedState(0, 'en'), 'Heizungsstatus gibt es nicht auf Französisch');
+  assert.strictEqual(codes.extendedState(0, 'it'), codes.extendedState(0, 'en'));
+  assert.strictEqual(codes.defrostState('air', 'it'), codes.defrostState('air', 'en'));
   assert.strictEqual(codes.switchoffReason(9, 'it'), codes.switchoffReason(9, 'en'));
   assert.strictEqual(codes.errorText(701, 'it'), codes.errorText(701, 'en'));
   assert.strictEqual(codes.errorHint(701, 'it'), codes.errorHint(701, 'en'));
@@ -450,4 +464,52 @@ test('parameterChanges: viele Änderungen auf einmal werden gezählt statt aufge
 test('parameterChanges: eine kürzere Liste vergleicht nur, was beide haben', () => {
   const line = codes.parameterChanges(params({}, 1200), params({ 1: 5 }, 1100), freshState());
   assert.strictEqual(line, 'Parameterliste 1200 → 1100 Einträge · P0001_HEATING_TARGET_CORRECTION 0 → 5');
+});
+
+test('parseFirmware zerlegt den Software-Stand in Zahlen', () => {
+  assert.deepStrictEqual(codes.parseFirmware('V1.89.0'), { series: 1, minor: 89, patch: 0 });
+  assert.deepStrictEqual(codes.parseFirmware('V3.92.1'), { series: 3, minor: 92, patch: 1 });
+  assert.deepStrictEqual(codes.parseFirmware('V3.79'), { series: 3, minor: 79, patch: 0 });
+  assert.deepStrictEqual(codes.parseFirmware('WWB1.65.2'), { series: 1, minor: 65, patch: 2 });
+  for (const unreadable of ['', null, undefined, 'V3']) assert.strictEqual(codes.parseFirmware(unreadable), null);
+});
+
+test('hotWaterTargetParameter: P0002 bis x.88.2, P0105 ab x.88.3', () => {
+  // Es zählen Neben- und Revisionsnummer; die erste Zahl ist die Baureihe.
+  const cases = [
+    ['V3.79', 2], ['V1.81', 2], ['V3.88.0', 2], ['V2.88.2', 2],
+    ['V2.88.3', 105], ['V1.89.0', 105], ['V1.90.0', 105], ['V3.92.1', 105],
+  ];
+  for (const [firmware, register] of cases) assert.strictEqual(codes.hotWaterTargetParameter(firmware), register, firmware);
+  // Unbekannt gilt wie in der Windows-App als aktuelle Firmware.
+  assert.strictEqual(codes.hotWaterTargetParameter(null), 105);
+  assert.strictEqual(codes.hotWaterTargetParameter(''), 105);
+});
+
+test('hotWaterMaximum liest die "Max. WW-Temp." aus P0973', () => {
+  assert.strictEqual(codes.hotWaterMaximum(Object.assign([], { 973: 550 })), 55);
+  assert.strictEqual(codes.hotWaterMaximum(Object.assign([], { 973: 0 })), null);
+  assert.strictEqual(codes.hotWaterMaximum(new Array(900).fill(1)), null, 'ältere Firmware ohne P0973');
+  assert.strictEqual(codes.hotWaterMaximum(null), null);
+});
+
+test('clampHotWaterTarget begrenzt auf 30–65 °C und die "Max. WW-Temp."', () => {
+  assert.strictEqual(codes.clampHotWaterTarget(60, 55), 55);
+  assert.strictEqual(codes.clampHotWaterTarget(50, 55), 50);
+  assert.strictEqual(codes.clampHotWaterTarget(70, null), 65);
+  assert.strictEqual(codes.clampHotWaterTarget(25, 55), 30);
+  // Eine unsinnige Grenze unter 30 °C hebt die Untergrenze nicht auf.
+  assert.strictEqual(codes.clampHotWaterTarget(50, 20), 30);
+});
+
+test('hotWaterSetpoint zeigt das Register, das der Regler auswertet', () => {
+  // Werte aus BenPru/luxtronik (DHW_TARGET_REGISTERS.md): V1.88.3 mit P0002 43 und P0105 46.
+  assert.strictEqual(codes.hotWaterSetpoint('V1.88.3', 43, 46), 46);
+  assert.strictEqual(codes.hotWaterSetpoint('V3.79', 43, 46), 43);
+  // Den Platzhalter 75 °C in P0002 (V3.92.x) nie zeigen.
+  assert.strictEqual(codes.hotWaterSetpoint('V3.92.1', 75, 53), 53);
+  // Fehlt das Register oder liegt es ausserhalb von 30–65 °C: das andere.
+  assert.strictEqual(codes.hotWaterSetpoint('V1.89.0', 49, null), 49);
+  assert.strictEqual(codes.hotWaterSetpoint('V3.79', 0, 48), 48);
+  assert.strictEqual(codes.hotWaterSetpoint('V1.89.0', 75, 0), null);
 });

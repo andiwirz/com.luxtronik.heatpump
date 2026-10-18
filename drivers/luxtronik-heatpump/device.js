@@ -6,7 +6,7 @@ const {
   switchoffReason, newestEntry, extendedState, defrostVariant, defrostState, mixerCanCool,
   controllerConfig, parameterChanges, parameterLabel, plausibleLogEntries, hotWaterEvidence,
   coolingCounterState, coolingCounterRunning, readBack, writeLogLine, errorText, errorHint,
-  newErrors, faultyReading,
+  newErrors, faultyReading, hotWaterTargetParameter, hotWaterMaximum, clampHotWaterTarget, hotWaterSetpoint,
 } = require('../../lib/luxtronik-codes');
 const { CALCULATIONS, PARAMETERS } = require('../../lib/luxtronik-registers');
 
@@ -54,10 +54,10 @@ const HEATPUMP_STATE_MAP = {
 // Mapping: Originalstring der luxtronik2-Library → { en, de }
 // Quelle: luxtronik2/utils.js → createHotWaterStateString()
 const HOTWATER_STATE_MAP = {
-  'Sperrzeit': { en: 'Lock Period',    de: 'Sperrzeit',     nl: 'Blokkeertijd' },
-  'Aufheizen': { en: 'Heating Up',     de: 'Aufheizen',     nl: 'Opwarmen' },
-  'Temp. OK':  { en: 'Temperature OK', de: 'Temperatur OK', nl: 'Temperatuur OK' },
-  'Aus':       { en: 'Off',            de: 'Aus',           nl: 'Uit' },
+  'Sperrzeit': { en: 'Lock Period',    de: 'Sperrzeit',     nl: 'Blokkeertijd',   fr: 'Temps de blocage' },
+  'Aufheizen': { en: 'Heating Up',     de: 'Aufheizen',     nl: 'Opwarmen',       fr: 'Montée en température' },
+  'Temp. OK':  { en: 'Temperature OK', de: 'Temperatur OK', nl: 'Temperatuur OK', fr: 'Température OK' },
+  'Aus':       { en: 'Off',            de: 'Aus',           nl: 'Uit',            fr: 'Arrêt' },
 };
 
 // Capability-Titel die beim dynamischen addCapability() explizit gesetzt werden müssen,
@@ -106,17 +106,19 @@ const STATE_EMOJI = {
 };
 
 // Anzeigebezeichnungen für die Timeline (DE/EN)
+// Französisch wie die Werte der Kachel "État pompe à chaleur", damit Kachel und
+// Timeline gleich heissen.
 const STATE_TIMELINE_LABELS = {
-  heating:       { de: 'Heizbetrieb',        en: 'Heating',           nl: 'Verwarmen' },
-  hotwater:      { de: 'Warmwasser',          en: 'Hot Water',         nl: 'Warmwater' },
-  defrost:       { de: 'Abtauen',             en: 'Defrost',           nl: 'Ontdooien' },
-  standby:       { de: 'Standby',             en: 'Standby',           nl: 'Stand-by' },
-  provider_lock: { de: 'EVU-Sperre',          en: 'EVU Lock',          nl: 'EVU-blokkering' },
-  cooling:       { de: 'Kühlen',              en: 'Cooling',           nl: 'Koelen' },
-  swimming:      { de: 'Schwimmbad',          en: 'Swimming Pool',     nl: 'Zwembad' },
-  external:      { de: 'Extern (Zuheizer)',   en: 'External (Boiler)', nl: 'Extern (bijverwarming)' },
-  off:           { de: 'Aus / Fehler',        en: 'Off / Error',       nl: 'Uit / Fout' },
-  unknown:       { de: 'Unbekannt',           en: 'Unknown',           nl: 'Onbekend' },
+  heating:       { de: 'Heizbetrieb',        en: 'Heating',           nl: 'Verwarmen',              fr: 'Chauffage' },
+  hotwater:      { de: 'Warmwasser',          en: 'Hot Water',         nl: 'Warmwater',              fr: 'Eau chaude' },
+  defrost:       { de: 'Abtauen',             en: 'Defrost',           nl: 'Ontdooien',              fr: 'Dégivrage' },
+  standby:       { de: 'Standby',             en: 'Standby',           nl: 'Stand-by',               fr: 'Veille' },
+  provider_lock: { de: 'EVU-Sperre',          en: 'EVU Lock',          nl: 'EVU-blokkering',         fr: 'Blocage EVU' },
+  cooling:       { de: 'Kühlen',              en: 'Cooling',           nl: 'Koelen',                 fr: 'Rafraîchissement' },
+  swimming:      { de: 'Schwimmbad',          en: 'Swimming Pool',     nl: 'Zwembad',                fr: 'Piscine' },
+  external:      { de: 'Extern (Zuheizer)',   en: 'External (Boiler)', nl: 'Extern (bijverwarming)', fr: 'Externe (appoint)' },
+  off:           { de: 'Aus / Fehler',        en: 'Off / Error',       nl: 'Uit / Fout',             fr: 'Arrêt / Erreur' },
+  unknown:       { de: 'Unbekannt',           en: 'Unknown',           nl: 'Onbekend',               fr: 'Inconnu' },
 };
 
 
@@ -314,7 +316,11 @@ class LuxtronikHeatpumpDevice extends Device {
     }
 
     // ── Cleanup: unerwünschte Capabilities entfernen ────────────────────────────
-    const REMOVE_CAPABILITIES = ['thermal_disinfection', 'warmwater_target_temperature', 'heating_temperature_correction', 'target_temperature.tdi'];
+    // cooling_enabled hing in 2.0.23 und 2.0.24 an Geräten mit Kühlfreigabe und
+    // wurde am selben Tag wieder ausgebaut, aber nie von den Geräten entfernt:
+    // eine Kachel "Kühlung freigegeben", die seither niemand mehr setzt. Ihre
+    // Definition bleibt, bis jedes Gerät einmal mit dieser Version gestartet ist.
+    const REMOVE_CAPABILITIES = ['thermal_disinfection', 'warmwater_target_temperature', 'heating_temperature_correction', 'target_temperature.tdi', 'cooling_enabled'];
     for (const cap of REMOVE_CAPABILITIES) {
       if (this.hasCapability(cap)) {
         this.log(`Entferne Capability: ${cap}`);
@@ -1127,7 +1133,9 @@ class LuxtronikHeatpumpDevice extends Device {
       await this._setIfValid('heatpump_state', stateSlug);
       if (this._lastState !== null) {
         await this._triggerStateChanged.trigger(this, { state: stateSlug }).catch(() => {});
-        const stateLabel = (STATE_TIMELINE_LABELS[stateSlug] || {})[this.homey.i18n.getLanguage()] || stateSlug;
+        // Fehlt die Sprache, Englisch statt des internen Namens ("heating").
+        const labels = STATE_TIMELINE_LABELS[stateSlug] || {};
+        const stateLabel = labels[this.homey.i18n.getLanguage()] || labels.en || stateSlug;
         await this._notify(this._tl(`🔄 Betriebsart: ${stateLabel}`, `🔄 State: ${stateLabel}`));
       }
       this._lastState = stateSlug;
@@ -1237,7 +1245,7 @@ class LuxtronikHeatpumpDevice extends Device {
 
       if (code === 6 && v.raw_screed_level !== undefined) {
         // Estrichprogramm: Stufe und Solltemperatur anhängen
-        const levelWord = lang === 'de' ? 'Stufe' : (lang === 'nl' ? 'Stap' : 'Level');
+        const levelWord = { de: 'Stufe', nl: 'Stap', fr: 'Étape' }[lang] || 'Level';
         heatingLabel += ` ${levelWord} ${v.raw_screed_level} - ${v.raw_screed_temp / 10} °C`;
       } else if (code === 7) {
         // Abtauen: Untertyp aus den Rohregistern bestimmen
@@ -1316,11 +1324,11 @@ class LuxtronikHeatpumpDevice extends Device {
     // Achtung Namenskollision in luxtronik2: v.temperature_hot_water_target (values[18], Kalkulation #25)
     // ist der MOMENTANE Zielwert des Reglers und sinkt bei Sperrzeit, WW-Zeitprogramm (Parameter 405–505)
     // oder Betriebsart "Aus" — als Thermostat-Sollwert unbrauchbar.
-    // Parameter 105 bevorzugen; auf manchen Firmwares enthält Parameter 2 den TDI-Wert statt des WW-Sollwerts.
+    // Angezeigt wird das Register, das der Regler mit dieser Firmware auswertet
+    // und die App auch schreibt, siehe hotWaterSetpoint().
     const ww105 = this._n(p.temperature_hot_water_target);   // Parameter 105
     const ww2   = this._n(p.warmwater_temperature);          // Parameter 2
-    const wwSetpoint = (ww105 !== null && ww105 >= 30 && ww105 <= 65) ? ww105 : ww2;
-    await this._setIfValid('target_temperature', wwSetpoint);
+    await this._setIfValid('target_temperature', hotWaterSetpoint(this.getCapabilityValue('firmware_version'), ww2, ww105));
 
     // Thermische Desinfektion Soll (TDI): parameter 47 = temperature_hot_water_limit
     const tdiVal = this._n(p.temperature_hot_water_limit);
@@ -1453,20 +1461,21 @@ class LuxtronikHeatpumpDevice extends Device {
   }
 
 
+  // Schreibt nur das Register, das der Regler mit dieser Firmware auswertet
+  // (siehe hotWaterTargetParameter()), und höchstens seine "Max. WW-Temp."
+  // (P0973): Einen höheren Wert verwirft er.
   async _setWarmwaterTargetTemperature(value) {
-    const clamped = Math.min(65, Math.max(30, value));
-    this.log(`Setze Brauchwasser Soll-Temperatur: ${clamped} °C`);
+    const maximum = hotWaterMaximum(this._rawParameters);
+    const clamped = clampHotWaterTarget(value, maximum);
+    const parameter = hotWaterTargetParameter(this.getCapabilityValue('firmware_version'));
+    if (maximum !== null && value > maximum) this.log(`Brauchwasser Soll-Temperatur ${value} °C auf Max. WW-Temp. ${maximum} °C begrenzt`);
+    this.log(`Setze Brauchwasser Soll-Temperatur: ${clamped} °C (Parameter ${parameter})`);
     await this.setCapabilityValue('target_temperature', clamped).catch(() => {});
     this._setWriteProtect('target_temperature', 120000);
-    // parameter 2 (warmwater_target_temperature) = Standard WW-Sollwert
-    const p2 = await this._writeChecked('warmwater_target_temperature', clamped);
-    // parameter 105 (temperature_hot_water_target) = alternativer WW-Sollwert auf manchen Firmware-Varianten
-    const p105 = await this._writeChecked('temperature_hot_water_target', clamped).catch(() => null);
-    // Welches der beiden Register der Regler auswertet, hängt von der Firmware
-    // ab (BenPru/luxtronik: P0002 bis x.88.2, P0105 ab x.88.3), und P0002 senkt
-    // er selbst ab, wenn die Wärmepumpe den Wert nicht erreicht. Übernommen ist
-    // der Wert deshalb, solange eines der beiden Register ihn hält.
-    if (p2.accepted === false && (!p105 || p105.accepted === false)) throw this._notAccepted('2/105');
+    await this._write(parameter === PARAMETERS.P0002_DHW_TARGET_TEMPERATURE ? 'warmwater_target_temperature' : 'temperature_hot_water_target', clamped);
+    // Begrenzt: Nach der Aktion kann auf der Kachel der verlangte Wert stehen.
+    // Ohne Schreibschutz zeigt die Abfrage gleich nach dem Schreiben den echten.
+    if (clamped !== value) this._setWriteProtect('target_temperature', 0);
     this.log(`Brauchwasser Soll-Temperatur erfolgreich gesendet: ${clamped} °C`);
   }
 
