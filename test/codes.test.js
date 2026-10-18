@@ -526,3 +526,70 @@ test('hotWaterSetpoint zeigt das Register, das der Regler auswertet', () => {
   assert.strictEqual(codes.hotWaterSetpoint('V3.79', 0, 48), 48);
   assert.strictEqual(codes.hotWaterSetpoint('V1.89.0', 75, 0), null);
 });
+
+test('"fiel unter" und "stieg über" gelten beim Überschreiten der Schwelle, nicht bei jeder Änderung', () => {
+  // Ein Flow "fiel unter 10 °C" lief bei 5 °C mit jeder Abnahme um 0,1 K.
+  assert.strictEqual(codes.droppedBelow(10.0, 9.9, 10), true);
+  assert.strictEqual(codes.droppedBelow(5.1, 5.0, 10), false, 'längst darunter');
+  assert.strictEqual(codes.droppedBelow(10.1, 10.0, 10), false, 'noch nicht darunter');
+  assert.strictEqual(codes.droppedBelow(0.0, -0.1, 0), true);
+  assert.strictEqual(codes.roseAbove(20.0, 20.1, 20), true);
+  assert.strictEqual(codes.roseAbove(25.0, 25.1, 20), false, 'längst darüber');
+  assert.strictEqual(codes.roseAbove(19.9, 20.0, 20), false, 'noch nicht darüber');
+  // Eine Lesung, die über die Schwelle springt, zählt auch.
+  assert.strictEqual(codes.droppedBelow(12, 3, 10), true);
+  // Ohne vorigen Wert nie.
+  assert.strictEqual(codes.droppedBelow(null, -5, 0), false);
+  assert.strictEqual(codes.roseAbove(undefined, 30, 20), false);
+});
+
+test('"Warmwasser Status ist …" vergleicht den Status, nicht den Kacheltext', () => {
+  // Die Kachel zeigt ihn in der Sprache der Homey, die Bedingung wählt aus
+  // den Texten der Bibliothek. Vorher war "Temp. OK" nie wahr, auf Englisch,
+  // Niederländisch und Französisch keine der vier Auswahlen.
+  for (const [raw, labels] of Object.entries(codes.HOTWATER_STATES)) {
+    for (const label of [raw, ...Object.values(labels)]) assert.strictEqual(codes.hotWaterStateCode(label), raw, label);
+  }
+  assert.strictEqual(codes.hotWaterStateCode('Temperatur OK'), 'Temp. OK');
+  assert.strictEqual(codes.hotWaterStateCode('Uit'), 'Aus');
+  // Unbekanntes bleibt, wie es ist.
+  assert.strictEqual(codes.hotWaterStateCode('Neu'), 'Neu');
+});
+
+test('"Heizungsstatus ist …" erkennt einen Status in jeder Sprache und nur ihn', () => {
+  // "Heating" traf als Teilstring auch "DHW Reheating" und "Compressor
+  // Heating Up", "Chauffage" auch "Réchauffage ECS".
+  assert.strictEqual(codes.heatingStateIs('DHW Reheating', 'Heating'), false);
+  assert.strictEqual(codes.heatingStateIs('Compressor Heating Up', 'heating'), false);
+  assert.strictEqual(codes.heatingStateIs('Réchauffage ECS', 'Chauffage'), false);
+  assert.strictEqual(codes.heatingStateIs('Heating', 'Heating'), true);
+  // Ein Flow mit "Heizbetrieb" geht auch mit einer englischen Homey auf.
+  assert.strictEqual(codes.heatingStateIs('Heating', 'Heizbetrieb'), true);
+  assert.strictEqual(codes.heatingStateIs('Verwarmen', ' heizbetrieb '), true);
+  // Abtauen mit Untertyp, Estrich-Programm mit Stufe.
+  assert.strictEqual(codes.heatingStateIs('Abtauen (Kreisumkehr)', 'Defrost'), true);
+  assert.strictEqual(codes.heatingStateIs('Luchtontdooiing', 'Abtauen'), true);
+  assert.strictEqual(codes.heatingStateIs('Estrich Programm Stufe 2 - 30 °C', 'Screed Program'), true);
+  // Ein Teil eines Namens wird weiter als Teilstring gesucht, wie bisher.
+  assert.strictEqual(codes.heatingStateIs('Heizbetrieb', 'Heiz'), true);
+  assert.strictEqual(codes.heatingStateIs('Kühlbetrieb', 'Heiz'), false);
+  // Unbekannter Text der Bibliothek: Teilstring.
+  assert.strictEqual(codes.heatingStateIs('Sonderbetrieb X', 'Sonderbetrieb'), true);
+});
+
+test('jede Statusbezeichnung gehört zu genau einem Code', () => {
+  // Sonst könnte "Heizungsstatus ist …" einen Status mit einem anderen verwechseln.
+  const seen = new Map();
+  const clashes = [];
+  const add = (label, code) => {
+    const key = label.toLowerCase();
+    if (seen.has(key) && seen.get(key) !== code) clashes.push(`${label}: ${seen.get(key)} / ${code}`);
+    seen.set(key, code);
+  };
+  for (const [code, labels] of Object.entries(codes.EXTENDED_STATES)) for (const l of Object.values(labels)) add(l, Number(code));
+  for (const labels of Object.values(codes.DEFROST_VARIANTS)) for (const l of Object.values(labels)) add(l, 7);
+  assert.deepStrictEqual(clashes, []);
+  for (const [code, labels] of Object.entries(codes.EXTENDED_STATES)) {
+    for (const l of Object.values(labels)) assert.strictEqual(codes.heatingStateCode(l), Number(code), l);
+  }
+});

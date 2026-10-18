@@ -7,7 +7,7 @@ const {
   controllerConfig, parameterChanges, parameterLabel, plausibleLogEntries, hotWaterEvidence,
   coolingCounterState, coolingCounterRunning, readBack, writeLogLine, errorText, errorHint,
   newErrors, faultyReading, hotWaterTargetParameter, hotWaterMaximum, clampHotWaterTarget, hotWaterDialMaximum,
-  hotWaterSetpoint,
+  hotWaterSetpoint, HOTWATER_STATES, droppedBelow, roseAbove,
 } = require('../../lib/luxtronik-codes');
 const { CALCULATIONS, PARAMETERS } = require('../../lib/luxtronik-registers');
 
@@ -51,16 +51,6 @@ const HEATPUMP_STATE_MAP = {
 };
 
 
-
-// Mapping: Originalstring der luxtronik2-Library → { en, de }
-// Quelle: luxtronik2/utils.js → createHotWaterStateString()
-const HOTWATER_STATE_MAP = {
-  'Sperrzeit': { en: 'Lock Period',    de: 'Sperrzeit',     nl: 'Blokkeertijd',   fr: 'Temps de blocage' },
-  'Aufheizen': { en: 'Heating Up',     de: 'Aufheizen',     nl: 'Opwarmen',       fr: 'Montée en température' },
-  'Temp. OK':  { en: 'Temperature OK', de: 'Temperatur OK', nl: 'Temperatuur OK', fr: 'Température OK' },
-  'Aus':       { en: 'Off',            de: 'Aus',           nl: 'Uit',            fr: 'Arrêt' },
-};
-
 // Capability-Titel die beim dynamischen addCapability() explizit gesetzt werden müssen,
 // weil Homey den Titel beim ersten Hinzufügen speichert und spätere app.json-Änderungen
 // nicht automatisch auf bereits vorhandene Capabilities anwendet.
@@ -87,6 +77,11 @@ const ENERGY_METER_MIN_HOURS = 24;
 
 // So viele Schreibvorgänge hält das Änderungsprotokoll für den Debug-Tab.
 const WRITE_LOG_ENTRIES = 20;
+
+// Wartezeit nach einem gescheiterten automatischen Abschalten (Desinfektion,
+// abgelaufene Schnellladung), bevor eine Abfrage es erneut versucht. Ohne sie
+// käme der Versuch mit jeder Abfrage wieder.
+const AUTO_OFF_RETRY_MS = 10 * 60 * 1000;
 
 // heatpump_state1 = Grob-Status (0=läuft, 1=steht, 4=Fehler)
 // Nur für Fehlerkennung verwendet
@@ -150,6 +145,7 @@ class LuxtronikHeatpumpDevice extends Device {
     this._lastWarmwaterMode = null;
     this._lastCoolingMode   = null;
     this._lastErrorState    = false;
+    this._lastOutdoorTemp   = null;
     this._lastRoomTemp      = null;
     // Timestamp map: nach einem Write diese Capability für 2 Polls nicht überschreiben
     this._writeProtectUntil = {};
@@ -158,9 +154,16 @@ class LuxtronikHeatpumpDevice extends Device {
     // oder Stale-Values aus der vorherigen Session den Controller überschreiben,
     // bevor die echten Werte gelesen wurden.
     this._firstPollDone = false;
-    // Schnelladungs-Timer
+    // Schnelladungs-Timer. Was über einen Neustart hinaus gilt, steht im Store
+    // ('hotwater_boost'), siehe _superviseBoost().
     this._boostTimer      = null;
     this._boostPartyTimer = null;
+    // Wie viele Starts und Enden gerade laufen; solange keine Aufsicht.
+    this._boostBusy       = 0;
+    this._boostRetryAt    = 0;
+    // Automatisches Abschalten der Desinfektion, siehe _endThermalDisinfection()
+    this._disinfectionEnding  = false;
+    this._disinfectionRetryAt = 0;
     this._lastSuccessfulPoll = null;
     this._watchdogTimer      = null;
     this._pollTimeout        = null;
@@ -203,14 +206,16 @@ class LuxtronikHeatpumpDevice extends Device {
     this._triggerDeviceAvailable          = this.homey.flow.getDeviceTriggerCard('device_available');
     this._triggerThermalDisinfEnded       = this.homey.flow.getDeviceTriggerCard('thermal_disinfection_ended');
     this._triggerErrorCleared             = this.homey.flow.getDeviceTriggerCard('error_cleared');
+    // Ausgelöst wird bei jeder Änderung, mit vorigem und neuem Wert; jeder Flow
+    // prüft, ob seine Schwelle dabei überschritten wurde, siehe droppedBelow().
     this._triggerOutdoorTempDroppedBelow  = this.homey.flow.getDeviceTriggerCard('outdoor_temp_dropped_below')
-      .registerRunListener((args, state) => state.temperature <= args.temperature);
+      .registerRunListener((args, state) => droppedBelow(state.previous, state.temperature, args.temperature));
     this._triggerOutdoorTempRoseAbove     = this.homey.flow.getDeviceTriggerCard('outdoor_temp_rose_above')
-      .registerRunListener((args, state) => state.temperature >= args.temperature);
+      .registerRunListener((args, state) => roseAbove(state.previous, state.temperature, args.temperature));
     this._triggerRoomTempDroppedBelow     = this.homey.flow.getDeviceTriggerCard('room_temp_dropped_below')
-      .registerRunListener((args, state) => state.temperature <= args.temperature);
+      .registerRunListener((args, state) => droppedBelow(state.previous, state.temperature, args.temperature));
     this._triggerRoomTempRoseAbove        = this.homey.flow.getDeviceTriggerCard('room_temp_rose_above')
-      .registerRunListener((args, state) => state.temperature >= args.temperature);
+      .registerRunListener((args, state) => roseAbove(state.previous, state.temperature, args.temperature));
 
     // Flow-Bedingungen und -Aktionen registriert der Treiber, einmal für alle
     // Geräte (driver.js, _registerFlowCards). Eine Karte hat App-weit nur einen
@@ -510,15 +515,19 @@ class LuxtronikHeatpumpDevice extends Device {
     // 2. Die Capability bereits einen Wert hat (kein Null-/Default-Zustand)
     // Verhindert dass Default-Werte oder Stale-Values aus der vorherigen Session
     // den Controller überschreiben bevor die echten Werte geladen wurden.
-    const _shouldWrite = (capabilityId) => this._firstPollDone && this.getCapabilityValue(capabilityId) !== null;
+    // Eine Einstellung ohne eigene Kachel prüft mit `read`, ob der Regler den
+    // Wert schon gemeldet hat.
+    const _shouldWrite = ({ capability, read }) => this._firstPollDone
+      && (read ? read() !== null : this.getCapabilityValue(capability) !== null);
 
     // Einstellungen, die direkt auf den Controller geschrieben werden.
     //
-    // Alle 21 folgen demselben Ablauf: geändert? Capability schon gelesen?
-    // Wert im erlaubten Bereich? — dann schreiben. Als Tabelle steht der
+    // Alle 22 folgen demselben Ablauf: geändert? Wert schon gelesen? Wert im
+    // erlaubten Bereich? — dann schreiben. Als Tabelle steht der
     // Wertebereich neben dem Namen, und eine neue Einstellung ist eine Zeile
     // statt eines weiteren Kopierblocks, der von den anderen abdriften kann.
     const CONTROLLER_SETTINGS = [
+      { setting: 'hotwater_max_temp_setting',       read: () => hotWaterMaximum(this._rawParameters), min: 30, max: 65, write: this._setHotwaterMaxTemp, label: 'Max. Warmwassertemperatur' },
       { setting: 'tdi_setpoint_setting',            capability: 'tdi_target_temperature',   min:  50, max: 80, write: this._setTdiTargetTemperature,   label: 'TDI-Solltemperatur' },
       { setting: 'outdoor_temp_max_setting',        capability: 'outdoor_temp_max',         min:  10, max: 45, write: this._setOutdoorTempMax,         label: 'Max. Aussentemperatur' },
       { setting: 'heating_limit_setting',           capability: 'heating_limit',            min:   5, max: 30, write: this._setHeatingLimit,           label: 'Heizgrenze' },
@@ -547,8 +556,9 @@ class LuxtronikHeatpumpDevice extends Device {
 
     // Einstellungen, deren Wert der Regler nicht übernommen hat, für die Meldung am Ende.
     const rejected = [];
-    for (const { setting, capability, min, max, write, label } of CONTROLLER_SETTINGS) {
-      if (!changedKeys.includes(setting) || !_shouldWrite(capability)) continue;
+    for (const entry of CONTROLLER_SETTINGS) {
+      const { setting, min, max, write, label } = entry;
+      if (!changedKeys.includes(setting) || !_shouldWrite(entry)) continue;
       const val = parseFloat(newSettings[setting]);
       if (!(val >= min && val <= max)) continue;
       await write.call(this, val).catch((e) => {
@@ -928,16 +938,8 @@ class LuxtronikHeatpumpDevice extends Device {
 
     // ── Temperaturen (data.values) ───────────────────────────────────────────
     const outdoorTemp = this._n(v.temperature_outside);
-    if (outdoorTemp !== null && this._lastOutdoorTemp !== null) {
-      if (this._lastOutdoorTemp >= 0 && outdoorTemp < 0 ||
-          this._lastOutdoorTemp > outdoorTemp) {
-        await this._triggerOutdoorTempDroppedBelow.trigger(this, {}, { temperature: outdoorTemp }).catch(() => {});
-      }
-      if (this._lastOutdoorTemp <= 0 && outdoorTemp > 0 ||
-          this._lastOutdoorTemp < outdoorTemp) {
-        await this._triggerOutdoorTempRoseAbove.trigger(this, {}, { temperature: outdoorTemp }).catch(() => {});
-      }
-    }
+    await this._triggerTemperatureChange(this._lastOutdoorTemp, outdoorTemp,
+      this._triggerOutdoorTempDroppedBelow, this._triggerOutdoorTempRoseAbove);
     if (outdoorTemp !== null) this._lastOutdoorTemp = outdoorTemp;
     await this._setIfValid('measure_temp_outdoor',      outdoorTemp);
     await this._setIfValid('measure_temp_outdoor_avg',  this._n(v.temperature_outside_avg));
@@ -965,7 +967,7 @@ class LuxtronikHeatpumpDevice extends Device {
         this.log(`Schnelladung: Zieltemperatur ${targetTemp}°C erreicht (${currentTemp}°C) — beende automatisch`);
         // _endBoost() löst den Trigger selbst aus; ein zweiter Aufruf hier liess
         // Nutzerflows bei jedem automatischen Stopp doppelt laufen.
-        await this._stopHotwaterBoost();
+        this._writeFromPoll('Schnellladung beenden', () => this._stopHotwaterBoost());
       }
     }
     // Brauchwasser Schnellladung (Party): automatisch beenden wenn Zieltemperatur erreicht
@@ -974,21 +976,14 @@ class LuxtronikHeatpumpDevice extends Device {
       const targetTempP  = this._n(v.temperature_hot_water_target) ?? this.getCapabilityValue('target_temperature');
       if (currentTempP !== null && targetTempP !== null && currentTempP >= targetTempP) {
         this.log(`Schnellladung (Party): Zieltemperatur ${targetTempP}°C erreicht (${currentTempP}°C) — beende automatisch`);
-        await this._stopHotwaterBoostParty();
+        this._writeFromPoll('Schnellladung (Party) beenden', () => this._stopHotwaterBoostParty());
       }
     }
     // Thermische Desinfektion: automatisch deaktivieren wenn Zieltemperatur erreicht
     if (this.getCapabilityValue('thermal_disinfection_continuous') === true) {
-      const currentTemp = hotWaterTemp;
-      const tdiTarget   = (this.getCapabilityValue('tdi_target_temperature') ?? 65) - 1;
-      if (currentTemp !== null && currentTemp >= tdiTarget) {
-        this.log(`Thermische Desinfektion: ${tdiTarget}°C erreicht (${currentTemp}°C) — deaktiviere Dauerbetrieb`);
-        await this._setThermalDisinfectionContinuous(false).catch((e) => this.error('TDI auto-off fehlgeschlagen:', e.message));
-        await this._triggerThermalDisinfEnded.trigger(this, {}).catch(() => {});
-        await this._notify(this._tl(
-          `🧫 Thermische Desinfektion abgeschlossen (${currentTemp} °C)`,
-          `🧫 Thermal disinfection completed (${currentTemp} °C)`
-        ));
+      const tdiTarget = (this.getCapabilityValue('tdi_target_temperature') ?? 65) - 1;
+      if (hotWaterTemp !== null && hotWaterTemp >= tdiTarget) {
+        this._writeFromPoll('Desinfektion beenden', () => this._endThermalDisinfection(tdiTarget, hotWaterTemp));
       }
     }
 
@@ -1011,16 +1006,10 @@ class LuxtronikHeatpumpDevice extends Device {
     if (roomTempTarget === null || roomTempTarget <= 0) roomTempTarget = this._n(v.Temperatur_RFV2);
     await this._setCapabilityConditional('measure_temp_room',        roomTemp,       roomTemp !== null && roomTemp > 0);
     await this._setCapabilityConditional('measure_temp_room_target', roomTempTarget, roomTempTarget !== null && roomTempTarget > 0);
-    // Raumtemperatur-Flows: Trigger bei Anstieg/Abfall (nur wenn Raumsensor aktiv, Wert > 0).
-    // Der aktuelle Wert wird als state mitgegeben; der RunListener prüft die Schwelle.
+    // Raumtemperatur-Flows: nur wenn der Raumfühler aktiv ist (Wert > 0).
     if (roomTemp !== null && roomTemp > 0) {
-      if (this._lastRoomTemp !== null) {
-        if (roomTemp < this._lastRoomTemp) {
-          await this._triggerRoomTempDroppedBelow.trigger(this, {}, { temperature: roomTemp }).catch(() => {});
-        } else if (roomTemp > this._lastRoomTemp) {
-          await this._triggerRoomTempRoseAbove.trigger(this, {}, { temperature: roomTemp }).catch(() => {});
-        }
-      }
+      await this._triggerTemperatureChange(this._lastRoomTemp, roomTemp,
+        this._triggerRoomTempDroppedBelow, this._triggerRoomTempRoseAbove);
       this._lastRoomTemp = roomTemp;
     }
 
@@ -1039,15 +1028,7 @@ class LuxtronikHeatpumpDevice extends Device {
     // Steuerung dauerhaft 0 kWh, während die Betriebsstunden längst hochlaufen -
     // auf dem Gerät, an dem das geprüft wurde, 0 kWh gegen 26827 Stunden
     // Heizbetrieb. Als "0 kWh" angezeigt sieht das aus wie eine Messung.
-    const energyHeating  = this._n(v.thermalenergy_heating);
-    const energyHotwater = this._n(v.thermalenergy_warmwater);
-    const energyTotal    = this._n(v.thermalenergy_total);
-    await this._setCapabilityConditional('meter_energy_heating',  energyHeating,
-      this._energyMetered(energyHeating,  v.hours_heating));
-    await this._setCapabilityConditional('meter_energy_hotwater', energyHotwater,
-      this._energyMetered(energyHotwater, v.hours_warmwater));
-    await this._setCapabilityConditional('meter_energy_total',    energyTotal,
-      this._energyMetered(energyTotal,    v.hours_compressor1));
+    await this._updateEnergyTiles(v);
 
     // ── Zusätzliche Zähler und Fühler ────────────────────────────────────────
     // Zähler, die jede Steuerung führt: immer anzeigen.
@@ -1087,10 +1068,8 @@ class LuxtronikHeatpumpDevice extends Device {
     // Home-Assistant-Integration wertet stattdessen aus, ob je gekühlt wurde
     // (Betriebsstundenzähler, kann nicht zurückgehen) oder ob ein Mischkreis
     // als kühlfähig konfiguriert ist. Beides kommt hier als zusätzlicher
-    // Nachweis dazu; erkannt bleibt erkannt.
-    const coolingEverRan = (this._n(v.raw_hours_cooling) ?? 0) > 0;
-    const coolingCircuit = [p.raw_mixer1_type, p.raw_mixer2_type, p.raw_mixer3_type].some(mixerCanCool);
-    const coolingDetected    = v.FreigabKuehl === 1 || coolingEverRan || coolingCircuit;
+    // Nachweis dazu; erkannt bleibt erkannt, siehe _coolingDetected().
+    const coolingDetected    = await this._coolingDetected(v, p);
     const coolingVisibility  = this.getSetting('cooling_visibility') ?? 'auto';
     const showCooling =
       coolingVisibility === 'show' ||
@@ -1273,11 +1252,11 @@ class LuxtronikHeatpumpDevice extends Device {
       }
       await this._setIfValid('heating_state_string', heatingLabel);
     }
-    // Warmwasser-Status – via HOTWATER_STATE_MAP übersetzt
+    // Warmwasser-Status – via HOTWATER_STATES übersetzt
     if (v.opStateHotWaterString !== undefined) {
       const raw   = String(v.opStateHotWaterString);
       const lang  = this.homey.i18n.getLanguage();
-      const entry = HOTWATER_STATE_MAP[raw];
+      const entry = HOTWATER_STATES[raw];
       await this._setIfValid('hotwater_state_string', entry ? (entry[lang] ?? entry.en) : raw);
     }
     await this._reportNewErrors(v);
@@ -1317,6 +1296,7 @@ class LuxtronikHeatpumpDevice extends Device {
         await this._notify(this._tl(`💧 Warmwasser Betriebsart: ${labelDe}`, `💧 Hot water mode: ${labelEn}`));
       }
       this._lastWarmwaterMode = modeStr;
+      await this._superviseBoost(warmwaterMode);
     }
 
     // Heizungs-Temperaturkorrektur: p.heating_temperature (lesen), schreiben mit 'heating_target_temperature'
@@ -1335,6 +1315,7 @@ class LuxtronikHeatpumpDevice extends Device {
     const wwSetpoint = hotWaterSetpoint(this.getCapabilityValue('firmware_version'), ww2, ww105);
     await this._setIfValid('target_temperature', wwSetpoint);
     await this._syncHotWaterDial(wwSetpoint);
+    await this._syncSetting('hotwater_max_temp', 'hotwater_max_temp_setting', hotWaterMaximum(this._rawParameters));
 
     // Thermische Desinfektion Soll (TDI): parameter 47 = temperature_hot_water_limit
     const tdiVal = this._n(p.temperature_hot_water_limit);
@@ -1429,12 +1410,15 @@ class LuxtronikHeatpumpDevice extends Device {
 
   // ─── Setzer ────────────────────────────────────────────────────────────────
 
+  // "Betriebsart geändert" meldet die Bestätigungsabfrage nach dem Schreiben,
+  // einmal und mit Timeline-Eintrag, wie bei einer Änderung am Bedienteil.
+  // Lösten auch die Setzer aus, kam jede Änderung aus der App doppelt, bei
+  // einer Schnellladung viermal.
   async _setHeatingOperationMode(mode) {
     if (mode < 0 || mode > 4) throw new Error(`Ungültiger Heizungs-Modus: ${mode}`);
     this._setWriteProtect('heating_operation_mode', 120000);
     await this._write('heating_operation_mode', mode);
     await this.setCapabilityValue('heating_operation_mode', String(mode));
-    await this._triggerHeatingModeChanged.trigger(this, { mode: OPERATION_MODE_LABELS[mode] ?? String(mode) }).catch(() => {});
   }
 
   async _setWarmwaterOperationMode(mode) {
@@ -1442,7 +1426,6 @@ class LuxtronikHeatpumpDevice extends Device {
     this._setWriteProtect('warmwater_operation_mode', 120000);
     await this._write('warmwater_operation_mode', mode);
     await this.setCapabilityValue('warmwater_operation_mode', String(mode));
-    await this._triggerWarmwaterModeChanged.trigger(this, { mode: OPERATION_MODE_LABELS[mode] ?? String(mode) }).catch(() => {});
   }
 
   async _setCoolingOperationMode(mode) {
@@ -1516,6 +1499,19 @@ class LuxtronikHeatpumpDevice extends Device {
     this.log(`Warmwasser-Thermostat: Obergrenze ${max} °C`);
     try { await this.setCapabilityOptions('target_temperature', { ...defaults, ...(current || {}), max }); }
     catch (e) { this.error('Obergrenze des Warmwasser-Thermostats nicht gesetzt:', e.message); }
+  }
+
+  // "Max. WW-Temp." (P0973, Installateur-Einstellung), in ganzen Grad wie in
+  // der Windows-App. Begrenzung des Warmwasser-Solls und Ende des Thermostats
+  // richten sich danach, sobald der Wert zurückgelesen ist, siehe
+  // hotWaterMaximum(). Der Schreibschutz läuft unter einem eigenen Namen, da
+  // die Einstellung keine Kachel hat.
+  async _setHotwaterMaxTemp(value) {
+    const clamped = Math.min(65, Math.max(30, Math.round(value)));
+    this.log(`Setze Max. Warmwassertemperatur: ${clamped} °C (Parameter 973)`);
+    this._setWriteProtect('hotwater_max_temp', 120000);
+    await this._writeRaw(PARAMETERS.P0973_MAX_DHW_TEMPERATURE, clamped * 10);
+    this.log(`Max. Warmwassertemperatur erfolgreich gesendet: ${clamped} °C`);
   }
 
   async _setTdiTargetTemperature(value) {
@@ -1705,33 +1701,75 @@ class LuxtronikHeatpumpDevice extends Device {
   }
 
   // ─── Schnelladung ─────────────────────────────────────────────────────────────
+  //
+  // Eine Schnellladung stellt die Warmwasser-Betriebsart auf Zuheizer (1) oder
+  // Party (2) und am Ende auf die Betriebsart davor zurück. Art, Ende und
+  // Betriebsart davor stehen im Store ('hotwater_boost'): Nur im Speicher ging
+  // eine Ladung mit jedem App-Neustart verloren, und die Wärmepumpe blieb im
+  // Zuheizer- oder Party-Betrieb, bis jemand eingriff. Es läuft höchstens eine
+  // Ladung; startet die andere Art, endet die laufende.
 
-  async _startHotwaterBoost(durationMinutes) {
-    const duration = Math.min(480, Math.max(5, durationMinutes || 60));
-    this.log(`Schnelladung starten: ${duration} Minuten`);
-
-    // Laufenden Boost-Timer canceln falls aktiv
-    if (this._boostTimer) {
-      clearTimeout(this._boostTimer);
-      this._boostTimer = null;
-    }
-
-    // Zuheizer-Modus setzen
-    await this._setWarmwaterOperationMode(1);
-    await this.setCapabilityValue('hotwater_boost', true);
-    await this._triggerBoostStarted.trigger(this, { duration }).catch(() => {});
-    await this._notify(this._tl(`💧 Schnellladung gestartet (${duration} min)`, `💧 Hot water boost started (${duration} min)`));
-
-    // Auto-Reset nach konfigurierbarer Zeit
-    this._boostTimer = setTimeout(() => {
-      this.log(`Schnelladung beendet (${duration} min), schalte zurück auf Automatik`);
-      // _endBoost() löscht den (bereits abgelaufenen) Timer selbst und weiss
-      // dadurch, dass eine Ladung lief — Trigger und Meldung kommen genau einmal.
-      this._endBoost('aux');
-    }, duration * 60 * 1000);
+  _boostConfig(kind) {
+    return kind === 'party'
+      ? {
+        mode: 2, timer: '_boostPartyTimer', capability: 'hotwater_boost_party', label: 'Schnellladung (Party)',
+        started: this._triggerBoostPartyStarted, ended: this._triggerBoostPartyEnded,
+        startMessage: (d) => this._tl(`🎉 Schnellladung (Party) gestartet (${d} min)`, `🎉 Hot water boost (party) started (${d} min)`),
+        endMessage: () => this._tl('🎉 Schnellladung (Party) beendet', '🎉 Hot water boost (party) ended'),
+      }
+      : {
+        mode: 1, timer: '_boostTimer', capability: 'hotwater_boost', label: 'Schnellladung',
+        started: this._triggerBoostStarted, ended: this._triggerBoostEnded,
+        startMessage: (d) => this._tl(`💧 Schnellladung gestartet (${d} min)`, `💧 Hot water boost started (${d} min)`),
+        endMessage: () => this._tl('💧 Schnellladung beendet', '💧 Hot water boost ended'),
+      };
   }
 
-  // Beendet eine laufende Schnellladung — die einzige Stelle, an der das passiert.
+  async _startBoost(kind, durationMinutes) {
+    const cfg = this._boostConfig(kind);
+    const duration = Math.min(480, Math.max(5, durationMinutes || 60));
+    this.log(`${cfg.label} starten: ${duration} Minuten`);
+    this._boostBusy++;
+    try {
+      // Zurückgeschaltet wird auf die Betriebsart vor der ersten Ladung, auch
+      // wenn eine Ladung die andere ablöst oder sich selbst verlängert.
+      const running = this.getStoreValue('hotwater_boost');
+      const previousMode = running ? running.previousMode : this._int(this.getCapabilityValue('warmwater_operation_mode'));
+      await this._setWarmwaterOperationMode(cfg.mode);
+      // Die andere Art endet, ohne zurückzuschalten: Die neue Betriebsart steht schon.
+      await this._endBoost(kind === 'party' ? 'aux' : 'party', { switchBack: false });
+      // Timer vor dem Store: Eine Abfrage dazwischen fände sonst eine Ladung
+      // ohne Timer und nähme sie für eine vom letzten Neustart.
+      this._armBoost(kind, duration * 60 * 1000);
+      await this.setStoreValue('hotwater_boost', { kind, until: Date.now() + duration * 60 * 1000, previousMode });
+    } finally {
+      this._boostBusy--;
+    }
+    await this.setCapabilityValue(cfg.capability, true);
+    await cfg.started.trigger(this, { duration }).catch(() => {});
+    await this._notify(cfg.startMessage(duration));
+  }
+
+  _armBoost(kind, ms) {
+    const cfg = this._boostConfig(kind);
+    if (this[cfg.timer]) clearTimeout(this[cfg.timer]);
+    this[cfg.timer] = setTimeout(() => {
+      this.log(`${cfg.label}: Dauer abgelaufen`);
+      // _endBoost() löscht den (bereits abgelaufenen) Timer selbst und weiss
+      // dadurch, dass eine Ladung lief — Trigger und Meldung kommen genau einmal.
+      this._endBoost(kind);
+    }, Math.max(0, ms));
+  }
+
+  async _startHotwaterBoost(durationMinutes) {
+    return this._startBoost('aux', durationMinutes);
+  }
+
+  async _startHotwaterBoostParty(durationMinutes) {
+    return this._startBoost('party', durationMinutes);
+  }
+
+  // Beendet eine Schnellladung — die einzige Stelle, an der das passiert.
   //
   // Vorher gab es diese Logik doppelt: im Auto-Reset-Timer sorgfältig
   // abgesichert, in _stopHotwaterBoost() ohne jedes catch. Schlug dort das
@@ -1741,34 +1779,40 @@ class LuxtronikHeatpumpDevice extends Device {
   // aus _processData brach die Ablehnung zusätzlich den restlichen Poll ab.
   //
   // Gibt den Schreibfehler zurück statt ihn zu werfen: der Poll soll
-  // weiterlaufen, eine Flow-Aktion den Fehlschlag aber melden können.
-  async _endBoost(kind) {
-    const cfg = kind === 'party'
-      ? {
-        timer: '_boostPartyTimer', capability: 'hotwater_boost_party', trigger: this._triggerBoostPartyEnded,
-        label: 'Schnellladung (Party)', message: this._tl('🎉 Schnellladung (Party) beendet', '🎉 Hot water boost (party) ended'),
-      }
-      : {
-        timer: '_boostTimer', capability: 'hotwater_boost', trigger: this._triggerBoostEnded,
-        label: 'Schnellladung', message: this._tl('💧 Schnellladung beendet', '💧 Hot water boost ended'),
-      };
-
-    const wasRunning = this[cfg.timer] !== null;
+  // weiterlaufen, eine Flow-Aktion den Fehlschlag aber melden können. Die
+  // Ladung bleibt dann als beendet im Store, und _superviseBoost() versucht
+  // das Zurückschalten später noch einmal, ohne die Flows erneut auszulösen.
+  async _endBoost(kind, { switchBack = true } = {}) {
+    const cfg = this._boostConfig(kind);
+    const stored = this.getStoreValue('hotwater_boost');
+    const own = stored && stored.kind === kind ? stored : null;
+    const wasRunning = this[cfg.timer] !== null || (own !== null && !own.ended);
     if (this[cfg.timer]) { clearTimeout(this[cfg.timer]); this[cfg.timer] = null; }
 
+    this._boostBusy++;
     let writeError = null;
-    await this._setWarmwaterOperationMode(0).catch((e) => {
-      writeError = e;
-      this.error(`${cfg.label}: Zurückschalten auf Automatik fehlgeschlagen:`, e.message);
-    });
+    try {
+      if (switchBack) {
+        const mode = own && Number.isInteger(own.previousMode) ? own.previousMode : 0;
+        await this._setWarmwaterOperationMode(mode).catch((e) => {
+          writeError = e;
+          this._boostRetryAt = Date.now() + AUTO_OFF_RETRY_MS;
+          this.error(`${cfg.label}: Zurückschalten auf Betriebsart ${mode} fehlgeschlagen:`, e.message);
+        });
+      }
+      if (own && writeError) await this.setStoreValue('hotwater_boost', { ...own, ended: true }).catch(() => {});
+      else if (own) await this.unsetStoreValue('hotwater_boost').catch(() => {});
+    } finally {
+      this._boostBusy--;
+    }
     await this.setCapabilityValue(cfg.capability, false).catch(() => {});
 
     // Trigger und Benachrichtigung nur wenn tatsächlich eine Ladung lief — und
     // genau einmal. Beim automatischen Stopp löste _processData den Trigger
     // nach dem Aufruf noch ein zweites Mal aus.
     if (wasRunning) {
-      await cfg.trigger.trigger(this, {}).catch(() => {});
-      await this._notify(cfg.message);
+      await cfg.ended.trigger(this, {}).catch(() => {});
+      await this._notify(cfg.endMessage());
     }
     return writeError;
   }
@@ -1778,28 +1822,58 @@ class LuxtronikHeatpumpDevice extends Device {
     return this._endBoost('aux');
   }
 
-  async _startHotwaterBoostParty(durationMinutes) {
-    const duration = Math.min(480, Math.max(5, durationMinutes || 60));
-    this.log(`Schnellladung (Party) starten: ${duration} Minuten`);
-    if (this._boostPartyTimer) {
-      clearTimeout(this._boostPartyTimer);
-      this._boostPartyTimer = null;
-    }
-    // Party-Modus setzen
-    await this._setWarmwaterOperationMode(2);
-    await this.setCapabilityValue('hotwater_boost_party', true);
-    await this._triggerBoostPartyStarted.trigger(this, { duration }).catch(() => {});
-    await this._notify(this._tl(`🎉 Schnellladung (Party) gestartet (${duration} min)`, `🎉 Hot water boost (party) started (${duration} min)`));
-    // Auto-Reset nach konfigurierbarer Zeit
-    this._boostPartyTimer = setTimeout(() => {
-      this.log(`Schnellladung (Party) beendet (${duration} min), schalte zurück auf Automatik`);
-      this._endBoost('party');
-    }, duration * 60 * 1000);
-  }
-
   async _stopHotwaterBoostParty() {
     this.log('Schnellladung (Party) gestoppt');
     return this._endBoost('party');
+  }
+
+  // Bei jeder Abfrage, mit der Warmwasser-Betriebsart des Reglers: Eine
+  // Ladung im Store ohne laufenden Timer stammt von vor einem App-Neustart oder
+  // wartet auf ein erneutes Zurückschalten. Sie läuft mit der Restzeit weiter
+  // oder endet, wenn ihre Zeit um ist; ein gescheitertes Zurückschalten kommt
+  // nach AUTO_OFF_RETRY_MS wieder. Steht der Regler nicht mehr im Modus der
+  // Ladung, hat jemand umgestellt, am Bedienteil oder per Flow: Dann bleibt
+  // nur aufzuräumen.
+  async _superviseBoost(mode) {
+    if (this._boostBusy > 0) return;
+    const stored = this.getStoreValue('hotwater_boost');
+    if (!stored) {
+      await this._clearStaleBoostTiles(mode);
+      return;
+    }
+    const cfg = this._boostConfig(stored.kind);
+    if (this[cfg.timer]) return;
+    if (mode !== cfg.mode) {
+      this.log(`${cfg.label}: Betriebsart steht auf ${mode}, die Ladung ist vorbei`);
+      await this.unsetStoreValue('hotwater_boost').catch(() => {});
+      await this.setCapabilityValue(cfg.capability, false).catch(() => {});
+      if (!stored.ended) {
+        await cfg.ended.trigger(this, {}).catch(() => {});
+        await this._notify(cfg.endMessage());
+      }
+      return;
+    }
+    const remaining = stored.until - Date.now();
+    if (!stored.ended && remaining > 0) {
+      this.log(`${cfg.label} läuft nach dem Neustart weiter: noch ${Math.round(remaining / 60000)} min`);
+      this._armBoost(stored.kind, remaining);
+      if (this.getCapabilityValue(cfg.capability) !== true) await this.setCapabilityValue(cfg.capability, true).catch(() => {});
+      return;
+    }
+    if (Date.now() < this._boostRetryAt) return;
+    this._writeFromPoll(`${cfg.label} beenden`, () => this._endBoost(stored.kind));
+  }
+
+  // Kachel an, aber weder Store noch Timer: eine Ladung aus einer Version ohne
+  // Store, die ein Neustart abgehängt hat. Steht der Regler noch in ihrem
+  // Modus, wird sie beendet wie damals, auf Automatik; sonst nur die Kachel.
+  async _clearStaleBoostTiles(mode) {
+    for (const kind of ['aux', 'party']) {
+      const cfg = this._boostConfig(kind);
+      if (this[cfg.timer] || this.getCapabilityValue(cfg.capability) !== true) continue;
+      if (mode === cfg.mode) this._writeFromPoll(`${cfg.label} beenden`, () => this._endBoost(kind));
+      else await this.setCapabilityValue(cfg.capability, false).catch(() => {});
+    }
   }
 
   async _setThermalDisinfectionContinuous(enabled) {
@@ -1809,6 +1883,32 @@ class LuxtronikHeatpumpDevice extends Device {
     await this._writeRaw(27, value);
     await this.setCapabilityValue('thermal_disinfection_continuous', enabled);
     this.log(`Thermische Desinfektion Dauerbetrieb erfolgreich gesetzt: ${value}`);
+  }
+
+  // Schaltet den Desinfektions-Dauerbetrieb ab, wenn der Speicher die
+  // Zieltemperatur erreicht hat. "Abgeschlossen" melden Auslöser und Timeline
+  // erst, wenn der Regler das Abschalten übernommen hat: Vorher kamen sie auch
+  // nach einem Fehlschlag, und mit jeder Abfrage wieder, solange der
+  // Dauerbetrieb lief. Ein gescheiterter Versuch kommt nach AUTO_OFF_RETRY_MS
+  // wieder, einer, der noch läuft, nicht doppelt.
+  async _endThermalDisinfection(target, temperature) {
+    if (this._disinfectionEnding || Date.now() < this._disinfectionRetryAt) return;
+    this._disinfectionEnding = true;
+    this.log(`Thermische Desinfektion: ${target}°C erreicht (${temperature}°C) — deaktiviere Dauerbetrieb`);
+    try {
+      await this._setThermalDisinfectionContinuous(false);
+    } catch (e) {
+      this._disinfectionRetryAt = Date.now() + AUTO_OFF_RETRY_MS;
+      this.error('Desinfektion abschalten fehlgeschlagen:', e.message);
+      return;
+    } finally {
+      this._disinfectionEnding = false;
+    }
+    await this._triggerThermalDisinfEnded.trigger(this, {}).catch(() => {});
+    await this._notify(this._tl(
+      `🧫 Thermische Desinfektion abgeschlossen (${temperature} °C)`,
+      `🧫 Thermal disinfection completed (${temperature} °C)`
+    ));
   }
 
   // ─── Force Poll ────────────────────────────────────────────────────────────
@@ -1864,6 +1964,15 @@ class LuxtronikHeatpumpDevice extends Device {
     this.error(`Abfrage verworfen: Messwerte bzw. Zähler auf einmal 0 (${this._faultyPolls}. in Folge)`);
     if (this._faultyPolls === 1) this._schedulePollAfterWrite(5000, 'Erneute Abfrage nach verworfener Abfrage');
     return true;
+  }
+
+  // Startet einen Schreibvorgang aus _processData heraus, ohne auf ihn zu
+  // warten. Sein Zurücklesen braucht die Verbindung, und die gibt die Abfrage
+  // erst nach _processData frei: Abgewartet hing beides, bis der Notstopp der
+  // Abfrage nach rund 35 s das Gerät als nicht erreichbar meldete — bei jedem
+  // automatischen Ende einer Schnellladung oder Desinfektion.
+  _writeFromPoll(label, action) {
+    Promise.resolve().then(action).catch((e) => this.error(`${label} fehlgeschlagen:`, e.message));
   }
 
   // Schreibt einen Wert und prüft, ob der Regler ihn übernommen hat. Wirft,
@@ -2139,6 +2248,32 @@ class LuxtronikHeatpumpDevice extends Device {
     return runtime <= ENERGY_METER_MIN_HOURS;
   }
 
+  // Kacheln der Wärmemengenzähler, siehe _energyMetered(). Ein Zähler, der
+  // schon einmal gezählt hat, bleibt aber, gemerkt wie optionale Hardware: Ein
+  // späteres 0 – zurückgesetzt oder eine einzelne gestörte Lesung – entfernte
+  // sonst die Kachel und mit ihr den Insights-Verlauf.
+  async _updateEnergyTiles(v) {
+    const energy = [
+      ['meter_energy_heating',  this._n(v.thermalenergy_heating),   v.hours_heating],
+      ['meter_energy_hotwater', this._n(v.thermalenergy_warmwater), v.hours_warmwater],
+      ['meter_energy_total',    this._n(v.thermalenergy_total),     v.hours_compressor1],
+    ];
+    for (const [capability, value, hours] of energy) {
+      const counted = await this._hardwarePresent(capability, value !== null && value > 0 ? value : 0);
+      await this._setCapabilityConditional(capability, value, counted || this._energyMetered(value, hours));
+    }
+  }
+
+  // Kann die Anlage kühlen? Nachweise: die Kühlfreigabe, ein Kühlstundenzähler
+  // über null oder ein kühlfähiger Mischkreis. Einmal erkannt, bleibt es
+  // dabei, gemerkt wie optionale Hardware: Ohne das kamen und gingen die
+  // Kühl-Kacheln samt Insights-Verlauf mit der Freigabe.
+  async _coolingDetected(v, p) {
+    const everRan = (this._n(v.raw_hours_cooling) ?? 0) > 0;
+    const circuit = [p.raw_mixer1_type, p.raw_mixer2_type, p.raw_mixer3_type].some(mixerCanCool);
+    return this._hardwarePresent('cooling', v.FreigabKuehl === 1 || everRan || circuit ? 1 : 0);
+  }
+
   // Temperatur wie _n(), liefert aber null für den Wert eines nicht
   // angeschlossenen Fühlers, damit daraus keine Messung wird.
   _temp(val) {
@@ -2234,6 +2369,15 @@ class LuxtronikHeatpumpDevice extends Device {
   }
 
   // ─── Benachrichtigungen ────────────────────────────────────────────────────
+
+  // Meldet eine Temperaturänderung an die Flows "fiel unter" bzw. "stieg
+  // über", mit vorigem und neuem Wert. Ob eine Schwelle überschritten wurde,
+  // prüft jeder Flow selbst, siehe droppedBelow().
+  async _triggerTemperatureChange(previous, current, droppedTrigger, roseTrigger) {
+    if (previous === null || current === null || previous === current) return;
+    const trigger = current < previous ? droppedTrigger : roseTrigger;
+    await trigger.trigger(this, {}, { temperature: current, previous }).catch(() => {});
+  }
 
   /** Sendet eine Push-Benachrichtigung via Homey Notifications */
   _notify(excerpt) {

@@ -87,7 +87,7 @@ No two Luxtronik installations are wired the same, and the controller answers fo
 | Tile | Hidden when |
 |------|-------------|
 | Heat Source Inlet / Outlet | The controller reports **−50 °C**, its value for an unconnected sensor. Air-source units have no such sensors at all. |
-| Energy Heating / Hot Water / Total | The counter reads 0 kWh although the circuit has run for more than a day — that unit has no heat meter. Below a day of runtime the tile stays, since 0 may simply mean "newly commissioned". |
+| Energy Heating / Hot Water / Total | The counter reads 0 kWh although the circuit has run for more than a day — that unit has no heat meter. Below a day of runtime the tile stays, since 0 may simply mean "newly commissioned". A counter that has counted once keeps its tile, even if it reads 0 later (reset, or a single faulty reading). |
 | Refrigerant pressures, suction temperatures, Compressor 2 Hours, Heat Output, Heat Source Flow Rate | The controller has never reported anything but zero. |
 | Room Temperature Actual / Target | No RBE room unit is connected. |
 | Suction Air Temperature | Not an air-source unit. |
@@ -106,8 +106,8 @@ Once a sensor has reported a real value its tile stays, even when the value legi
 | **Heating Operation Mode**         | Automatic · Auxiliary · Party · Holiday · Off               |
 | **Hot Water Operation Mode**       | Automatic · Auxiliary · Party · Holiday · Off               |
 | **Cooling Operation Mode**         | Off · Automatic (only on devices with cooling support)       |
-| **Hot Water Boost (Auxiliary)**    | Toggle – auxiliary mode, automatic stop                      |
-| **Hot Water Boost (Party)**        | Toggle – party mode, automatic stop                          |
+| **Hot Water Boost (Auxiliary)**    | Toggle – auxiliary mode, automatic stop, then back to the mode before |
+| **Hot Water Boost (Party)**        | Toggle – party mode, automatic stop, then back to the mode before |
 | **Thermal Disinfection**           | Toggle – continuous mode, auto-stop at target temperature    |
 | **Refresh** *(optional)*           | Button – triggers an immediate poll (enable in device settings) |
 
@@ -200,11 +200,15 @@ Two modes are available:
 Both variants:
 - Stop automatically when the hot water temperature reaches the target temperature
 - Stop after the configured maximum duration (default: 60 min., configurable in device settings)
-- Reset the operation mode back to "Automatic" afterwards
+- Switch the hot water operation mode back to what it was before the boost — "Off" stays "Off", "Holiday" stays "Holiday"
 - Fire the flow trigger "Hot Water Boost Ended" exactly once on stop
 - Create a **Timeline entry** when started and when ended
 
-**If the switch back to Automatic fails**, the boost tile is reset anyway and the reason is logged. This matters more than it looks: write timeouts do happen on these controllers, and leaving the tile on while its timer is already gone would mean nothing ever switches the pump back — it would keep running its auxiliary heater. A flow action or the tile switch reports the failure so it is visible; the polling cycle carries on regardless, since a failure here must not cost the rest of that cycle's readings.
+**One boost at a time.** Both write the same operation mode, so starting one ends the other. The switch-back then goes to the mode before the first boost, and extending a running boost keeps it too.
+
+**Restarts.** A running boost is stored with the device, so an app update or a Homey restart no longer strands the heat pump in auxiliary or party mode. With the first poll afterwards the boost continues for its remaining time, or ends if that ran out in the meantime. If someone has changed the hot water mode on the controller in between, the boost counts as over and nothing is switched back.
+
+**If the switch back fails**, the boost tile is reset anyway and the reason is logged. This matters more than it looks: write timeouts do happen on these controllers, and leaving the tile on while its timer is already gone would mean nothing ever switches the pump back — it would keep running its auxiliary heater. A flow action or the tile switch reports the failure so it is visible; the polling cycle carries on regardless. The app tries the switch-back again after 10 minutes, without firing "Hot Water Boost Ended" a second time.
 
 ---
 
@@ -217,6 +221,7 @@ Activates continuous operation (parameter 27) for legionella protection:
 - Manual stop possible at any time
 - Fires the flow trigger "Thermal Disinfection Ended" when it stops on reaching the temperature — not on a manual stop
 - Creates a **Timeline entry** when completed
+- Reports completion only once the controller has accepted the switch-off. If that fails, the app tries again after 10 minutes rather than with every poll.
 
 > **Note:** Requires a connected second heat source (auxiliary heater).
 
@@ -237,7 +242,7 @@ The visibility of cooling capabilities is controlled via the device setting **"C
 | **Always show** | Always visible, regardless of detection — useful when cooling disappears from the tile after the cooling season ends |
 | **Always hide** | Never visible — useful if your heat pump supports cooling but you don't use it |
 
-**How cooling is detected.** The release flag `FreigabKuehl` alone is not enough: it reads 0 whenever the controller is not currently allowed to cool, even on a unit that can, and the cooling tiles then vanished mid-season. The app therefore accepts three independent pieces of evidence, and **what has been detected stays detected**:
+**How cooling is detected.** The release flag `FreigabKuehl` alone is not enough: it reads 0 whenever the controller is not currently allowed to cool, even on a unit that can, and the cooling tiles then vanished mid-season. The app therefore accepts three independent pieces of evidence, and **what has been detected stays detected**, across app restarts too:
 
 - `FreigabKuehl = 1` — cooling is released right now
 - The cooling operating-hours counter is above zero — the unit has cooled at some point, and that counter cannot go back
@@ -414,11 +419,11 @@ Beyond the table above, the device settings hold groups of **controller paramete
 | Outdoor Temperature Limits | Heating limit, max./min. outdoor temperature, setback limit (700, 91, 92, 111) |
 | Heating Circuit Limits | Return hysteresis, supply/return limit, return minimum (88, 149, 87, 979) |
 | Setback | Delta for heating and MK1 (13, 16) |
-| Hot Water | TDI setpoint, hysteresis, hysteresis restore value (47, 74) |
+| Hot Water | Max. hot water temperature, TDI setpoint, hysteresis, hysteresis restore value (973, 47, 74) |
 | Auxiliary Heater / 2nd Compressor | ZWE release, 2nd compressor heating and hot water (90, 95, 96) |
 | Cooling | Release and inlet temperature (110, 132) |
 
-Not every controller supports every parameter. When a value is not reported, the matching capability stays hidden; a value the controller does not keep is named in a message after saving (see *Heating Correction*). The labels and hints of all settings exist in English, German, Dutch and French.
+Not every controller supports every parameter. When a value is not reported, the matching capability stays hidden and the setting is not written — the max. hot water temperature has no tile of its own, so there the app checks the parameter list instead; a value the controller does not keep is named in a message after saving (see *Heating Correction*). The labels and hints of all settings exist in English, German, Dutch and French.
 
 ---
 
@@ -428,23 +433,23 @@ Not every controller supports every parameter. When a value is not reported, the
 
 | Card                                       | Token      | Description                                   |
 |--------------------------------------------|------------|-----------------------------------------------|
-| Heating Operation Mode Changed             | `mode`     | New mode as text                              |
-| Hot Water Operation Mode Changed           | `mode`     | New mode as text                              |
+| Heating Operation Mode Changed             | `mode`     | New mode as text; once per change, whether made on the controller or from Homey |
+| Hot Water Operation Mode Changed           | `mode`     | New mode as text; once per change, whether made on the controller or from Homey |
 | Cooling Operation Mode Changed             | `mode`     | New mode as text (Off / Automatic)            |
 | Heat Pump Status Changed                   | `state`    | New status as text                            |
 | Error Occurred                             | `error`, `hint` | Fires for every new entry in the controller's error log, as code and text in your language, e.g. `701 - Low pressure fault`; the hint gives the acknowledgement as shown on the display (e.g. *Please call installer*) and what to check. An error that cleared itself before the next poll or occurred while Homey restarted is reported too; entries already in the log when the app first starts are not. |
 | Error Cleared                              | –          | When the error disappears                     |
 | Hot Water Boost (Auxiliary) Started        | `duration` | Duration in minutes                           |
-| Hot Water Boost (Auxiliary) Ended          | –          | When the boost ends, automatically or switched off |
+| Hot Water Boost (Auxiliary) Ended          | –          | When the boost ends — automatically, switched off, or replaced by the party boost; once per boost |
 | Hot Water Boost (Party) Started            | `duration` | Duration in minutes                           |
-| Hot Water Boost (Party) Ended              | –          | When the boost ends, automatically or switched off |
+| Hot Water Boost (Party) Ended              | –          | When the boost ends — automatically, switched off, or replaced by the auxiliary boost; once per boost |
 | Thermal Disinfection Ended                 | –          | When the target temperature is reached (not on manual disable) |
 | Device Unavailable                         | –          | When the device becomes unreachable — a failed poll, a poll timeout or the watchdog; once per outage |
 | Device Available                           | –          | When connection is restored                   |
-| Outdoor Temperature Dropped Below … °C    | Threshold  | Threshold comparison with current value       |
-| Outdoor Temperature Rose Above … °C       | Threshold  | Threshold comparison with current value       |
-| Room Temperature Dropped Below … °C       | Threshold  | Only when RBE room display is connected       |
-| Room Temperature Rose Above … °C          | Threshold  | Only when RBE room display is connected       |
+| Outdoor Temperature Dropped Below … °C    | Threshold  | When the temperature crosses the threshold between two polls, not on every change beyond it |
+| Outdoor Temperature Rose Above … °C       | Threshold  | When the temperature crosses the threshold between two polls, not on every change beyond it |
+| Room Temperature Dropped Below … °C       | Threshold  | Like the outdoor card; only when an RBE room display is connected |
+| Room Temperature Rose Above … °C          | Threshold  | Like the outdoor card; only when an RBE room display is connected |
 
 ### Conditions
 
@@ -454,8 +459,8 @@ Not every controller supports every parameter. When a value is not reported, the
 | Hot Water Operation Mode Is …             | Dropdown               |
 | Cooling Operation Mode Is …               | Dropdown (Off / Automatic) |
 | Heat Pump Status Is …                     | Dropdown               |
-| Heating Status Is …                       | Free text              |
-| Hot Water Status Is …                     | Dropdown (4 values)    |
+| Heating Status Is …                       | Free text — a full status name matches exactly that status, in any Homey language; part of a name ("Heiz") matches as text |
+| Hot Water Status Is …                     | Dropdown (4 values), in any Homey language |
 | Outdoor Temperature Is Above … °C         | Number                 |
 | Outdoor Temperature Is Below … °C         | Number                 |
 | Room Temperature Is Above … °C            | Number                 |
@@ -529,6 +534,8 @@ The detailed heating status (`heating_state_string`) comes from the controller. 
 | 15   | Operating Limit | Observed together with error 718 "Max. Aussentemp." — the heat pump is outside its operating limits. The label is deliberately neutral: it is unclear whether 15 means specifically the outdoor temperature limit or generically "blocked due to fault". |
 | 18   | Compressor Heating Up | Compressor warm-up phase |
 
+The condition *Heating Status Is …* takes free text. A full status name from this table or the one above — in any of the four languages, upper or lower case — matches exactly that status, so a flow keeps working when the Homey language changes, and "Heating" does not match "DHW Reheating". Part of a name ("Heiz") is still matched as text. *Hot Water Status Is …* likewise compares the status, not the translated tile text.
+
 ---
 
 ## Notes & Warnings
@@ -536,7 +543,7 @@ The detailed heating status (`heating_state_string`) comes from the controller. 
 > ⚠️ **Caution:** Incorrect settings can put the heat pump into an error state. Only make changes if the function of the parameter is known.
 
 - The thermostat correction (`target_temperature.heating`) shifts the heating curve by the set value. When it seems to have no effect, see *Heating Correction*.
-- All write operations are sent to the controller immediately and read back; a flow card or control fails if the controller did not keep the value (see *Heating Correction*). A confirmation poll follows 3 seconds after the read-back to update the tiles without waiting for the next poll interval.
+- All write operations are sent to the controller immediately and read back; a flow card or control fails if the controller did not keep the value (see *Heating Correction*). A confirmation poll follows 3 seconds after the read-back to update the tiles without waiting for the next poll interval. A write that a poll starts itself — ending a boost or thermal disinfection on reaching the temperature — runs after that poll: its read-back needs the connection the poll holds, and waiting for it used to stall both until the poll's backstop marked the device unavailable for about 35 seconds.
 - Write operations are serialized — if two flow actions trigger writes simultaneously (e.g. "Restore hysteresis" + "Set operation mode"), they are queued and executed one after the other to avoid TCP conflicts. That covers every write, including the device settings that go to raw parameters.
 - Write protection prevents polling cycles from immediately overwriting manually set values (120s protection window). A value the controller did not accept lifts it at once, so the next poll shows what the controller really has.
 - The cooling mode capability visibility is configurable: Auto (see *Cooling Mode*), Always show, or Always hide.
@@ -556,7 +563,7 @@ The app communicates via TCP (port 8889) directly with the Luxtronik controller.
 |--------|---------|
 | [`lib/luxtronik2/`](lib/luxtronik2/) | The protocol library [`luxtronik2`](https://github.com/coolchip/luxtronik2) 2.7.2 (MIT), **bundled rather than pulled from npm**. Upstream has published nothing since February 2024 and the issue tracker is unattended, but the library needed fixes the app cannot apply from outside. `types.js` and `utils.js` are verbatim copies of the published tarball; the deviations in `luxtronik.js` and `utils.js` are documented in [`lib/luxtronik2/README.md`](lib/luxtronik2/README.md). |
 | [`lib/luxtronik-registers.js`](lib/luxtronik-registers.js) | Named registers — 99 calculations, 105 parameters, 43 visibilities. The library addresses registers by bare array offsets scattered through its source; this table gives them names so further sensors can be added without guessing at positions. Each entry carries the controller's own field name as a comment. |
-| [`lib/luxtronik-codes.js`](lib/luxtronik-codes.js) | Translation tables the bundled library lacks: switch-off reasons in EN/DE/NL/FR (the library maps only codes 0–9 and only to German, while controllers emit codes up to 27), error texts and hints from `luxtronik-errors.js`, heating status texts and defrost variants in EN/DE/NL/FR, mixing circuit types, and the room unit and control mode codes behind the configuration log line. Also builds the parameter-change log line, filters the error and switch-off logs down to entries a controller can actually have written, tells a hot water sensor from the placeholder of an unconnected input, decides from the cooling counter whether the unit is cooling, reads a written value back to see whether the controller kept it, picks the new entries out of the error log, and tells an unusable poll of zeros from a real one. |
+| [`lib/luxtronik-codes.js`](lib/luxtronik-codes.js) | Translation tables the bundled library lacks: switch-off reasons in EN/DE/NL/FR (the library maps only codes 0–9 and only to German, while controllers emit codes up to 27), error texts and hints from `luxtronik-errors.js`, heating and hot water status texts and defrost variants in EN/DE/NL/FR, mixing circuit types, and the room unit and control mode codes behind the configuration log line. Also builds the parameter-change log line, filters the error and switch-off logs down to entries a controller can actually have written, tells a hot water sensor from the placeholder of an unconnected input, decides from the cooling counter whether the unit is cooling, reads a written value back to see whether the controller kept it, picks the new entries out of the error log, and tells an unusable poll of zeros from a real one. It chooses the hot water setpoint register by firmware and limits the setpoint to the max. hot water temperature, maps a status name in any language back to its code for the flow conditions, and decides when a temperature has crossed a flow's threshold. |
 | [`lib/luxtronik-errors.js`](lib/luxtronik-errors.js) | The controller's error codes, 88 of them, each with a short text, a hint and how it is acknowledged, in EN/DE/NL/FR. Taken from the author's own Windows app for Luxtronik controllers, whose German texts follow the Luxtronik operating manuals; the translations are machine-made and may differ from the wording on the controller display. |
 | [`lib/luxtronik-discovery.js`](lib/luxtronik-discovery.js) | UDP broadcast search. Magic packet `2000;111;1;\0` to ports 4444 and 47808; a controller answers with `2500;111;…` whose third field carries its data port. Protocol taken from [python-luxtronik](https://github.com/Bouni/python-luxtronik) (`luxtronik/discover.py`). |
 
@@ -575,7 +582,7 @@ Both tables are transcribed from [BenPru/luxtronik](https://github.com/BenPru/lu
 
 ```bash
 npm install
-npm test          # 122 tests, no Homey required
+npm test          # 143 tests, no Homey required
 npm run lint
 npm run validate  # homey app validate
 npm run build     # homey app build
@@ -590,13 +597,13 @@ Lint, tests and a publish-level validation run on every push to `main` and on ev
 
 | File | Covers |
 |------|--------|
-| [`conversions.test.js`](test/conversions.test.js) | The unit conversions — seconds to hours, tenths and hundredths, the `-50 °C` sentinel of an unconnected sensor, and when a `0 kWh` reading means "no heat meter" rather than "nothing yet". A value that turns out to be a placeholder or garbage empties its tile instead of staying on it, and the error log and hot water temperature reach their tiles only through the plausibility checks. The error reaches the tile and the *Error Occurred* trigger translated, with the hint as a token of its own. Timeline state names and the hot water status exist in all four languages, and a missing language falls back to English rather than to the internal name. "Cooling" in the state comes from the cooling counter, never from the release flag, and without a previous reading the state shown before stays. |
-| [`codes.test.js`](test/codes.test.js) | The translation tables against the bundled library: every state code it knows must have a text, and every heating status and defrost variant exists in all four languages, defrost variants must follow its own logic, and switch-off codes 0–27 must be complete. Also the controller configuration line in the log: an RBE from firmware 2.0 on counts as RBE Plus, and a register the controller does not send is named as missing rather than read as 0. And the parameter-change line: registers by name with their raw values, a counter muted after three polls in a row but not a setting changed twice with a pause between, at most 20 entries per line, and a shorter parameter list compared only where both have values. The random contents of an error log that was never written are dropped, both by date and by code, and the 75 °C placeholder of a heating-only unit does not count as hot water — unless hot water hours have run. Cooling counts only while the cooling counter rises between two polls and never on a unit whose counter has never run; a glitch poll reading 0, a read seconds after the last one and a counter reset are not taken for a change. A written value counts as accepted only once the controller reports it back, with further reads after 0.5, 1 and 2 s for a controller that takes a moment; without a single successful read it stays unchecked. Every error code the library knows has a text and a hint in all four languages, an unknown code reads "Unknown" in the user's language, the hint starts with the acknowledgement as on the display, and every switch-off reason exists in French too. New error log entries are reported oldest first and only once, never the entries already there at first start, and the first entry after an empty log is not lost. A poll of nothing but zeros is unusable, as is one where every counter that was running drops to 0 at once; a single counter reset is not. The hot water setpoint register follows the firmware — parameter 2 up to x.88.2, 105 from x.88.3, an unreadable version counting as current — the thermostat falls back to the other register only when that one is missing or outside 30–65 °C, and the setpoint is limited to the max. hot water temperature where the controller reports one. The thermostat ends there too, unless the current setpoint is higher, and never outside 30–65 °C. |
+| [`conversions.test.js`](test/conversions.test.js) | The unit conversions — seconds to hours, tenths and hundredths, the `-50 °C` sentinel of an unconnected sensor, and when a `0 kWh` reading means "no heat meter" rather than "nothing yet". A value that turns out to be a placeholder or garbage empties its tile instead of staying on it, and the error log and hot water temperature reach their tiles only through the plausibility checks. The error reaches the tile and the *Error Occurred* trigger translated, with the hint as a token of its own. Timeline state names and the hot water status exist in all four languages, and a missing language falls back to English rather than to the internal name. "Cooling" in the state comes from the cooling counter, never from the release flag, and without a previous reading the state shown before stays. An energy counter that has counted keeps its tile when it reads 0 later, and detected cooling stays detected. |
+| [`codes.test.js`](test/codes.test.js) | The translation tables against the bundled library: every state code it knows must have a text, and every heating status and defrost variant exists in all four languages, defrost variants must follow its own logic, and switch-off codes 0–27 must be complete. Also the controller configuration line in the log: an RBE from firmware 2.0 on counts as RBE Plus, and a register the controller does not send is named as missing rather than read as 0. And the parameter-change line: registers by name with their raw values, a counter muted after three polls in a row but not a setting changed twice with a pause between, at most 20 entries per line, and a shorter parameter list compared only where both have values. The random contents of an error log that was never written are dropped, both by date and by code, and the 75 °C placeholder of a heating-only unit does not count as hot water — unless hot water hours have run. Cooling counts only while the cooling counter rises between two polls and never on a unit whose counter has never run; a glitch poll reading 0, a read seconds after the last one and a counter reset are not taken for a change. A written value counts as accepted only once the controller reports it back, with further reads after 0.5, 1 and 2 s for a controller that takes a moment; without a single successful read it stays unchecked. Every error code the library knows has a text and a hint in all four languages, an unknown code reads "Unknown" in the user's language, the hint starts with the acknowledgement as on the display, and every switch-off reason exists in French too. New error log entries are reported oldest first and only once, never the entries already there at first start, and the first entry after an empty log is not lost. A poll of nothing but zeros is unusable, as is one where every counter that was running drops to 0 at once; a single counter reset is not. The hot water setpoint register follows the firmware — parameter 2 up to x.88.2, 105 from x.88.3, an unreadable version counting as current — the thermostat falls back to the other register only when that one is missing or outside 30–65 °C, and the setpoint is limited to the max. hot water temperature where the controller reports one. The thermostat ends there too, unless the current setpoint is higher, and never outside 30–65 °C. The temperature triggers fire on crossing their threshold, not on every change beyond it. Both status conditions recognise a status in any language — "Temp. OK" matches "Temperature OK", "Heizbetrieb" matches "Heating" — and "Heating" no longer matches "DHW Reheating"; every status name belongs to exactly one code. |
 | [`protocol.test.js`](test/protocol.test.js) | The library against a fake controller speaking the real 3002/3003/3004/3005 protocol — short parameter lists, a reply split across TCP segments, a controller that goes quiet mid-read. A write reports the register and raw value that went out, and only reading back tells a kept value from a dropped one: the acknowledgement is the same. |
 | [`discovery.test.js`](test/discovery.test.js) | The UDP search: valid replies, missing or nonsensical ports, foreign traffic on the same ports, and the app's own broadcast coming back. |
-| [`boost.test.js`](test/boost.test.js) | Ending a hot water boost, including a failed switch-back — the tile must reset and the poll must carry on. |
-| [`flow.test.js`](test/flow.test.js) | Flow conditions and actions with two heat pumps: every listener must act on the device chosen in the flow, not on whichever one started last, and a failed boost stop must still fail the flow. An action that arrives while the device is still starting must find its state ready: everything onInit sets up and an action can reach comes before the first `await`. *Device Unavailable* must fire on every way into unavailability — failed poll, poll timeout, watchdog — and only once per outage, and after an outage the cooling counter starts afresh instead of comparing across the gap. Every write, raw registers included, goes through the write queue and its timeouts: the library's write functions may only be called in one place. |
-| [`poll.test.js`](test/poll.test.js) | What a poll takes over and what it reports. A poll of nothing but zeros reaches no tile and no trigger, does not count as successful and is repeated once after 5 s; a single reset counter still gets through. *Error Occurred* fires for an error that cleared itself before the next poll and for one that occurred during a restart, oldest first and in the user's language, but not for entries already in the log after an update, and the known state of the log survives a restart. |
+| [`boost.test.js`](test/boost.test.js) | Hot water boost with fake timers. Ending one, including a failed switch-back — the tile must reset, the poll must carry on and the switch-back is retried later without a second *ended* trigger. The switch-back goes to the mode before the boost, one boost replaces the other, and extending one keeps its original mode. After a restart a stored boost continues for its remaining time or ends with the first poll; a mode changed on the controller in between is left alone, and a boost from a version without the store is ended as before. |
+| [`flow.test.js`](test/flow.test.js) | Flow conditions and actions with two heat pumps: every listener must act on the device chosen in the flow, not on whichever one started last, and a failed boost stop must still fail the flow. An action that arrives while the device is still starting must find its state ready: everything onInit sets up and an action can reach comes before the first `await`. *Device Unavailable* must fire on every way into unavailability — failed poll, poll timeout, watchdog — and only once per outage, and after an outage the cooling counter starts afresh instead of comparing across the gap. Every write, raw registers included, goes through the write queue and its timeouts: the library's write functions may only be called in one place. Both status conditions hold in any Homey language, and a mode change made from Homey fires *Operation Mode Changed* once, from the confirmation poll. |
+| [`poll.test.js`](test/poll.test.js) | What a poll takes over and what it reports. A poll of nothing but zeros reaches no tile and no trigger, does not count as successful and is repeated once after 5 s; a single reset counter still gets through. *Error Occurred* fires for an error that cleared itself before the next poll and for one that occurred during a restart, oldest first and in the user's language, but not for entries already in the log after an update, and the known state of the log survives a restart. A write the poll starts itself does not wait for the poll, so the backstop no longer fires; neither `_processData` nor the boost supervision awaits a write. Thermal disinfection reports completion only after an accepted switch-off, retries after 10 minutes instead of every poll and never runs two switch-offs at once. The temperature triggers pass the previous value along. |
 | [`write.test.js`](test/write.test.js) | Writing with read-back: a flow action fails when the controller keeps its old value, lifts the write protection and still resumes polling; a read-back that fails leaves the write unchecked rather than failed. The hot water setpoint goes to the register the firmware evaluates — before x.88.3 also to the desired value, without failing on it — is limited to the max. hot water temperature, which the fake controller enforces like the real one, and fails naming that register when the controller drops it, and the thermostat reads the register the app writes. Its upper end follows the max. hot water temperature, set only when it changes, not retried on every poll after a failure, and without losing the other options; device settings name what was not accepted, the read-back waits for a running poll and holds the single connection while it reads, a read-back of nothing but zeros counts as unchecked, and no write bypasses it. |
 | [`manifest.test.js`](test/manifest.test.js) | The manifest against the code: every flow card registered, every capability written, every settable capability with a listener, no capability definition left that nothing uses or removes from old devices, no unreachable method, and every icon theme-aware and correctly scaled, with no visible tile left on Homey's placeholder icon. Tiles, flow cards, selection values and the device settings exist in all four languages, with no German left in an English settings group, cooling has one French name throughout, and the title sync also reaches tiles without a capability definition of their own. |
 

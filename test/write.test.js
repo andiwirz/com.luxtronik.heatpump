@@ -286,6 +286,44 @@ test('Geräteeinstellungen melden, was der Regler nicht übernommen hat', async 
   }), undefined);
 });
 
+test('die Max. Warmwassertemperatur lässt sich in den Geräteeinstellungen setzen', async () => {
+  // Parameter 973 hat keine Kachel; ob der Regler ihn gemeldet hat, steht in
+  // der Parameterliste. Ältere Firmware kennt ihn nicht, dann bleibt er unberührt.
+  const { onSettings } = extractMethod('onSettings', undefined, { hotWaterMaximum });
+  const { _setHotwaterMaxTemp } = extractMethod('_setHotwaterMaxTemp', undefined, { PARAMETERS });
+  const written = [];
+  const dev = {
+    onSettings,
+    _setHotwaterMaxTemp,
+    homey: { manifest: app, i18n: { getLanguage: () => 'de' }, __: () => '' },
+    _firstPollDone: true,
+    _rawParameters: Object.assign([], { 973: 520 }),
+    _writeProtectUntil: {},
+    _setWriteProtect(key, ms) { this._writeProtectUntil[key] = Date.now() + ms; },
+    _writeRaw: async (index, raw) => { written.push([index, raw]); },
+    getCapabilityValue: () => null,
+    hasCapability: () => false,
+    _meterPowerActive: () => false,
+    _stopPolling: () => {}, _ensurePump: () => true, _resetPump: () => {},
+    _doPoll: async () => {}, _startPolling: () => {}, _startWatchdog: () => {},
+    error: () => {}, log: () => {},
+  };
+  const change = (value) => dev.onSettings({
+    newSettings: { ip: '10.0.0.2', port: 8889, poll_interval: 60, hotwater_max_temp_setting: value },
+    changedKeys: ['hotwater_max_temp_setting'],
+  });
+  await change(55);
+  assert.deepStrictEqual(written, [[973, 550]], 'in Zehnteln');
+  assert.ok(dev._writeProtectUntil.hotwater_max_temp > Date.now(), 'die nächste Abfrage setzt die Einstellung nicht gleich zurück');
+  await change(70);
+  assert.strictEqual(written.length, 1, 'ausserhalb von 30–65 °C nichts');
+  dev._rawParameters = new Array(900).fill(0);
+  await change(60);
+  assert.strictEqual(written.length, 1, 'ohne P0973 nichts');
+  // Nach jeder Abfrage zeigt die Einstellung den Wert des Reglers.
+  assert.match(device, /_syncSetting\('hotwater_max_temp', 'hotwater_max_temp_setting', hotWaterMaximum\(this\._rawParameters\)\)/);
+});
+
 test('das Zurücklesen wartet eine laufende Abfrage ab und belegt die Verbindung', async () => {
   // Der Regler verträgt nur eine Verbindung. Läuft noch ein Poll, etwa der
   // Bestätigungs-Poll eines vorigen Schreibvorgangs, wartet das Zurücklesen;

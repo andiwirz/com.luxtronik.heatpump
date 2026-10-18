@@ -12,11 +12,12 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
 const { ROOT, extractMethod } = require('./helpers');
-const { coolingCounterState } = require('../lib/luxtronik-codes');
+const { coolingCounterState, heatingStateIs, hotWaterStateCode } = require('../lib/luxtronik-codes');
 
 const app = JSON.parse(fs.readFileSync(path.join(ROOT, 'app.json'), 'utf8'));
 const device = fs.readFileSync(path.join(ROOT, 'drivers/luxtronik-heatpump/device.js'), 'utf8');
-const { _registerFlowCards } = extractMethod('_registerFlowCards', 'drivers/luxtronik-heatpump/driver.js');
+const { _registerFlowCards } = extractMethod('_registerFlowCards', 'drivers/luxtronik-heatpump/driver.js',
+  { heatingStateIs, hotWaterStateCode });
 
 // Kartenargumente, wie Homey sie liefert — eine Obermenge für alle Karten,
 // überzählige liest kein Listener.
@@ -209,4 +210,44 @@ test('nach einem Ausfall vergleicht der Kühlzähler nicht über die Lücke', ()
   };
   dev._markUnavailable('Poll-Fehler');
   assert.deepStrictEqual(dev._coolingCounter, coolingCounterState());
+});
+
+test('die Status-Bedingungen gelten in jeder Sprache der Homey', async () => {
+  // "Warmwasser Status ist Temp. OK" verglich die Auswahl mit dem Kacheltext
+  // "Temperatur OK" und war nie wahr; auf Englisch, Niederländisch und
+  // Französisch traf keine der vier Auswahlen. "Heizungsstatus ist Heating"
+  // traf als Teilstring auch "DHW Reheating".
+  const listeners = registerListeners();
+  const tile = (values) => ({ getCapabilityValue: (cap) => values[cap] ?? null });
+  const hotWater = listeners['conditions/hotwater_state_is'];
+  for (const shown of ['Temperatur OK', 'Temperature OK', 'Temperatuur OK', 'Température OK']) {
+    assert.strictEqual(await hotWater({ device: tile({ hotwater_state_string: shown }), state: 'Temp. OK' }), true, shown);
+    assert.strictEqual(await hotWater({ device: tile({ hotwater_state_string: shown }), state: 'Aufheizen' }), false, shown);
+  }
+  assert.strictEqual(await hotWater({ device: tile({}), state: 'Aus' }), false, 'ohne Wert');
+  const heating = listeners['conditions/heating_state_is'];
+  assert.strictEqual(await heating({ device: tile({ heating_state_string: 'DHW Reheating' }), state: 'Heating' }), false);
+  assert.strictEqual(await heating({ device: tile({ heating_state_string: 'Heating' }), state: 'Heizbetrieb' }), true);
+});
+
+test('"Betriebsart geändert" meldet eine Änderung aus der App nur einmal', async () => {
+  // Die Setzer lösten selbst aus, und die Bestätigungsabfrage danach noch
+  // einmal: jede Änderung aus der App kam doppelt, eine Schnellladung viermal.
+  const fired = [];
+  const dev = {
+    ...extractMethod('_setHeatingOperationMode'),
+    ...extractMethod('_setWarmwaterOperationMode'),
+    _setWriteProtect: () => {},
+    _write: async () => ({ accepted: true }),
+    setCapabilityValue: async () => {},
+    _triggerHeatingModeChanged: { trigger: async () => { fired.push('heating'); } },
+    _triggerWarmwaterModeChanged: { trigger: async () => { fired.push('hotwater'); } },
+  };
+  await dev._setHeatingOperationMode(2);
+  await dev._setWarmwaterOperationMode(1);
+  assert.deepStrictEqual(fired, [], 'das meldet die Bestätigungsabfrage');
+  // Die Abfrage meldet weiter jede Änderung, gleich woher.
+  const src = device.replace(/\r\n/g, '\n');
+  assert.match(src, /this\._lastHeatingMode !== modeStr\) \{\n\s+await this\._triggerHeatingModeChanged\.trigger/);
+  assert.match(src, /this\._lastWarmwaterMode !== modeStr\) \{\n\s+await this\._triggerWarmwaterModeChanged\.trigger/);
 });

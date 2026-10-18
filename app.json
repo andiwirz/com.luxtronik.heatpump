@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.luxtronik.heatpump",
-  "version": "2.1.16",
+  "version": "2.1.17",
   "compatibility": ">=5.0.0",
   "sdk": 3,
   "name": {
@@ -2735,6 +2735,26 @@
             "fr": "Eau chaude"
           },
           "children": [
+            {
+              "id": "hotwater_max_temp_setting",
+              "type": "number",
+              "label": {
+                "en": "Max. Hot Water Temperature (°C)",
+                "de": "Max. Warmwassertemperatur (°C)",
+                "nl": "Max. warmwatertemperatuur (°C)",
+                "fr": "Température max. eau chaude (°C)"
+              },
+              "value": 65,
+              "min": 30,
+              "max": 65,
+              "step": 1,
+              "hint": {
+                "en": "Highest hot water setpoint the controller accepts (parameter 973, 'Max. WW-Temp.', an installer setting). The hot water thermostat ends here, and a higher setpoint is limited to it. Changing this setting writes the value directly to the controller. If the controller does not report the parameter (older firmware), nothing is written.",
+                "de": "Höchstes Warmwasser-Soll, das der Regler annimmt (Parameter 973, „Max. WW-Temp.“, eine Installateur-Einstellung). Der Warmwasser-Thermostat endet hier, ein höheres Soll wird darauf begrenzt. Änderung wird direkt am Controller gespeichert. Meldet der Regler den Parameter nicht (ältere Firmware), wird nichts geschrieben.",
+                "nl": "Hoogste warmwater-setpoint dat de regelaar aanneemt (parameter 973, 'Max. WW-Temp.', een installateursinstelling). De warmwaterthermostaat eindigt hier, en een hoger setpoint wordt daartoe begrensd. Een wijziging wordt direct in de regelaar opgeslagen. Meldt de regelaar de parameter niet (oudere firmware), dan wordt er niets geschreven.",
+                "fr": "Consigne d'eau chaude la plus élevée acceptée par le régulateur (paramètre 973, « Max. WW-Temp. », un réglage de l'installateur). Le thermostat d'eau chaude s'arrête ici, et une consigne plus élevée y est limitée. Une modification est enregistrée directement dans le régulateur. Si le régulateur ne signale pas ce paramètre (micrologiciel plus ancien), rien n'est écrit."
+              }
+            },
             {
               "id": "tdi_setpoint_setting",
               "type": "number",

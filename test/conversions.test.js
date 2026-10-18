@@ -6,7 +6,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
 const { extractMethod, extractConst } = require('./helpers');
-const { coolingCounterState, coolingCounterRunning } = require('../lib/luxtronik-codes');
+const { coolingCounterState, coolingCounterRunning, mixerCanCool } = require('../lib/luxtronik-codes');
 
 const dev = {
   ...extractMethod('_n'),
@@ -73,8 +73,9 @@ test('Timeline-Status und Warmwasserstatus gibt es in allen vier Sprachen', () =
     return new Function(`return ${src.slice(start + `const ${name} = `.length, src.indexOf('\n};', start) + 2)};`)();
   };
   const missing = [];
-  for (const name of ['STATE_TIMELINE_LABELS', 'HOTWATER_STATE_MAP']) {
-    for (const [key, entry] of Object.entries(table(name))) {
+  const tables = { STATE_TIMELINE_LABELS: table('STATE_TIMELINE_LABELS'), HOTWATER_STATES: require('../lib/luxtronik-codes').HOTWATER_STATES };
+  for (const [name, entries] of Object.entries(tables)) {
+    for (const [key, entry] of Object.entries(entries)) {
       for (const lang of ['en', 'de', 'nl', 'fr']) if (!entry[lang]) missing.push(`${name}.${key} ${lang}`);
     }
   }
@@ -115,7 +116,7 @@ test('„Kühlen“ kommt vom Kühlzähler, nicht von der Freigabe', () => {
     .replace(/\/\/.*$/gm, '');
   const uses = code.split('\n').filter((line) => line.includes('FreigabKuehl'));
   assert.strictEqual(uses.length, 1, uses.join('\n'));
-  assert.match(uses[0], /coolingDetected/);
+  assert.match(uses[0], /_hardwarePresent\('cooling'/, 'nur als Nachweis für die Kühl-Kacheln');
   assert.match(code, /coolingRuns && stateSlug === 'heating' && rawState === 0/, 'Status');
   assert.match(code, /coolingRuns && code === 0/, 'Heizungsstatus');
 });
@@ -196,4 +197,41 @@ test('_energyMetered: 0 kWh beweist erst mit Laufzeit einen fehlenden Zähler', 
   // eine vorhandene Kachel zu entfernen.
   assert.strictEqual(dev._energyMetered(0, 'no'), true);
   assert.strictEqual(dev._energyMetered(null, 1000), false, 'kein Wert, nichts anzuzeigen');
+});
+
+test('Energie- und Kühl-Kacheln bleiben, wenn ein Nachweis einmal fehlt', async () => {
+  // Ein Wärmemengenzähler, der einmal 0 meldete – zurückgesetzt oder eine
+  // gestörte Lesung –, verlor seine Kachel samt Insights-Verlauf. Die
+  // Kühl-Kacheln kamen und gingen mit der Freigabe.
+  const shown = {};
+  const make = () => ({
+    ...dev,
+    ...extractMethod('_updateEnergyTiles'),
+    ...extractMethod('_coolingDetected', undefined, { mixerCanCool }),
+    ...extractMethod('_hardwarePresent'),
+    _hardwareSeen: {},
+    setStoreValue: async () => {},
+    error: () => {},
+    _setCapabilityConditional: async (capability, value, condition) => { shown[capability] = condition; },
+  });
+  const values = (heating) => ({
+    thermalenergy_heating: heating, hours_heating: 3000,
+    thermalenergy_warmwater: 100, hours_warmwater: 50,
+    thermalenergy_total: 200, hours_compressor1: 3050,
+  });
+  const counted = make();
+  await counted._updateEnergyTiles(values(1500.5));
+  assert.strictEqual(shown.meter_energy_heating, true);
+  await counted._updateEnergyTiles(values(0));
+  assert.strictEqual(shown.meter_energy_heating, true, 'zurückgesetzt: die Kachel bleibt');
+  // Ohne Zähler wie bisher: 0 kWh nach langer Laufzeit ergibt keine Kachel.
+  const unmetered = make();
+  await unmetered._updateEnergyTiles(values(0));
+  assert.strictEqual(shown.meter_energy_heating, false);
+
+  const mixers = { raw_mixer1_type: 0, raw_mixer2_type: 0, raw_mixer3_type: 0 };
+  assert.strictEqual(await counted._coolingDetected({ FreigabKuehl: 1, raw_hours_cooling: 0 }, mixers), true);
+  assert.strictEqual(await counted._coolingDetected({ FreigabKuehl: 0, raw_hours_cooling: 0 }, mixers), true, 'erkannt bleibt erkannt');
+  assert.strictEqual(await unmetered._coolingDetected({ FreigabKuehl: 0, raw_hours_cooling: 0 }, mixers), false);
+  assert.strictEqual(await unmetered._coolingDetected({ FreigabKuehl: 0, raw_hours_cooling: 0 }, { ...mixers, raw_mixer2_type: 3 }), true, 'kühlfähiger Mischkreis');
 });

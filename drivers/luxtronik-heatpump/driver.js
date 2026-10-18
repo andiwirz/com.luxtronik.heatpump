@@ -3,6 +3,7 @@
 const { Driver } = require('homey');
 const luxtronik  = require('../../lib/luxtronik2/luxtronik');
 const { discover } = require('../../lib/luxtronik-discovery');
+const { heatingStateIs, hotWaterStateCode } = require('../../lib/luxtronik-codes');
 
 // Obergrenze für den Verbindungstest beim Pairing. Ein vollständiger Lesevorgang
 // dauert auf einem gesunden Controller rund 0,2 s. Ohne Deckel hängt der Dialog
@@ -56,17 +57,13 @@ class LuxtronikHeatpumpDriver extends Driver {
     this.homey.flow.getConditionCard('device_is_available')
       .registerRunListener((args) => args.device.getAvailable());
 
+    // Beide vergleichen Codes, nicht die Kacheltexte in der Sprache der Homey,
+    // siehe heatingStateIs() und hotWaterStateCode().
     this.homey.flow.getConditionCard('heating_state_is')
-      .registerRunListener((args) => {
-        const current = args.device.getCapabilityValue('heating_state_string') || '';
-        return current.toLowerCase().includes(args.state.toLowerCase());
-      });
+      .registerRunListener((args) => heatingStateIs(args.device.getCapabilityValue('heating_state_string') || '', args.state));
 
     this.homey.flow.getConditionCard('hotwater_state_is')
-      .registerRunListener((args) => {
-        const current = args.device.getCapabilityValue('hotwater_state_string') || '';
-        return current === args.state;
-      });
+      .registerRunListener((args) => hotWaterStateCode(args.device.getCapabilityValue('hotwater_state_string') || '') === args.state);
 
     this.homey.flow.getConditionCard('outdoor_temp_above')
       .registerRunListener((args) => {

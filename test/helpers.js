@@ -40,7 +40,8 @@ function extractMethod(name, file = 'drivers/luxtronik-heatpump/device.js', impo
   // Einzeilige Modulkonstanten mitnehmen: _temp und _energyMetered greifen auf
   // UNWIRED_SENSOR_TEMPERATURE bzw. ENERGY_METER_MIN_HOURS zu, die ausserhalb
   // der Methode stehen.
-  const scope = [...src.matchAll(/^const ([A-Z][A-Z0-9_]*)\s*=\s*(-?[\d.]+|'[^']*'|"[^"]*"|true|false);\s*$/gm)]
+  // Auch einfache Produkte wie `10 * 60 * 1000`.
+  const scope = [...src.matchAll(/^const ([A-Z][A-Z0-9_]*)\s*=\s*(-?[\d.]+(?:\s*\*\s*[\d.]+)*|'[^']*'|"[^"]*"|true|false);\s*$/gm)]
     .map((m) => `const ${m[1]} = ${m[2]};`)
     .join('\n');
   // Als Objektmethode auswerten, damit `this` funktioniert.

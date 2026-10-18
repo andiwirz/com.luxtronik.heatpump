@@ -1,6 +1,6 @@
 {
   "name": "com.luxtronik.heatpump",
-  "version": "2.1.16",
+  "version": "2.1.17",
   "description": "Luxtronik Heat Pump for Homey",
   "main": "app.js",
   "scripts": {

@@ -170,3 +170,136 @@ test('ohne neue Einträge wird nichts gemeldet und nichts gespeichert', async ()
   await dev._reportNewErrors({ errors: 'no' });
   assert.deepStrictEqual([dev.triggered, dev.stored], [[], []]);
 });
+
+// ── Schreibvorgänge, die eine Abfrage auslöst ───────────────────────────────
+
+const writing = {
+  ...extractMethod('_readParameters', undefined, { faultyReading: codes.faultyReading }),
+  ...extractMethod('_write'),
+  ...extractMethod('_writeChecked'),
+  ...extractMethod('_writeAndReadBack', undefined, { readBack: codes.readBack }),
+  ...extractMethod('_recordWrite', undefined, { writeLogLine: codes.writeLogLine }),
+  ...extractMethod('_notAccepted'),
+  ...extractMethod('_writeFromPoll'),
+};
+
+test('ein Schreibvorgang aus der Abfrage wartet nicht auf sie', async () => {
+  // Erreichte eine Schnellladung ihr Ziel, schrieb _processData das
+  // Zurückschalten und wartete darauf. Das Zurücklesen wartete seinerseits auf
+  // das Ende der Abfrage, bis deren Notstopp nach rund 35 s das Gerät als
+  // nicht erreichbar meldete — bei jedem automatischen Ende.
+  const dev = makePollingDevice([reading()]);
+  const registers = Object.assign(new Array(100).fill(0), { 1: 20, 2: 480, 47: 650 });
+  let result = null;
+  Object.assign(dev, writing, {
+    _writeQueue: Promise.resolve(),
+    _writeProtectUntil: {},
+    _pollTimeoutSec: () => 1,
+    _sleep: (ms) => new Promise((resolve) => setTimeout(resolve, Math.min(ms, 5))),
+    _startPolling: () => {},
+    _writeNow: async (parameter, value) => { registers[parameter] = value; return { parameter, value }; },
+    getName: () => 'Wärmepumpe',
+  });
+  dev.homey.settings = { get: () => [], set: () => {} };
+  dev._pump.readRaw = (callback) => callback(null, { values: JSON.stringify(reading()), parameters: JSON.stringify(registers) });
+  dev._processData = async () => {
+    dev._writeFromPoll('Testschreiben', () => dev._write(47, 750).then((r) => { result = r; }));
+  };
+  await dev._doPoll();
+  const deadline = Date.now() + 3000;
+  while (!result && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.ok(result && result.accepted === true, 'Schreibvorgang samt Zurücklesen durch');
+  assert.ok(!dev.calls.includes('unavailable'), 'kein Notstopp, kein "nicht erreichbar"');
+  assert.strictEqual(dev._pollTimeout, null, 'Notstopp der Abfrage aufgehoben');
+});
+
+test('_processData und die Aufsicht der Schnellladung warten auf keinen Schreibvorgang', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const { ROOT } = require('./helpers');
+  const src = fs.readFileSync(path.join(ROOT, 'drivers/luxtronik-heatpump/device.js'), 'utf8').replace(/\r\n/g, '\n');
+  const body = (name) => {
+    const start = src.search(new RegExp(`^  (?:async )?${name}\\(`, 'm'));
+    return src.slice(start, src.indexOf('\n  }\n', start));
+  };
+  const awaitedWrite = /await this\._(?:write\w*|stopHotwaterBoost\w*|endBoost|endThermalDisinfection|set(?:ThermalDisinfectionContinuous|\w+OperationMode))\(/;
+  for (const name of ['_processData', '_superviseBoost', '_clearStaleBoostTiles']) {
+    assert.doesNotMatch(body(name), awaitedWrite, name);
+  }
+  assert.match(body('_processData'), /_writeFromPoll\('Desinfektion beenden'/);
+});
+
+// Gerät für _endThermalDisinfection(): merkt sich Schreiben, Auslöser und Meldung.
+function makeDisinfectionDevice({ fails = false } = {}) {
+  const dev = {
+    ...extractMethod('_endThermalDisinfection'),
+    calls: [],
+    _disinfectionEnding: false,
+    _disinfectionRetryAt: 0,
+    _tl: (de) => de,
+    log: () => {},
+    error: () => dev.calls.push('error'),
+    _setThermalDisinfectionContinuous: async (on) => {
+      dev.calls.push(`write:${on}`);
+      if (fails) throw new Error('Write-Timeout');
+    },
+    _triggerThermalDisinfEnded: { trigger: async () => { dev.calls.push('trigger'); } },
+    _notify: async (text) => { dev.calls.push(`notify:${text}`); },
+  };
+  return dev;
+}
+
+test('die Desinfektion meldet "abgeschlossen" erst, wenn das Abschalten übernommen ist', async () => {
+  // Vorher kamen Auslöser und Timeline auch nach einem Fehlschlag, und mit
+  // jeder Abfrage wieder, solange der Dauerbetrieb lief.
+  const ok = makeDisinfectionDevice();
+  await ok._endThermalDisinfection(64, 64.5);
+  assert.deepStrictEqual(ok.calls.map((c) => c.split(':')[0]), ['write', 'trigger', 'notify']);
+
+  const failing = makeDisinfectionDevice({ fails: true });
+  await failing._endThermalDisinfection(64, 64.5);
+  assert.deepStrictEqual(failing.calls, ['write:false', 'error'], 'kein Auslöser, keine Meldung');
+  await failing._endThermalDisinfection(64, 64.6);
+  assert.strictEqual(failing.calls.filter((c) => c.startsWith('write')).length, 1, 'nicht mit der nächsten Abfrage wieder');
+  assert.ok(failing._disinfectionRetryAt > Date.now());
+  failing._disinfectionRetryAt = 0;
+  await failing._endThermalDisinfection(64, 64.6);
+  assert.strictEqual(failing.calls.filter((c) => c.startsWith('write')).length, 2, 'nach der Wartezeit schon');
+});
+
+test('läuft das Abschalten der Desinfektion noch, startet keine Abfrage ein zweites', async () => {
+  const releases = [];
+  const dev = makeDisinfectionDevice();
+  dev._setThermalDisinfectionContinuous = (on) => {
+    dev.calls.push(`write:${on}`);
+    return new Promise((resolve) => { releases.push(resolve); });
+  };
+  const first = dev._endThermalDisinfection(64, 64.5);
+  const second = dev._endThermalDisinfection(64, 64.7);
+  for (const release of releases) release();
+  await Promise.all([first, second]);
+  assert.strictEqual(dev.calls.filter((c) => c.startsWith('write')).length, 1);
+  assert.strictEqual(dev.calls.filter((c) => c === 'trigger').length, 1);
+});
+
+test('Temperatur-Auslöser bekommen den vorigen Wert mit, jeder Flow prüft seine Schwelle', async () => {
+  // Vorher prüfte der Flow nur, ob der neue Wert jenseits der Schwelle lag,
+  // und lief so bei jeder kleinen Änderung in diese Richtung.
+  const { _triggerTemperatureChange } = extractMethod('_triggerTemperatureChange');
+  const fired = [];
+  const dropped = { trigger: async (device, tokens, state) => { fired.push(['fiel', state]); } };
+  const rose = { trigger: async (device, tokens, state) => { fired.push(['stieg', state]); } };
+  const dev = { _triggerTemperatureChange };
+  await dev._triggerTemperatureChange(5.1, 5.0, dropped, rose);
+  await dev._triggerTemperatureChange(5.0, 5.2, dropped, rose);
+  await dev._triggerTemperatureChange(5.2, 5.2, dropped, rose);
+  await dev._triggerTemperatureChange(null, 5.2, dropped, rose);
+  assert.deepStrictEqual(fired, [['fiel', { temperature: 5.0, previous: 5.1 }], ['stieg', { temperature: 5.2, previous: 5.0 }]]);
+
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const { ROOT } = require('./helpers');
+  const src = fs.readFileSync(path.join(ROOT, 'drivers/luxtronik-heatpump/device.js'), 'utf8');
+  assert.strictEqual(src.split('droppedBelow(state.previous, state.temperature, args.temperature)').length - 1, 2);
+  assert.strictEqual(src.split('roseAbove(state.previous, state.temperature, args.temperature)').length - 1, 2);
+});
