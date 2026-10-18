@@ -6,7 +6,8 @@ const {
   switchoffReason, newestEntry, extendedState, defrostVariant, defrostState, mixerCanCool,
   controllerConfig, parameterChanges, parameterLabel, plausibleLogEntries, hotWaterEvidence,
   coolingCounterState, coolingCounterRunning, readBack, writeLogLine, errorText, errorHint,
-  newErrors, faultyReading, hotWaterTargetParameter, hotWaterMaximum, clampHotWaterTarget, hotWaterSetpoint,
+  newErrors, faultyReading, hotWaterTargetParameter, hotWaterMaximum, clampHotWaterTarget, hotWaterDialMaximum,
+  hotWaterSetpoint,
 } = require('../../lib/luxtronik-codes');
 const { CALCULATIONS, PARAMETERS } = require('../../lib/luxtronik-registers');
 
@@ -184,6 +185,9 @@ class LuxtronikHeatpumpDevice extends Device {
     // Merker für nachgewiesene optionale Hardware, siehe _hardwarePresent().
     // Der Stand aus dem Store kommt gleich nach den Flow-Triggern dazu.
     this._hardwareSeen = {};
+    // Obergrenze des Warmwasser-Thermostats, zuletzt gesetzt; undefined, bis
+    // _syncHotWaterDial() sie zum ersten Mal aus den Optionen liest.
+    this._hotWaterDialMax = undefined;
 
     // Flow-Trigger
     this._triggerHeatingModeChanged  = this.homey.flow.getDeviceTriggerCard('heating_operation_mode_changed');
@@ -1328,7 +1332,9 @@ class LuxtronikHeatpumpDevice extends Device {
     // und die App auch schreibt, siehe hotWaterSetpoint().
     const ww105 = this._n(p.temperature_hot_water_target);   // Parameter 105
     const ww2   = this._n(p.warmwater_temperature);          // Parameter 2
-    await this._setIfValid('target_temperature', hotWaterSetpoint(this.getCapabilityValue('firmware_version'), ww2, ww105));
+    const wwSetpoint = hotWaterSetpoint(this.getCapabilityValue('firmware_version'), ww2, ww105);
+    await this._setIfValid('target_temperature', wwSetpoint);
+    await this._syncHotWaterDial(wwSetpoint);
 
     // Thermische Desinfektion Soll (TDI): parameter 47 = temperature_hot_water_limit
     const tdiVal = this._n(p.temperature_hot_water_limit);
@@ -1461,22 +1467,55 @@ class LuxtronikHeatpumpDevice extends Device {
   }
 
 
-  // Schreibt nur das Register, das der Regler mit dieser Firmware auswertet
+  // Schreibt in das Register, das der Regler mit dieser Firmware auswertet
   // (siehe hotWaterTargetParameter()), und höchstens seine "Max. WW-Temp."
-  // (P0973): Einen höheren Wert verwirft er.
+  // (P0973): Einen höheren Wert setzt er selbst auf die Grenze herab, und das
+  // Zurücklesen meldete dann "nicht übernommen".
   async _setWarmwaterTargetTemperature(value) {
     const maximum = hotWaterMaximum(this._rawParameters);
     const clamped = clampHotWaterTarget(value, maximum);
-    const parameter = hotWaterTargetParameter(this.getCapabilityValue('firmware_version'));
+    const legacy = hotWaterTargetParameter(this.getCapabilityValue('firmware_version')) === PARAMETERS.P0002_DHW_TARGET_TEMPERATURE;
     if (maximum !== null && value > maximum) this.log(`Brauchwasser Soll-Temperatur ${value} °C auf Max. WW-Temp. ${maximum} °C begrenzt`);
-    this.log(`Setze Brauchwasser Soll-Temperatur: ${clamped} °C (Parameter ${parameter})`);
+    this.log(`Setze Brauchwasser Soll-Temperatur: ${clamped} °C (Parameter ${legacy ? '2 und 105' : '105'})`);
     await this.setCapabilityValue('target_temperature', clamped).catch(() => {});
     this._setWriteProtect('target_temperature', 120000);
-    await this._write(parameter === PARAMETERS.P0002_DHW_TARGET_TEMPERATURE ? 'warmwater_target_temperature' : 'temperature_hot_water_target', clamped);
+    await this._write(legacy ? 'warmwater_target_temperature' : 'temperature_hot_water_target', clamped);
+    // Firmware vor x.88.3 wertet P0002 aus, "Deckung WP". Senkt der Regler es
+    // ab, weil die Wärmepumpe den Wert nicht erreicht, hebt er es danach nur
+    // bis zum Wunschwert P0105 wieder an (Betriebsanleitung, BenPru/luxtronik
+    // #793). Deshalb dort auch P0105 setzen, wie es das Bedienteil tut. Ob die
+    // Aktion gelingt, entscheidet P0002; hält der Regler P0105 nicht, steht das
+    // im Schreibprotokoll.
+    if (legacy) {
+      await this._writeChecked('temperature_hot_water_target', clamped)
+        .catch((e) => this.error('Wunschwert P0105 nicht geschrieben:', e.message));
+    }
     // Begrenzt: Nach der Aktion kann auf der Kachel der verlangte Wert stehen.
     // Ohne Schreibschutz zeigt die Abfrage gleich nach dem Schreiben den echten.
     if (clamped !== value) this._setWriteProtect('target_temperature', 0);
     this.log(`Brauchwasser Soll-Temperatur erfolgreich gesendet: ${clamped} °C`);
+  }
+
+  // Führt die Obergrenze des Warmwasser-Thermostats der "Max. WW-Temp." nach,
+  // siehe hotWaterDialMaximum(): Der Drehregler soll nicht mehr anbieten, als
+  // der Regler annimmt. setCapabilityOptions() ist teuer und baut Flow-Karten
+  // neu auf, deshalb nur, wenn sich die Grenze ändert. Bereich, Schrittweite
+  // und Titel bleiben, auch falls getCapabilityOptions() sie nicht mitliefert,
+  // wie beim Titelabgleich in onInit().
+  async _syncHotWaterDial(setpoint) {
+    if (!this._rawParameters) return;
+    const max = hotWaterDialMaximum(hotWaterMaximum(this._rawParameters), setpoint);
+    let current = null;
+    try { current = this.getCapabilityOptions('target_temperature'); } catch (e) { current = null; }
+    if (this._hotWaterDialMax === undefined) this._hotWaterDialMax = current ? current.max : null;
+    if (max === this._hotWaterDialMax) return;
+    // Vor dem Aufruf merken: Scheitert er, nicht bei jeder Abfrage erneut.
+    this._hotWaterDialMax = max;
+    const driver = ((this.homey.manifest && this.homey.manifest.drivers) || []).find((d) => d.id === this.driver.id) || {};
+    const defaults = (driver.capabilitiesOptions || {}).target_temperature || {};
+    this.log(`Warmwasser-Thermostat: Obergrenze ${max} °C`);
+    try { await this.setCapabilityOptions('target_temperature', { ...defaults, ...(current || {}), max }); }
+    catch (e) { this.error('Obergrenze des Warmwasser-Thermostats nicht gesetzt:', e.message); }
   }
 
   async _setTdiTargetTemperature(value) {

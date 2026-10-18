@@ -13,6 +13,7 @@ const path = require('node:path');
 const { ROOT, extractMethod } = require('./helpers');
 const {
   readBack, writeLogLine, faultyReading, hotWaterMaximum, clampHotWaterTarget, hotWaterTargetParameter,
+  hotWaterDialMaximum,
 } = require('../lib/luxtronik-codes');
 const { PARAMETERS } = require('../lib/luxtronik-registers');
 
@@ -108,19 +109,22 @@ test('das Protokoll behält die letzten 20 Schreibvorgänge, neueste zuerst', as
   assert.strictEqual(dev.settings.luxtronik_writes[0].sent, 760);
 });
 
-test('das Warmwasser-Soll geht nur in das Register, das die Firmware auswertet', async () => {
+test('das Warmwasser-Soll geht in das Register, das die Firmware auswertet', async () => {
   // Bis x.88.2 wertet der Regler P0002 aus, ab x.88.3 P0105. Vorher schrieb
-  // die App beide und galt als erfolgreich, sobald eines den Wert hielt —
-  // auch wenn es das war, das der Regler gar nicht beachtet.
+  // die App immer beide und galt als erfolgreich, sobald eines den Wert hielt —
+  // auch wenn es das war, das der Regler gar nicht beachtet. Auf alter Firmware
+  // kommt P0105 dazu, der Wunschwert, zu dem der Regler P0002 nach einer
+  // Absenkung zurückführt; ob die Aktion gelingt, entscheidet dort P0002.
   const setter = {
     ...extractMethod('_setWarmwaterTargetTemperature', undefined,
       { hotWaterMaximum, clampHotWaterTarget, hotWaterTargetParameter, PARAMETERS }),
     ...extractMethod('_setWriteProtect'),
   };
   const INDEX = { warmwater_target_temperature: 2, temperature_hot_water_target: 105 };
-  // Nachgebauter Regler mit beiden Registern auf 48 °C und `maximum` in P0973;
-  // `rejects` lässt ihn jeden Wert verwerfen.
-  const make = (firmware, { maximum = 600, rejects = false } = {}) => {
+  // Nachgebauter Regler mit beiden Registern auf 48 °C und `maximum` in P0973.
+  // Einen höheren Wert setzt er wie der echte auf die Grenze herab. Register in
+  // `rejects` behalten ihren Wert, bei denen in `fails` scheitert schon das Schreiben.
+  const make = (firmware, { maximum = 600, rejects = [], fails = [] } = {}) => {
     const registers = { 2: 480, 105: 480, 973: maximum };
     const dev = {
       ...makeDevice(0),
@@ -133,24 +137,28 @@ test('das Warmwasser-Soll geht nur in das Register, das die Firmware auswertet',
       getCapabilityValue: (id) => (id === 'firmware_version' ? firmware : null),
       setCapabilityValue: async (id, value) => { dev.shown.push(value); },
       _writeNow: async (name, value) => {
-        dev.written.push(INDEX[name]);
-        if (!rejects) registers[INDEX[name]] = Math.round(value * 10);
-        return { parameter: INDEX[name], value: Math.round(value * 10) };
+        const index = INDEX[name];
+        dev.written.push(index);
+        if (fails.includes(index)) throw new Error('Write-Timeout');
+        const raw = Math.round(value * 10);
+        if (!rejects.includes(index)) registers[index] = maximum > 0 ? Math.min(raw, maximum) : raw;
+        return { parameter: index, value: raw };
       },
       _readParameters: async () => Object.assign([], registers),
     };
     return dev;
   };
 
-  for (const [firmware, register] of [['V3.79', 2], ['V2.88.2', 2], ['V2.88.3', 105], ['V1.89.0', 105], [null, 105]]) {
+  for (const [firmware, written] of [['V3.79', [2, 105]], ['V2.88.2', [2, 105]], ['V2.88.3', [105]], ['V1.89.0', [105]], [null, [105]]]) {
     const dev = make(firmware);
     await dev._setWarmwaterTargetTemperature(50);
-    assert.deepStrictEqual(dev.written, [register], String(firmware));
-    assert.strictEqual(dev.registers[register], 500, String(firmware));
+    assert.deepStrictEqual(dev.written, written, String(firmware));
+    assert.deepStrictEqual([dev.registers[2], dev.registers[105]], [written.includes(2) ? 500 : 480, 500], String(firmware));
     assert.ok(dev._writeProtectUntil.target_temperature > Date.now(), 'die nächste Abfrage zeigt nicht den alten Wert');
   }
 
-  // "Max. WW-Temp." 55 °C: Mehr nimmt der Regler nicht an.
+  // "Max. WW-Temp." 55 °C: Der Regler machte aus 60 °C selbst 55 °C, und das
+  // Zurücklesen meldete "nicht übernommen".
   const capped = make('V1.89.0', { maximum: 550 });
   await capped._setWarmwaterTargetTemperature(60);
   assert.deepStrictEqual([capped.registers[105], capped.shown], [550, [55]]);
@@ -160,9 +168,69 @@ test('das Warmwasser-Soll geht nur in das Register, das die Firmware auswertet',
   await open._setWarmwaterTargetTemperature(60);
   assert.strictEqual(open.registers[105], 600);
 
-  // Verwirft der Regler den Wert, scheitert die Aktion und nennt das Register.
-  await assert.rejects(make('V3.79', { rejects: true })._setWarmwaterTargetTemperature(50), (e) => e.notAccepted && /"parameter":2\b/.test(e.message));
-  await assert.rejects(make('V1.89.0', { rejects: true })._setWarmwaterTargetTemperature(50), (e) => e.notAccepted && /"parameter":105\b/.test(e.message));
+  // Verwirft der Regler das ausgewertete Register, scheitert die Aktion und nennt es.
+  await assert.rejects(make('V3.79', { rejects: [2, 105] })._setWarmwaterTargetTemperature(50), (e) => e.notAccepted && /"parameter":2\b/.test(e.message));
+  await assert.rejects(make('V1.89.0', { rejects: [105] })._setWarmwaterTargetTemperature(50), (e) => e.notAccepted && /"parameter":105\b/.test(e.message));
+  // Am Wunschwert P0105 allein scheitert sie auf alter Firmware nicht.
+  await make('V3.79', { rejects: [105] })._setWarmwaterTargetTemperature(50);
+  await make('V3.79', { fails: [105] })._setWarmwaterTargetTemperature(50);
+});
+
+test('der Drehregler des Warmwasser-Thermostats endet bei der "Max. WW-Temp."', async () => {
+  // Bei einer LWC mit V1.89.0 bot er bis 65 °C an, der Regler hielt höchstens 52 °C.
+  const { _syncHotWaterDial } = extractMethod('_syncHotWaterDial', undefined, { hotWaterDialMaximum, hotWaterMaximum });
+  const DEFAULTS = { min: 30, max: 65, step: 0.5, title: { en: 'Hot Water Setpoint' }, preventInsights: true, preventTag: true };
+  const make = (options) => {
+    const dev = {
+      _syncHotWaterDial,
+      _hotWaterDialMax: undefined,
+      _rawParameters: Object.assign([], { 973: 520 }),
+      options,
+      calls: [],
+      driver: { id: 'luxtronik-heatpump' },
+      homey: { manifest: { drivers: [{ id: 'luxtronik-heatpump', capabilitiesOptions: { target_temperature: DEFAULTS } }] } },
+      log: () => {},
+      error: () => {},
+      getCapabilityOptions: () => dev.options,
+      setCapabilityOptions: async (id, opts) => { dev.calls.push([id, opts]); dev.options = opts; },
+    };
+    return dev;
+  };
+
+  // Was das Gerät sonst an Optionen hat, bleibt, auch wenn es vom Treiber abweicht.
+  const dev = make({ ...DEFAULTS, step: 1, decimals: 1 });
+  await dev._syncHotWaterDial(51);
+  assert.deepStrictEqual(dev.calls, [['target_temperature', { ...DEFAULTS, step: 1, decimals: 1, max: 52 }]]);
+  // Unverändert: kein weiterer Aufruf, der die Flow-Karten neu aufbaut.
+  await dev._syncHotWaterDial(51);
+  assert.strictEqual(dev.calls.length, 1);
+  // Ein Soll über der Grenze, etwa nach dem Senken der Grenze, bleibt erreichbar.
+  await dev._syncHotWaterDial(54);
+  assert.strictEqual(dev.calls[1][1].max, 54);
+  dev._rawParameters[973] = 550;
+  await dev._syncHotWaterDial(51);
+  assert.strictEqual(dev.calls[2][1].max, 55);
+  // Ohne Parameterliste bleibt alles, wie es ist.
+  dev._rawParameters = null;
+  await dev._syncHotWaterDial(51);
+  assert.strictEqual(dev.calls.length, 3);
+
+  // Liefert getCapabilityOptions() nichts mit, kommen Bereich, Schrittweite und Titel aus dem Treiber.
+  const bare = make({});
+  await bare._syncHotWaterDial(51);
+  assert.deepStrictEqual(bare.calls[0][1], { ...DEFAULTS, max: 52 });
+  // Ohne P0973 gilt der volle Bereich, und der gilt schon.
+  const full = make({ ...DEFAULTS });
+  full._rawParameters = new Array(900).fill(0);
+  await full._syncHotWaterDial(51);
+  assert.strictEqual(full.calls.length, 0);
+  // Ein gescheiterter Aufruf wird nicht bei jeder Abfrage wiederholt.
+  const failing = make({ ...DEFAULTS });
+  let attempts = 0;
+  failing.setCapabilityOptions = async () => { attempts++; throw new Error('Rate-Limit'); };
+  await failing._syncHotWaterDial(51);
+  await failing._syncHotWaterDial(51);
+  assert.strictEqual(attempts, 1);
 });
 
 test('der Warmwasser-Thermostat zeigt das Register, das die App schreibt', () => {
@@ -173,7 +241,8 @@ test('der Warmwasser-Thermostat zeigt das Register, das die App schreibt', () =>
   const src = device.replace(/\r\n/g, '\n');
   assert.match(src, /const ww105 = this\._n\(p\.temperature_hot_water_target\);/);
   assert.match(src, /const ww2\s+= this\._n\(p\.warmwater_temperature\);/);
-  assert.match(src, /hotWaterSetpoint\(this\.getCapabilityValue\('firmware_version'\), ww2, ww105\)/);
+  assert.match(src, /const wwSetpoint = hotWaterSetpoint\(this\.getCapabilityValue\('firmware_version'\), ww2, ww105\);/);
+  assert.match(src, /this\._syncHotWaterDial\(wwSetpoint\)/);
   assert.match(src, /hotWaterTargetParameter\(this\.getCapabilityValue\('firmware_version'\)\)/);
 });
 

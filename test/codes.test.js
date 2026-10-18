@@ -502,6 +502,19 @@ test('clampHotWaterTarget begrenzt auf 30–65 °C und die "Max. WW-Temp."', () 
   assert.strictEqual(codes.clampHotWaterTarget(50, 20), 30);
 });
 
+test('hotWaterDialMaximum: Thermostat bis zur "Max. WW-Temp.", das aktuelle Soll bleibt erreichbar', () => {
+  assert.strictEqual(codes.hotWaterDialMaximum(52, 51), 52);
+  assert.strictEqual(codes.hotWaterDialMaximum(null, 51), 65);
+  assert.strictEqual(codes.hotWaterDialMaximum(0, 51), 65);
+  // Grenze unter das Soll gesenkt: Der Thermostat muss das Soll noch zeigen können.
+  assert.strictEqual(codes.hotWaterDialMaximum(52, 55), 55);
+  assert.strictEqual(codes.hotWaterDialMaximum(52, null), 52);
+  // Nie ausserhalb von 30–65 °C.
+  assert.strictEqual(codes.hotWaterDialMaximum(70, 51), 65);
+  assert.strictEqual(codes.hotWaterDialMaximum(20, null), 30);
+  assert.strictEqual(codes.hotWaterDialMaximum(20, 25), 30);
+});
+
 test('hotWaterSetpoint zeigt das Register, das der Regler auswertet', () => {
   // Werte aus BenPru/luxtronik (DHW_TARGET_REGISTERS.md): V1.88.3 mit P0002 43 und P0105 46.
   assert.strictEqual(codes.hotWaterSetpoint('V1.88.3', 43, 46), 46);
