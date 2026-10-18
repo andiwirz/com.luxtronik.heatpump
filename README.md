@@ -101,7 +101,7 @@ Once a sensor has reported a real value its tile stays, even when the value legi
 
 | Capability                         | Range / Options                                              |
 |------------------------------------|--------------------------------------------------------------|
-| **Hot Water Thermostat**           | Setpoint: 30–65 °C, up to the controller's max. hot water temperature · Actual: current hot water temperature |
+| **Hot Water Thermostat**           | Setpoint: 30–65 °C, up to the controller's max. hot water temperature (device setting *Max. Hot Water Temperature*) · Actual: current hot water temperature |
 | **Heating Thermostat**             | Correction: −5 to +5 °C · Actual: current flow temperature  |
 | **Heating Operation Mode**         | Automatic · Auxiliary · Party · Holiday · Off               |
 | **Hot Water Operation Mode**       | Automatic · Auxiliary · Party · Holiday · Off               |
